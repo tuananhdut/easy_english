@@ -4,7 +4,7 @@
   "description": "seup project",
   "main": "index.js",
   "scripts": {
-    "dev": "npx nodemon",
+    "dev": "cross-env NODE_ENV=development npx nodemon",
     "build": "rimraf ./dist && tsc && tsc-alias",
     "start": "node dist/index.js",
     "lint": "eslint .",
@@ -16,7 +16,13 @@
   "license": "ISC",
   "devDependencies": {
     "@eslint/js": "^9.23.0",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.1",
+    "@types/ioredis": "^5.0.0",
+    "@types/morgan": "^1.9.9",
     "@types/node": "^22.13.13",
+    "@types/passport": "^1.0.17",
+    "cross-env": "^7.0.3",
     "eslint": "^9.23.0",
     "eslint-config-prettier": "^10.1.1",
     "eslint-plugin-prettier": "^5.2.4",
@@ -28,5 +34,16 @@
     "tsx": "^4.19.3",
     "typescript": "^5.8.2",
     "typescript-eslint": "^8.27.0"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.1692.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "ioredis": "^5.6.0",
+    "morgan": "^1.10.0",
+    "mysql2": "^3.14.0",
+    "passport": "^0.7.0",
+    "path": "^0.12.7"
   }
 }
