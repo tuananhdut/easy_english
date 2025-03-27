@@ -3,6 +3,7 @@ import dotenv from 'dotenv'
 import morgan from 'morgan'
 import cors from 'cors'
 import RedisClient from './config/RedisClient'
+import { AppDataSource } from './config/data-source'
 dotenv.config()
 
 class App {
@@ -17,7 +18,11 @@ class App {
     this.catchError()
   }
 
-  private async databaseSync(): Promise<void> {}
+  private async databaseSync(): Promise<void> {
+    AppDataSource.initialize()
+      .then(() => console.log('Database connected!'))
+      .catch((err) => console.error('Error connecting to DB', err))
+  }
 
   private async cacheConnect(): Promise<void> {
     try {
