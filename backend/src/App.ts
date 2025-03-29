@@ -1,9 +1,13 @@
-import express, { Application } from 'express'
+import express, { Application, Request, Response, NextFunction } from 'express'
 import dotenv from 'dotenv'
 import morgan from 'morgan'
 import cors from 'cors'
 import RedisClient from './config/RedisClient'
 import { AppDataSource } from './config/data-source'
+import routes from './routes/index'
+import { ApiError } from './utils/ApiError'
+import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware'
+import { StatusCodes } from 'http-status-codes'
 dotenv.config()
 
 class App {
@@ -34,13 +38,12 @@ class App {
   }
 
   private routes(): void {
-    this.app.get('/', (req, res) => {
-      res.send('Hello World')
-    })
+    this.app.use('/api', routes)
   }
 
   private plugins(): void {
     this.app.use(express.json())
+    this.app.use(express.urlencoded({ extended: true }))
     this.app.use(cors())
     if (process.env.NODE_ENV === 'development') {
       this.app.use(morgan('dev'))
@@ -49,7 +52,12 @@ class App {
     }
   }
 
-  private catchError(): void {}
+  private catchError(): void {
+    this.app.use((req: Request, res: Response, next: NextFunction) => {
+      next(new ApiError(StatusCodes.NOT_FOUND, 'Api not found'))
+    })
+    this.app.use(errorHandlingMiddleware)
+  }
 }
 
 export default new App().app
