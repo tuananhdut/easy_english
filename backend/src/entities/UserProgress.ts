@@ -1,5 +1,5 @@
 import 'reflect-metadata'
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, UpdateDateColumn } from 'typeorm'
 import { User } from './User'
 import { Flashcard } from './FlashCard'
 

@@ -12,12 +12,14 @@ export class AuthController {
 
   public async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { username, gmail, password, fullName, role } = req.body
+      const { username, password, fullName, role } = req.body
+      let { gmail } = req.body
 
       if (!username || !password) {
         throw new ApiError(400, 'Tên đăng nhập và mật khẩu là bắt buộc')
       }
 
+      gmail = gmail?.trim() === '' ? null : gmail
       const { user, token } = await this.authService.register({
         username,
         gmail,
@@ -27,7 +29,33 @@ export class AuthController {
       })
       new ApiSuccess({ user, token }, 'Đăng ký thành công', 201).send(res)
     } catch (err) {
-      next(err) // Chuyển lỗi sang middleware xử lý lỗi
+      next(err)
+    }
+  }
+
+  public async login(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { username, password } = req.body
+
+      if (!username || !password) {
+        throw new ApiError(400, 'Tên đăng nhập và mật khẩu là bắt buộc')
+      }
+
+      const { user, token } = await this.authService.login(username, password)
+      new ApiSuccess({ user, token }, 'Đăng nhập thành công').send(res)
+    } catch (err) {
+      next(err)
+    }
+  }
+  public async getProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.user
+      if (!user) {
+        throw new ApiError(401, 'Unauthorized')
+      }
+      new ApiSuccess(user, 'Lấy thông tin người dùng thành công').send(res)
+    } catch (err) {
+      next(err)
     }
   }
 }

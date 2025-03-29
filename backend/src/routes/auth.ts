@@ -1,6 +1,7 @@
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import { Router, Request, Response, response } from 'express'
 import { AuthController } from '~/controllers/AuthController'
+import { authMiddleware } from '../middlewares/authMiddleware'
 
 const authController = new AuthController()
 
@@ -10,9 +11,9 @@ router.get('/login', (req: Request, res: Response) => {
 })
 
 router.post('/register', authController.register.bind(authController))
-// router.post('/login', authController.login)
-// router.post('/google-login', authController.googleLogin)
-// router.get('/me', authMiddleware, authController.getProfile)
+router.post('/login', authController.login.bind(authController))
+// router.post('/google-login', authController.googleLogin).bind(authController))
+router.get('/me', authMiddleware, authController.getProfile)
 // router.post('/logout', authMiddleware, authController.logout)
 // router.patch('/change-password', authMiddleware, authController.changePassword)
 // router.put('/profile', authMiddleware, authController.updateProfile)
