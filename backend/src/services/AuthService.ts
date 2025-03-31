@@ -6,6 +6,7 @@ import { AppDataSource } from '../config/data-source' // Giả định bạn đ�
 import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import ClientRedis from '~/config/RedisClient'
+import { Leaderboard } from '~/entities/LeaderBoard'
 
 interface RegisterInput {
   username: string
@@ -38,6 +39,12 @@ export class AuthService {
     // Hash mật khẩu
     const hashedPassword = await bcrypt.hash(password, 10)
 
+    let leaderboard = undefined
+
+    if (!role || role === UserRole.STUDENT) {
+      leaderboard = new Leaderboard()
+    }
+
     // Tạo user mới
     const user = this.userRepository.create({
       username,
@@ -45,7 +52,8 @@ export class AuthService {
       password: hashedPassword,
       fullName,
       role: role || UserRole.STUDENT,
-      provider: AuthProvider.LOCAL
+      provider: AuthProvider.LOCAL,
+      leaderboard: leaderboard ? leaderboard : undefined
     })
 
     await this.userRepository.save(user)
@@ -109,12 +117,14 @@ export class AuthService {
       return { user: existingUser, token }
     }
 
+    const leaderboard = new Leaderboard()
     const newUser = this.userRepository.create({
       googleId,
       gmail,
       fullName,
       image,
-      provider: AuthProvider.GOOGLE
+      provider: AuthProvider.GOOGLE,
+      leaderboard: leaderboard
     })
     await this.userRepository.save(newUser)
     delete newUser.password

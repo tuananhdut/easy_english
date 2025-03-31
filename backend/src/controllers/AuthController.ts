@@ -11,6 +11,9 @@ export class AuthController {
   constructor() {
     this.authService = new AuthService()
     this.googleCallback = this.googleCallback.bind(this)
+    this.register = this.register.bind(this)
+    this.login = this.login.bind(this)
+    this.getProfile = this.getProfile.bind(this)
   }
 
   public async register(req: Request, res: Response, next: NextFunction): Promise<void> {

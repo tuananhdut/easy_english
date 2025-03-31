@@ -1,5 +1,6 @@
 import 'reflect-metadata'
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BeforeUpdate } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BeforeUpdate, OneToOne } from 'typeorm'
+import { Leaderboard } from './LeaderBoard'
 
 export enum UserRole {
   STUDENT = 'học sinh',
@@ -16,6 +17,9 @@ export enum AuthProvider {
 export class User {
   @PrimaryGeneratedColumn()
   id!: number
+
+  @OneToOne(() => Leaderboard, (Leaderboard) => Leaderboard.user, { cascade: true })
+  leaderboard!: Leaderboard
 
   @Column({ type: 'varchar', unique: true, nullable: true })
   gmail!: string | null

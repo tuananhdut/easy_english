@@ -1,14 +1,15 @@
 import 'reflect-metadata'
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, UpdateDateColumn } from 'typeorm'
+import { Entity, PrimaryColumn, Column, OneToOne, JoinColumn, UpdateDateColumn } from 'typeorm'
 import { User } from './User'
 
 @Entity({ name: 'leaderboard' })
 export class Leaderboard {
-  @PrimaryGeneratedColumn()
+  @PrimaryColumn({ type: 'int' })
   id!: number
 
-  @ManyToOne(() => User, (user) => user.id, { nullable: false, onDelete: 'CASCADE' })
-  user!: User // Người dùng trên bảng xếp hạng
+  @OneToOne(() => User, (user) => user.leaderboard, { onDelete: 'CASCADE' })
+  @JoinColumn({ name: 'id' })
+  user!: User
 
   @Column({ type: 'int', default: 0 })
   total_points!: number // Tổng điểm của user trên toàn hệ thống
