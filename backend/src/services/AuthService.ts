@@ -5,6 +5,7 @@ import * as jwt from 'jsonwebtoken'
 import { AppDataSource } from '../config/data-source' // Giả định bạn đã cấu hình TypeORM DataSource
 import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
+import ClientRedis from '~/config/RedisClient'
 
 interface RegisterInput {
   username: string
@@ -14,17 +15,12 @@ interface RegisterInput {
   role?: UserRole
 }
 
-// interface LoginInput {
-//   gmail: string
-//   password: string
-// }
-
-// interface GoogleLoginInput {
-//   googleId: string
-//   gmail: string
-//   fullName?: string
-//   image?: string
-// }
+export interface UserLoginGoogle {
+  googleId: string | null
+  gmail: string | null
+  fullName: string | null
+  image: string | null
+}
 
 export class AuthService {
   private userRepository: Repository<User>
@@ -77,6 +73,53 @@ export class AuthService {
     const token = this.generateToken(user)
 
     return { user, token }
+  }
+
+  async logout(token: string): Promise<void> {
+    //bỏ token vào blacklist
+    const clientRedis = ClientRedis.getClient()
+    await clientRedis.set(`blacklist:${token}`, 'true', 'EX', 60 * 60) // 1 hour expiration
+    return Promise.resolve()
+  }
+
+  async findOrCreateGoogleUser({
+    googleId,
+    gmail,
+    fullName,
+    image
+  }: UserLoginGoogle): Promise<{ user: User; token: string }> {
+    if (!googleId) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Google ID is required')
+    }
+    if (!gmail) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Gmail is required')
+    }
+    const existingUser = await this.userRepository.findOne({ where: { gmail } })
+    if (existingUser) {
+      this.userRepository.merge(existingUser, {
+        googleId: googleId,
+        fullName: existingUser.fullName || fullName,
+        image: existingUser.image || image,
+        provider: AuthProvider.GOOGLE
+      })
+      await this.userRepository.save(existingUser)
+
+      delete existingUser.password
+      const token = this.generateToken(existingUser)
+      return { user: existingUser, token }
+    }
+
+    const newUser = this.userRepository.create({
+      googleId,
+      gmail,
+      fullName,
+      image,
+      provider: AuthProvider.GOOGLE
+    })
+    await this.userRepository.save(newUser)
+    delete newUser.password
+    const token = this.generateToken(newUser)
+    return { user: newUser, token }
   }
 
   private generateToken(user: User): string {

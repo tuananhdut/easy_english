@@ -24,10 +24,10 @@ export class User {
   username?: string | null
 
   @Column({ type: 'varchar', nullable: true })
-  password?: string
+  password?: string | null
 
   @Column({ type: 'varchar', nullable: true })
-  image?: string
+  image?: string | null
 
   @Column({
     type: 'enum',
@@ -46,7 +46,7 @@ export class User {
   role!: UserRole
 
   @Column({ type: 'varchar', nullable: true })
-  fullName?: string
+  fullName?: string | null
 
   @Column({ type: 'varchar', unique: true, nullable: true })
   googleId?: string
