@@ -1,11 +1,15 @@
-import React, { useState } from "react";
+import React, { useEffect } from 'react'
+import { useAppDispatch } from './app/hooks'
+import { fetchCurrentUser } from './features/auth/authThunks'
 
-function App() {
-  return (
-    <div>
-      <h1>Hello World</h1>
-    </div>
-  );
+const App: React.FC = () => {
+  const dispatch = useAppDispatch()
+
+  useEffect(() => {
+    dispatch(fetchCurrentUser())
+  }, [dispatch])
+
+  return {
+    /* Your app content */
+  }
 }
-
-export default App;
