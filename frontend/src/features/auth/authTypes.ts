@@ -23,9 +23,3 @@ export interface LoginCredentials {
   username: string
   password: string
 }
-// Các kiểu action cho redux
-export type AuthAction =
-  | { type: 'LOGIN_REQUEST' }
-  | { type: 'LOGIN_SUCCESS'; payload: LoginSuccessPayload }
-  | { type: 'LOGIN_FAILURE'; payload: LoginFailurePayload }
-  | { type: 'LOGOUT' }

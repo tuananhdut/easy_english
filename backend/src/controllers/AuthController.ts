@@ -94,8 +94,6 @@ export class AuthController {
       // Destructuring trực tiếp từ req.user vì dữ liệu đã phẳng
       const { googleId, gmail, fullName, image } = userData as UserLoginGoogle
 
-      console.log(googleId, gmail, fullName, image)
-
       // Gọi AuthService để tìm hoặc tạo user
       const { user, token } = await this.authService.findOrCreateGoogleUser({ gmail, fullName, image, googleId })
 

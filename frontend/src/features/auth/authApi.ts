@@ -11,3 +11,8 @@ export const loginApi = async (credentials: LoginCredentials): Promise<{ user: U
 export const logoutApi = async (): Promise<void> => {
   await apiClient.post('/auth/logout')
 }
+
+export const meApi = async (): Promise<{ user: User }> => {
+  const response = await apiClient.get('auth/me')
+  return { user: response.data as User }
+}

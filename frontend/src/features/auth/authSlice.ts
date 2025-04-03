@@ -1,65 +1,91 @@
-// src/features/auth/authSlice.ts
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import { loginApi, logoutApi } from './authApi'
+import { loginApi, logoutApi, meApi } from './authApi'
 import { User } from '../../types/user'
 import { AuthState, LoginCredentials } from './authTypes'
 
-// 1️⃣ Khởi tạo state ban đầu
 const initialState: AuthState = {
-  isAuthenticated: false,
+  isAuthenticated: false, // Không lấy từ localStorage ở đây
   user: null,
   token: null,
   loading: false,
   error: null
 }
 
-// 2️⃣ Xử lý login (gọi API)
 export const login = createAsyncThunk('auth/login', async (credentials: LoginCredentials, { rejectWithValue }) => {
   try {
-    return await loginApi(credentials)
+    const response = await loginApi(credentials)
+
+    localStorage.setItem('token', response.token)
+    localStorage.setItem('user', JSON.stringify(response.user))
+
+    console.log('check login', response)
+    return response
   } catch (error) {
-    return rejectWithValue(error.message)
+    return rejectWithValue((error as Error).message)
   }
 })
 
-// 3️⃣ Xử lý logout (gọi API)
+// Thunk xử lý logout
 export const logout = createAsyncThunk('auth/logout', async (_, { rejectWithValue }) => {
   try {
     await logoutApi()
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
   } catch (error) {
-    return rejectWithValue(error.message)
+    return rejectWithValue((error as Error).message)
   }
 })
 
-// 4️⃣ Tạo slice xử lý login/logout
+export const me = createAsyncThunk('auth/me', async (_, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem('token')
+    if (!token) throw new Error('Không có token')
+    const response = await meApi()
+    return response
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  } catch (error: any) {
+    localStorage.removeItem('token')
+    localStorage.removeItem('user')
+    return rejectWithValue((error as Error).message)
+  }
+})
+
 const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {},
   extraReducers: (builder) => {
     builder
-      // Xử lý khi login bắt đầu
       .addCase(login.pending, (state) => {
         state.loading = true
         state.error = null
       })
-      // Xử lý khi login thành công
       .addCase(login.fulfilled, (state, action: PayloadAction<{ user: User; token: string }>) => {
         state.loading = false
         state.isAuthenticated = true
         state.user = action.payload.user
         state.token = action.payload.token
       })
-      // Xử lý khi login thất bại
       .addCase(login.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })
-      // Xử lý khi logout thành công
       .addCase(logout.fulfilled, (state) => {
         state.isAuthenticated = false
         state.user = null
         state.token = null
+      })
+      .addCase(me.fulfilled, (state, action: PayloadAction<{ user: User }>) => {
+        state.loading = false
+        state.isAuthenticated = true
+        state.user = action.payload.user
+      })
+      .addCase(me.rejected, (state, action) => {
+        state.loading = false
+        state.isAuthenticated = false
+        state.user = null
+        state.token = null
+        state.error = action.payload as string
       })
   }
 })

@@ -24,14 +24,14 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET_KEY || 'tuananh123') as jwt.JwtPayload
     if (!decoded || !decoded.user) {
-      return next(new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid token'))
+      return next(new ApiError(StatusCodes.UNAUTHORIZED, 'Phiên đang nhập đã hết hạn.'))
     }
     req.user = decoded.user
     return next()
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {
-      return next(new ApiError(StatusCodes.UNAUTHORIZED, 'Token has expired. Please log in again.'))
+      return next(new ApiError(StatusCodes.UNAUTHORIZED, 'Phiên đang nhập đã hết hạn.'))
     }
-    return next(new ApiError(StatusCodes.UNAUTHORIZED, 'Invalid token'))
+    return next(new ApiError(StatusCodes.UNAUTHORIZED, 'Phiên đang nhập đã hết hạn.'))
   }
 }

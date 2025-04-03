@@ -2,13 +2,25 @@
 import axios from 'axios'
 
 const apiClient = axios.create({
-  baseURL: 'https://api.example.com', // Đổi thành API của bạn
+  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:8080',
   headers: {
     'Content-Type': 'application/json'
   }
 })
 
-// Thêm interceptor để xử lý lỗi
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('token') // Lấy token từ localStorage
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}` // Gán token vào headers
+    }
+    return config
+  },
+  (error) => {
+    return Promise.reject(error)
+  }
+)
+
 apiClient.interceptors.response.use(
   (response) => response.data,
   (error) => {
