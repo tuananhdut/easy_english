@@ -66,7 +66,6 @@ export class AuthService {
 
   async login(username: string, password: string): Promise<{ user: User; token: string }> {
     const user = await this.userRepository.findOne({ where: { username } })
-    console.log('User:', user)
     if (!user) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Tài khoản không tồn tại')
     }
@@ -77,7 +76,6 @@ export class AuthService {
     }
 
     delete user.password
-    console.log('User:', user)
     const token = this.generateToken(user)
 
     return { user, token }

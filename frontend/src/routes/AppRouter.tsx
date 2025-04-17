@@ -2,10 +2,14 @@ import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState, AppDispatch } from '../app/store'
 import LoginPage from '../pages/LoginPage'
-import Dashboard from '../pages/Dashboard'
 import HomePage from '../pages/HomePage'
 import { me } from '../features/auth/authSlice'
 import { useEffect, useState } from 'react'
+import MainLayout from '../components/layout/MainLayout'
+import SearchPage from '../pages/SearchPage'
+import DictionaryPage from '../pages/DictionaryPage'
+import PracticePage from '../pages/PracticePage'
+import MainPage from '../pages/MainPage'
 
 const useAuthCheck = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -27,6 +31,7 @@ const useAuthCheck = () => {
   return { isAuthenticated, authChecked }
 }
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const PrivateRoute = () => {
   const { isAuthenticated, authChecked } = useAuthCheck()
 
@@ -34,7 +39,7 @@ const PrivateRoute = () => {
     return <div>Loading...</div> // Thêm loading component
   }
 
-  return isAuthenticated ? <Dashboard /> : <Navigate to='/login' replace />
+  return isAuthenticated ? <HomePage /> : <Navigate to='/login' replace />
 }
 
 // const PublicRoute = () => {
@@ -49,6 +54,28 @@ const PrivateRoute = () => {
 
 const router = createBrowserRouter([
   {
+    path: '/dashboard',
+    element: <MainLayout />,
+    children: [
+      {
+        index: true,
+        element: <MainPage />
+      },
+      {
+        path: 'search',
+        element: <SearchPage />
+      },
+      {
+        path: 'dictionary',
+        element: <DictionaryPage />
+      },
+      {
+        path: 'practice',
+        element: <PracticePage />
+      }
+    ]
+  },
+  {
     path: '/',
     element: <HomePage />
   },
@@ -57,8 +84,8 @@ const router = createBrowserRouter([
     element: <LoginPage />
   },
   {
-    path: '/dashboard',
-    element: <Dashboard />
+    path: '/translate',
+    element: <SearchPage />
   }
 ])
 

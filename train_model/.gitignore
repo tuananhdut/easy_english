@@ -1,2 +1,5 @@
 venv
 data
+temp
+model
+__pycache__
