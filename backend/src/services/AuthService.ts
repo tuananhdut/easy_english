@@ -105,12 +105,7 @@ export class AuthService {
     return Promise.resolve()
   }
 
-  async findOrCreateGoogleUser({
-    googleId,
-    gmail,
-    fullName,
-    image
-  }: UserLoginGoogle): Promise<{ user: User; token: string }> {
+  async findOrCreateGoogleUser({ googleId, gmail, fullName, image }: UserLoginGoogle): Promise<string> {
     if (!googleId) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Google ID is required')
     }
@@ -127,9 +122,8 @@ export class AuthService {
       })
       await this.userRepository.save(existingUser)
 
-      delete existingUser.password
       const token = this.generateToken(existingUser)
-      return { user: existingUser, token }
+      return token
     }
 
     const leaderboard = new Leaderboard()
@@ -142,9 +136,8 @@ export class AuthService {
       leaderboard: leaderboard
     })
     await this.userRepository.save(newUser)
-    delete newUser.password
     const token = this.generateToken(newUser)
-    return { user: newUser, token }
+    return token
   }
 
   private generateToken(user: IUserResponse | User): string {

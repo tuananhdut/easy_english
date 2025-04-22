@@ -97,15 +97,12 @@ export class AuthController {
       // Destructuring trực tiếp từ req.user vì dữ liệu đã phẳng
       const { googleId, gmail, fullName, image } = userData as UserLoginGoogle
 
-      // Gọi AuthService để tìm hoặc tạo user
-      const { user, token } = await this.authService.findOrCreateGoogleUser({ gmail, fullName, image, googleId })
+      const token = await this.authService.findOrCreateGoogleUser({ gmail, fullName, image, googleId })
 
-      // Trả về phản hồi thành công
-      // new ApiSuccess({ user, token }, 'Đăng nhập bằng Google thành công').send(res)
-      console.log(process.env.CLIENT_URL)
       res.redirect(`${process.env.CLIENT_URL}/auth/google/callback?token=${token}`)
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
-      next(err)
+      res.redirect(`${process.env.CLIENT_URL}/login`)
     }
   }
 }
