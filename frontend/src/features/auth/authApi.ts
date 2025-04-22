@@ -13,10 +13,14 @@ export const logoutApi = async (): Promise<void> => {
 
 export const meApi = async (): Promise<{ user: IUser }> => {
   const response = await apiClient.get('auth/me')
-  return { user: response.data as IUser }
+  return response.data
 }
 
 export const registerApi = async (userRegister: IUserRegister): Promise<IAuthData> => {
   const response = await apiClient.post('auth/register', userRegister)
   return response.data
+}
+
+export const initiateGoogleLogin = () => {
+  window.location.href = `${import.meta.env.VITE_API_URL}/auth/google-login`
 }

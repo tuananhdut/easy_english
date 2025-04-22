@@ -1,5 +1,5 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
-import { loginApi, logoutApi, meApi, registerApi } from './authApi'
+import { loginApi, logoutApi, meApi, registerApi, initiateGoogleLogin } from './authApi'
 import { IUser } from '../../types/user'
 import { AuthState, IUserRegister, LoginCredentials } from './authTypes'
 
@@ -42,6 +42,7 @@ export const me = createAsyncThunk('auth/me', async (_, { rejectWithValue }) => 
     const token = localStorage.getItem('token')
     if (!token) throw new Error('Không có token')
     const response = await meApi()
+    handleAuthResponse({ user: response.user, token })
     return response
   } catch (error) {
     localStorage.removeItem('token')
@@ -54,6 +55,14 @@ export const register = createAsyncThunk('auth/register', async (userRegister: I
   try {
     const response = await registerApi(userRegister)
     return handleAuthResponse(response)
+  } catch (error) {
+    return rejectWithValue((error as Error).message)
+  }
+})
+
+export const googleLogin = createAsyncThunk('auth/googleLogin', async (_, { rejectWithValue }) => {
+  try {
+    initiateGoogleLogin()
   } catch (error) {
     return rejectWithValue((error as Error).message)
   }
@@ -123,6 +132,15 @@ const authSlice = createSlice({
         state.token = action.payload.token
       })
       .addCase(register.rejected, (state, action) => {
+        state.loading = false
+        state.error = action.payload as string
+      })
+      // Google Login
+      .addCase(googleLogin.pending, (state) => {
+        state.loading = true
+        state.error = null
+      })
+      .addCase(googleLogin.rejected, (state, action) => {
         state.loading = false
         state.error = action.payload as string
       })

@@ -1,10 +1,10 @@
 import { UserOutlined, LockOutlined, MailOutlined, ArrowLeftOutlined, GoogleOutlined } from '@ant-design/icons'
-import { Form, Input, Button, Typography, Divider, message } from 'antd'
+import { Form, Input, Button, Typography, Divider } from 'antd'
 import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
 import { AppDispatch, RootState } from '../app/store'
 import { IUserRegister } from '../features/auth/authTypes'
-import { register } from '../features/auth/authSlice'
+import { googleLogin, register } from '../features/auth/authSlice'
 
 const { Title, Text } = Typography
 
@@ -23,8 +23,7 @@ const RegisterPage: React.FC = () => {
   }
 
   const handleGoogleRegister = () => {
-    // Xử lý đăng ký bằng Google
-    message.info('Đăng ký bằng Google')
+    dispatch(googleLogin())
   }
 
   return (

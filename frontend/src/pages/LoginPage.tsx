@@ -1,13 +1,10 @@
-import React from 'react'
 import { Form, Input, Button, Typography, notification, Checkbox, Divider } from 'antd'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../app/store'
-import { login } from '../features/auth/authSlice'
+import { login, googleLogin } from '../features/auth/authSlice'
 import { LoginCredentials } from '../features/auth/authTypes'
 import { UserOutlined, LockOutlined, GoogleOutlined } from '@ant-design/icons'
-
 import { useNavigate } from 'react-router-dom'
-// import { initiateGoogleLogin } from '../features/auth/authApi'
 
 const { Title, Text } = Typography
 
@@ -15,32 +12,24 @@ const LoginPage: React.FC = () => {
   const [api, contextHolder] = notification.useNotification()
   const dispatch = useDispatch<AppDispatch>()
   const navigate = useNavigate()
-  const { loading } = useSelector((state: RootState) => state.auth) // Không lấy `error` từ Redux
+  const { loading } = useSelector((state: RootState) => state.auth)
 
   const onFinish = async (values: LoginCredentials) => {
     const result = await dispatch(login(values))
-
     if (result.meta.requestStatus === 'fulfilled') {
       navigate('/dashboard')
     } else {
-      console.log(result)
       api.error({
         message: 'Đăng nhập thất bại',
-        description: JSON.stringify(result.payload) || 'lỗi khi đăng nhập'
+        description: JSON.stringify(result.payload) || 'Lỗi khi đăng nhập'
       })
     }
   }
 
-  const handleGoogleLogin = async () => {
-    // const login = await initiateGoogleLogin()
-
-    console.log('Google login result:', login)
-    api.success({
-      message: 'Đăng nhập thành công',
-      description: 'Bạn đã đăng nhập bằng Google!'
-    })
-    navigate('/dashboard')
+  const handleGoogleLogin = () => {
+    dispatch(googleLogin())
   }
+
   return (
     <div
       style={{

@@ -5,6 +5,8 @@ import { ApiSuccess } from '~/utils/ApiSuccess'
 import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { IUserResponse } from '~/types/auth.types'
+import dotenv from 'dotenv'
+dotenv.config()
 
 export class AuthController {
   private authService: AuthService
@@ -99,7 +101,9 @@ export class AuthController {
       const { user, token } = await this.authService.findOrCreateGoogleUser({ gmail, fullName, image, googleId })
 
       // Trả về phản hồi thành công
-      new ApiSuccess({ user, token }, 'Đăng nhập bằng Google thành công').send(res)
+      // new ApiSuccess({ user, token }, 'Đăng nhập bằng Google thành công').send(res)
+      console.log(process.env.CLIENT_URL)
+      res.redirect(`${process.env.CLIENT_URL}/auth/google/callback?token=${token}`)
     } catch (err) {
       next(err)
     }

@@ -12,6 +12,7 @@ import PracticePage from '../pages/PracticePage'
 import MainPage from '../pages/MainPage'
 import RegisterPage from '../pages/RegisterPage'
 import ForgotPasswordPage from '../pages/ForgotPasswordPage'
+import GoogleCallback from '../pages/GoogleCallbackPage'
 
 const useAuthCheck = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -96,6 +97,10 @@ const router = createBrowserRouter([
   {
     path: '/forgot-password',
     element: <ForgotPasswordPage />
+  },
+  {
+    path: '/auth/google/callback',
+    element: <GoogleCallback />
   }
 ])
 
