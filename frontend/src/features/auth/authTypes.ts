@@ -23,7 +23,7 @@ export interface LoginCredentials {
   password: string
 }
 
-export interface UserRegister {
+export interface IUserRegister {
   username: string
   gmail: string
   fullName: string

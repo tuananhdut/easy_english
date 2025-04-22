@@ -1,30 +1,24 @@
 import { UserOutlined, LockOutlined, MailOutlined, ArrowLeftOutlined, GoogleOutlined } from '@ant-design/icons'
 import { Form, Input, Button, Typography, Divider, message } from 'antd'
-import { useState } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 import { useNavigate } from 'react-router-dom'
+import { AppDispatch, RootState } from '../app/store'
+import { IUserRegister } from '../features/auth/authTypes'
+import { register } from '../features/auth/authSlice'
 
 const { Title, Text } = Typography
 
 const RegisterPage: React.FC = () => {
   const [form] = Form.useForm()
-  const [loading, setLoading] = useState(false)
+  const dispatch = useDispatch<AppDispatch>()
+  const { loading } = useSelector((state: RootState) => state.auth)
   const navigate = useNavigate()
 
-  const onFinish = async (values: number) => {
-    try {
-      setLoading(true)
-      // Xử lý đăng ký ở đây
-      console.log('Received values:', values)
-      message.success('Đăng ký thành công!')
-      navigate('/login') // Chuyển hướng về trang đăng nhập sau khi đăng ký thành công
-    } catch (error) {
-      if (error instanceof Error) {
-        message.error('Đăng ký thất bại: ' + error.message)
-      } else {
-        message.error('Đăng ký thất bại: Lỗi không xác định')
-      }
-    } finally {
-      setLoading(false)
+  const onFinish = async (userRegister: IUserRegister) => {
+    const result = await dispatch(register(userRegister))
+
+    if (result.meta.requestStatus === 'fulfilled') {
+      navigate('/dashboard')
     }
   }
 
@@ -64,7 +58,7 @@ const RegisterPage: React.FC = () => {
 
         <Form form={form} name='register' onFinish={onFinish} layout='vertical' scrollToFirstError>
           <Form.Item
-            name='fullname'
+            name='fullName'
             label='Họ và tên'
             rules={[
               { required: true, message: 'Vui lòng nhập họ và tên!' },
@@ -90,7 +84,7 @@ const RegisterPage: React.FC = () => {
             <Input size='large' placeholder='username' />
           </Form.Item>
 
-          <Form.Item name='email' label='Email' rules={[{ type: 'email', message: 'Email không hợp lệ!' }]}>
+          <Form.Item name='gmail' label='Email' rules={[{ type: 'email', message: 'Email không hợp lệ!' }]}>
             <Input
               size='large'
               placeholder='example@email.com'
