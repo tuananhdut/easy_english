@@ -4,6 +4,7 @@ import { UserRole } from '../entities/User'
 import { ApiSuccess } from '~/utils/ApiSuccess'
 import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
+import { IUserResponse } from '~/types/auth.types'
 
 export class AuthController {
   private authService: AuthService
@@ -26,14 +27,14 @@ export class AuthController {
       }
 
       gmail = gmail?.trim() === '' ? null : gmail
-      const { user, token } = await this.authService.register({
+      const data = await this.authService.register({
         username,
         gmail,
         password,
         fullName,
         role: role as UserRole
       })
-      new ApiSuccess({ user, token }, 'Đăng ký thành công', 201).send(res)
+      new ApiSuccess(data, 'Đăng ký thành công', 201).send(res)
     } catch (err) {
       next(err)
     }
@@ -47,19 +48,19 @@ export class AuthController {
         throw new ApiError(400, 'Tên đăng nhập và mật khẩu là bắt buộc')
       }
 
-      const { user, token } = await this.authService.login(username, password)
-      new ApiSuccess({ user, token }, 'Đăng nhập thành công').send(res)
+      const data = await this.authService.login(username, password)
+      new ApiSuccess(data, 'Đăng nhập thành công').send(res)
     } catch (err) {
       next(err)
     }
   }
   public async getProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const user = req.user
+      const user = req.user as IUserResponse
       if (!user) {
         throw new ApiError(401, 'Unauthorized')
       }
-      new ApiSuccess(user, 'Lấy thông tin người dùng thành công').send(res)
+      new ApiSuccess({ user: user }, 'Lấy thông tin người dùng thành công').send(res)
     } catch (err) {
       next(err)
     }

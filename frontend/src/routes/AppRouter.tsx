@@ -10,6 +10,8 @@ import SearchPage from '../pages/SearchPage'
 import DictionaryPage from '../pages/DictionaryPage'
 import PracticePage from '../pages/PracticePage'
 import MainPage from '../pages/MainPage'
+import RegisterPage from '../pages/RegisterPage'
+import ForgotPasswordPage from '../pages/ForgotPasswordPage'
 
 const useAuthCheck = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -86,6 +88,14 @@ const router = createBrowserRouter([
   {
     path: '/translate',
     element: <SearchPage />
+  },
+  {
+    path: '/register',
+    element: <RegisterPage />
+  },
+  {
+    path: '/forgot-password',
+    element: <ForgotPasswordPage />
   }
 ])
 

@@ -1,7 +1,13 @@
-// src/types/user.ts
-export interface User {
+export enum UserRole {
+  STUDENT = 'học sinh',
+  TEACHER = 'giáo viên',
+  ADMIN = 'quản lý'
+}
+
+export interface IUser {
   id: string
-  name: string
-  email: string
-  avatar?: string
+  email: string | null
+  name: string | null
+  avatar?: string | null
+  role: UserRole
 }

@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react'
-import { Menu, Button, Avatar, Dropdown } from 'antd'
+import React, { useMemo, useState, useEffect } from 'react'
+import { Menu, Button, Avatar, Dropdown, Drawer } from 'antd'
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -8,7 +8,8 @@ import {
   SearchOutlined,
   BookOutlined,
   MessageOutlined,
-  LogoutOutlined
+  LogoutOutlined,
+  MenuOutlined
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 
@@ -21,6 +22,19 @@ interface HeaderProps {
 const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
   const navigate = useNavigate()
   const location = useLocation()
+  const [isMobile, setIsMobile] = useState(false)
+  const [drawerVisible, setDrawerVisible] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Mock user data (replace with real user data from auth context or API)
   const user = {
@@ -86,6 +100,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
     const selectedItem = menuItems.find((item) => item.key === key)
     if (selectedItem?.path) {
       navigate(selectedItem.path)
+      setDrawerVisible(false)
     }
   }
 
@@ -97,52 +112,88 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
         display: 'flex',
         alignItems: 'center',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        zIndex: 1
+        zIndex: 1,
+        position: 'sticky',
+        top: 0
       }}
     >
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          width: collapsed ? '80px' : '200px',
+          width: collapsed ? '80px' : isMobile ? '0' : '200px',
           transition: 'width 0.2s',
           background: '#001529',
           height: '64px',
-          paddingLeft: '16px'
+          paddingLeft: isMobile ? '8px' : '16px'
         }}
       >
-        <Button
-          type='text'
-          icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
-          onClick={() => setCollapsed(!collapsed)}
-          style={{
-            color: 'white',
-            fontSize: '16px',
-            marginRight: '16px'
-          }}
-          aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
-        />
-        {!collapsed && <h2 style={{ color: 'white', margin: 0 }}>Dashboard</h2>}
+        {!isMobile && (
+          <Button
+            type='text'
+            icon={collapsed ? <MenuUnfoldOutlined /> : <MenuFoldOutlined />}
+            onClick={() => setCollapsed(!collapsed)}
+            style={{
+              color: 'white',
+              fontSize: '16px',
+              marginRight: '16px'
+            }}
+            aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
+          />
+        )}
+        {!collapsed && !isMobile && <h2 style={{ color: 'white', margin: 0 }}>Dashboard</h2>}
       </div>
 
-      <Menu
-        theme='dark'
-        mode='horizontal'
-        selectedKeys={[selectedKey]}
-        items={menuItems}
-        onClick={handleMenuClick}
-        style={{
-          flex: 1,
-          background: '#001529',
-          height: '64px',
-          lineHeight: '64px',
-          borderRight: 'none'
-        }}
-      />
+      {isMobile ? (
+        <>
+          <Button
+            type='text'
+            icon={<MenuOutlined />}
+            onClick={() => setDrawerVisible(true)}
+            style={{
+              color: 'white',
+              fontSize: '16px',
+              marginLeft: '8px'
+            }}
+          />
+          <Drawer
+            title='Menu'
+            placement='left'
+            onClose={() => setDrawerVisible(false)}
+            open={drawerVisible}
+            width={250}
+            bodyStyle={{ padding: 0 }}
+          >
+            <Menu
+              theme='dark'
+              mode='inline'
+              selectedKeys={[selectedKey]}
+              items={menuItems}
+              onClick={handleMenuClick}
+              style={{ height: '100%', borderRight: 0 }}
+            />
+          </Drawer>
+        </>
+      ) : (
+        <Menu
+          theme='dark'
+          mode='horizontal'
+          selectedKeys={[selectedKey]}
+          items={menuItems}
+          onClick={handleMenuClick}
+          style={{
+            flex: 1,
+            background: '#001529',
+            height: '64px',
+            lineHeight: '64px',
+            borderRight: 'none'
+          }}
+        />
+      )}
 
       <div
         style={{
-          paddingRight: '24px',
+          paddingRight: isMobile ? '8px' : '24px',
           display: 'flex',
           alignItems: 'center',
           background: '#001529',
@@ -152,7 +203,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
         <Dropdown overlay={userMenu} trigger={['click']}>
           <Avatar
             style={{
-              marginLeft: '16px',
+              marginLeft: isMobile ? '8px' : '16px',
               backgroundColor: '#1890ff',
               cursor: 'pointer'
             }}

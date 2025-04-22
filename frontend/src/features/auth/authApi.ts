@@ -1,9 +1,8 @@
-// src/features/auth/authApi.ts
 import apiClient from '../../utils/apiClient'
-import { LoginCredentials } from './authTypes'
-import { User } from '../../types/user'
+import { LoginCredentials, IAuthData, IUserRegister } from './authTypes'
+import { IUser } from '../../types/user'
 
-export const loginApi = async (credentials: LoginCredentials): Promise<{ user: User; token: string }> => {
+export const loginApi = async (credentials: LoginCredentials): Promise<IAuthData> => {
   const response = await apiClient.post('/auth/login', credentials)
   return response.data
 }
@@ -12,7 +11,12 @@ export const logoutApi = async (): Promise<void> => {
   await apiClient.post('/auth/logout')
 }
 
-export const meApi = async (): Promise<{ user: User }> => {
+export const meApi = async (): Promise<{ user: IUser }> => {
   const response = await apiClient.get('auth/me')
-  return { user: response.data as User }
+  return { user: response.data as IUser }
+}
+
+export const registerApi = async (userRegister: IUserRegister): Promise<IAuthData> => {
+  const response = await apiClient.post('auth/register', userRegister)
+  return response.data
 }

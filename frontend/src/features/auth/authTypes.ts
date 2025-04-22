@@ -1,17 +1,16 @@
-import { User } from '../../types/user' // Giả sử bạn có file định nghĩa kiểu User ở một nơi khác
+import { IUser } from '../../types/user'
 
 // Định nghĩa state của auth
 export interface AuthState {
   isAuthenticated: boolean
-  user: User | null
+  user: IUser | null
   token: string | null
   loading: boolean
   error: string | null
 }
 
-// Định nghĩa payload cho các action
-export interface LoginSuccessPayload {
-  user: User
+export interface IAuthData {
+  user: IUser
   token: string
 }
 
@@ -21,5 +20,12 @@ export interface LoginFailurePayload {
 
 export interface LoginCredentials {
   username: string
+  password: string
+}
+
+export interface UserRegister {
+  username: string
+  gmail: string
+  fullName: string
   password: string
 }

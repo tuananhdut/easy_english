@@ -1,12 +1,15 @@
 import React from 'react'
-import { Form, Input, Button, Typography, notification } from 'antd'
+import { Form, Input, Button, Typography, notification, Checkbox, Divider } from 'antd'
 import { useDispatch, useSelector } from 'react-redux'
 import { AppDispatch, RootState } from '../app/store'
 import { login } from '../features/auth/authSlice'
 import { LoginCredentials } from '../features/auth/authTypes'
-import { useNavigate } from 'react-router-dom'
+import { UserOutlined, LockOutlined, GoogleOutlined } from '@ant-design/icons'
 
-const { Title } = Typography
+import { useNavigate } from 'react-router-dom'
+// import { initiateGoogleLogin } from '../features/auth/authApi'
+
+const { Title, Text } = Typography
 
 const LoginPage: React.FC = () => {
   const [api, contextHolder] = notification.useNotification()
@@ -28,6 +31,16 @@ const LoginPage: React.FC = () => {
     }
   }
 
+  const handleGoogleLogin = async () => {
+    // const login = await initiateGoogleLogin()
+
+    console.log('Google login result:', login)
+    api.success({
+      message: 'Đăng nhập thành công',
+      description: 'Bạn đã đăng nhập bằng Google!'
+    })
+    navigate('/dashboard')
+  }
   return (
     <div
       style={{
@@ -44,28 +57,91 @@ const LoginPage: React.FC = () => {
         style={{
           background: 'white',
           padding: '40px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+          borderRadius: '12px',
+          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
           width: '100%',
-          maxWidth: '400px',
+          maxWidth: '420px',
           border: '1px solid #e8e8e8'
         }}
       >
-        <Title level={2} style={{ textAlign: 'center', marginBottom: '30px' }}>
-          Đăng nhập
-        </Title>
+        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+          <Title level={2} style={{ marginBottom: '8px', color: '#1890ff' }}>
+            Đăng nhập
+          </Title>
+          <Text type='secondary'>Chào mừng bạn trở lại</Text>
+        </div>
+
         <Form name='login' onFinish={onFinish} layout='vertical'>
           <Form.Item name='username' rules={[{ required: true, message: 'Vui lòng nhập tên đăng nhập!' }]}>
-            <Input placeholder='Tên đăng nhập' size='large' />
+            <Input
+              placeholder='Tên đăng nhập hoặc Email'
+              size='large'
+              prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+            />
           </Form.Item>
+
           <Form.Item name='password' rules={[{ required: true, message: 'Vui lòng nhập mật khẩu!' }]}>
-            <Input.Password placeholder='Mật khẩu' size='large' />
+            <Input.Password
+              placeholder='Mật khẩu'
+              size='large'
+              prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+            />
           </Form.Item>
+
+          <Form.Item style={{ marginBottom: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Checkbox>Ghi nhớ đăng nhập</Checkbox>
+              <a href='/forgot-password'>Quên mật khẩu?</a>
+            </div>
+          </Form.Item>
+
           <Form.Item>
-            <Button type='primary' htmlType='submit' block size='large' loading={loading}>
+            <Button
+              type='primary'
+              htmlType='submit'
+              block
+              size='large'
+              loading={loading}
+              style={{ height: '48px', fontSize: '16px' }}
+            >
               Đăng nhập
             </Button>
           </Form.Item>
+
+          <Divider plain>Hoặc</Divider>
+
+          <Form.Item>
+            <Button
+              block
+              size='large'
+              style={{
+                height: '48px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderColor: '#db4437',
+                color: '#db4437'
+              }}
+              icon={<GoogleOutlined style={{ fontSize: '20px' }} />}
+              onClick={handleGoogleLogin}
+            >
+              Đăng nhập với Google
+            </Button>
+          </Form.Item>
+
+          <div style={{ textAlign: 'center', marginTop: '24px' }}>
+            <Text type='secondary'>Chưa có tài khoản? </Text>
+            <a
+              href='/register'
+              style={{ fontWeight: '500' }}
+              onClick={(e) => {
+                e.preventDefault()
+                navigate('/register')
+              }}
+            >
+              Đăng ký ngay
+            </a>
+          </div>
         </Form>
       </div>
     </div>

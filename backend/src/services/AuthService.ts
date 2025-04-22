@@ -7,6 +7,7 @@ import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import ClientRedis from '~/config/RedisClient'
 import { Leaderboard } from '~/entities/LeaderBoard'
+import { AuthResponse, IUserResponse } from '../types/auth.types'
 
 interface RegisterInput {
   username: string
@@ -30,7 +31,7 @@ export class AuthService {
     this.userRepository = AppDataSource.getRepository(User)
   }
 
-  async register({ username, gmail, password, fullName, role }: RegisterInput): Promise<{ user: User; token: string }> {
+  async register({ username, gmail, password, fullName, role }: RegisterInput): Promise<AuthResponse> {
     const existingUser = await this.userRepository.findOne({ where: { username, gmail } })
     if (existingUser) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Tên đăng nhập hoặc email đã tồn tại')
@@ -57,14 +58,21 @@ export class AuthService {
     })
 
     await this.userRepository.save(user)
-    delete user.password
-    // Tạo JWT
-    const token = this.generateToken(user)
 
-    return { user, token }
+    const userResponse: IUserResponse = {
+      id: user.id.toString(),
+      email: user.gmail || null,
+      name: user.fullName || null,
+      avatar: user.image || null,
+      role: user.role
+    }
+    // Tạo JWT
+    const token = this.generateToken(userResponse)
+
+    return { user: userResponse, token: token }
   }
 
-  async login(username: string, password: string): Promise<{ user: User; token: string }> {
+  async login(username: string, password: string): Promise<AuthResponse> {
     const user = await this.userRepository.findOne({ where: { username } })
     if (!user) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Tài khoản không tồn tại')
@@ -75,10 +83,19 @@ export class AuthService {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Mật khẩu không đúng')
     }
 
-    delete user.password
-    const token = this.generateToken(user)
+    const userResponse: IUserResponse = {
+      id: user.id.toString(),
+      email: user.gmail || null,
+      name: user.fullName || null,
+      avatar: user.image || null,
+      role: user.role
+    }
 
-    return { user, token }
+    const token = this.generateToken(userResponse)
+    return {
+      user: userResponse,
+      token: token
+    }
   }
 
   async logout(token: string): Promise<void> {
@@ -130,7 +147,7 @@ export class AuthService {
     return { user: newUser, token }
   }
 
-  private generateToken(user: User): string {
+  private generateToken(user: IUserResponse | User): string {
     const payload = { user }
     return jwt.sign(payload, process.env.JWT_SECRET_KEY || 'tuananh123', { expiresIn: '1h' })
   }

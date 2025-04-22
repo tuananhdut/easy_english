@@ -1,6 +1,6 @@
-import React, { useState } from 'react'
-import { Select, Input, Button, Space, Typography, Tooltip } from 'antd'
-import { SearchOutlined, SwapOutlined } from '@ant-design/icons'
+import React, { useState, useEffect } from 'react'
+import { Select, Input, Button, Space, Typography, Tooltip, Card, message } from 'antd'
+import { SearchOutlined, SwapOutlined, TranslationOutlined, CopyOutlined, FileTextOutlined } from '@ant-design/icons'
 
 const { Option } = Select
 const { TextArea } = Input
@@ -12,6 +12,18 @@ const SearchPage: React.FC = () => {
   const [inputText, setInputText] = useState('') // Văn bản nhập
   const [translatedText, setTranslatedText] = useState('') // Kết quả dịch
   const [isTranslating, setIsTranslating] = useState(false) // Trạng thái dịch
+  const [isMobile, setIsMobile] = useState(false)
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768)
+    }
+
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   // Danh sách ngôn ngữ
   const languages = [
@@ -48,152 +60,279 @@ const SearchPage: React.FC = () => {
   return (
     <div
       style={{
-        padding: '32px',
-        maxWidth: '800px',
-        margin: '0 auto',
-        background: '#f9f9f9',
-        borderRadius: '12px',
-        boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-        minHeight: '100vh'
+        minHeight: '100vh',
+        padding: isMobile ? '16px' : '32px',
+        background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
       }}
     >
-      <Title
-        level={2}
+      <Card
         style={{
-          textAlign: 'center',
-          color: '#2c3e50',
-          marginBottom: '24px',
-          fontWeight: 600
+          maxWidth: '1000px',
+          margin: '0 auto',
+          borderRadius: isMobile ? '12px' : '16px',
+          boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
+          border: 'none',
+          background: 'rgba(255, 255, 255, 0.9)',
+          backdropFilter: 'blur(10px)'
         }}
       >
-        TRA CỨU TỪ ĐIỂN
-      </Title>
-      <Space direction='vertical' size='large' style={{ width: '100%' }}>
-        {/* Chọn ngôn ngữ nguồn, icon chuyển đổi, và ngôn ngữ đích */}
-        <Space
-          direction={window.innerWidth < 768 ? 'vertical' : 'horizontal'}
-          size='middle'
-          style={{
-            width: '100%',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-        >
-          <Select
-            value={sourceLang}
-            onChange={setSourceLang}
+        <div style={{ textAlign: 'center', marginBottom: isMobile ? '24px' : '32px' }}>
+          <Title
+            level={isMobile ? 3 : 2}
             style={{
-              width: window.innerWidth < 768 ? '100%' : '220px',
-              borderRadius: '8px'
+              color: '#1890ff',
+              marginBottom: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '8px',
+              fontSize: isMobile ? '24px' : '32px'
             }}
-            placeholder='Chọn ngôn ngữ nguồn'
-            size='large'
           >
-            {languages.map((lang) => (
-              <Option key={lang.code} value={lang.code}>
-                {lang.name}
-              </Option>
-            ))}
-          </Select>
-
-          <Tooltip title='Hoán đổi ngôn ngữ'>
-            <Button
-              icon={<SwapOutlined />}
-              onClick={handleSwapLanguages}
-              style={{
-                border: 'none',
-                fontSize: '20px',
-                color: '#1890ff',
-                transition: 'transform 0.2s'
-              }}
-              className='hover:scale-110'
-              aria-label='Hoán đổi ngôn ngữ'
-              disabled={isTranslating}
-            />
-          </Tooltip>
-
-          <Select
-            value={targetLang}
-            onChange={setTargetLang}
-            style={{
-              width: window.innerWidth < 768 ? '100%' : '220px',
-              borderRadius: '8px'
-            }}
-            placeholder='Chọn ngôn ngữ đích'
-            size='large'
-          >
-            {languages.map((lang) => (
-              <Option key={lang.code} value={lang.code}>
-                {lang.name}
-              </Option>
-            ))}
-          </Select>
-        </Space>
-
-        {/* Ô nhập văn bản */}
-        <TextArea
-          value={inputText}
-          onChange={(e) => setInputText(e.target.value)}
-          placeholder='Nhập văn bản tiếng Anh để dịch'
-          rows={3}
-          autoSize={{ minRows: 3, maxRows: 5 }}
-          style={{
-            width: '100%',
-            borderRadius: '8px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            borderColor: '#d9d9d9',
-            transition: 'all 0.3s'
-          }}
-          className='hover:border-blue-400'
-        />
-
-        {/* Nút dịch */}
-        <div style={{ textAlign: 'center' }}>
-          <Button
-            type='primary'
-            icon={<SearchOutlined />}
-            onClick={handleTranslate}
-            size='large'
-            loading={isTranslating}
-            style={{
-              background: 'linear-gradient(45deg, #1890ff, #40c4ff)',
-              border: 'none',
-              borderRadius: '8px',
-              padding: '0 24px',
-              height: '48px',
-              fontSize: '16px',
-              boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-              transition: 'all 0.3s'
-            }}
-            className='hover:scale-105'
-          >
-            Dịch
-          </Button>
+            <TranslationOutlined style={{ fontSize: isMobile ? '24px' : '32px' }} />
+            Dịch Văn Bản
+          </Title>
+          <Text type='secondary' style={{ fontSize: isMobile ? '14px' : '16px' }}>
+            Dịch văn bản giữa các ngôn ngữ khác nhau
+          </Text>
         </div>
 
-        {/* Hiển thị kết quả dịch */}
-        {translatedText && (
-          <div style={{ marginTop: '24px' }}>
-            <Text strong style={{ fontSize: '16px', color: '#2c3e50' }}>
-              Kết quả dịch:
-            </Text>
+        <Space direction='vertical' size={isMobile ? 'middle' : 'large'} style={{ width: '100%' }}>
+          <div
+            style={{
+              display: 'flex',
+              flexDirection: isMobile ? 'column' : 'row',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: isMobile ? '8px' : '16px',
+              width: '100%'
+            }}
+          >
             <div
               style={{
-                marginTop: '8px',
-                padding: '16px',
-                background: '#ffffff',
-                borderRadius: '8px',
-                boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                color: '#333',
-                fontSize: '16px',
-                lineHeight: '1.6'
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: '8px',
+                width: isMobile ? '100%' : 'auto'
               }}
             >
-              {translatedText}
+              <Select
+                value={sourceLang}
+                onChange={setSourceLang}
+                style={{
+                  width: isMobile ? 'calc(50% - 4px)' : '220px',
+                  borderRadius: '8px'
+                }}
+                placeholder='Chọn ngôn ngữ nguồn'
+                size={isMobile ? 'middle' : 'large'}
+              >
+                {languages.map((lang) => (
+                  <Option key={lang.code} value={lang.code}>
+                    {lang.name}
+                  </Option>
+                ))}
+              </Select>
+
+              <Tooltip title='Hoán đổi ngôn ngữ'>
+                <Button
+                  icon={<SwapOutlined />}
+                  onClick={handleSwapLanguages}
+                  style={{
+                    border: 'none',
+                    fontSize: isMobile ? '16px' : '20px',
+                    color: '#1890ff',
+                    transition: 'transform 0.2s',
+                    background: 'transparent',
+                    padding: isMobile ? '4px' : '8px',
+                    minWidth: '32px'
+                  }}
+                  className='hover:scale-110'
+                  aria-label='Hoán đổi ngôn ngữ'
+                  disabled={isTranslating}
+                />
+              </Tooltip>
+
+              <Select
+                value={targetLang}
+                onChange={setTargetLang}
+                style={{
+                  width: isMobile ? 'calc(50% - 4px)' : '220px',
+                  borderRadius: '8px'
+                }}
+                placeholder='Chọn ngôn ngữ đích'
+                size={isMobile ? 'middle' : 'large'}
+              >
+                {languages.map((lang) => (
+                  <Option key={lang.code} value={lang.code}>
+                    {lang.name}
+                  </Option>
+                ))}
+              </Select>
             </div>
           </div>
-        )}
-      </Space>
+
+          <div style={{ position: 'relative' }}>
+            <TextArea
+              value={inputText}
+              onChange={(e) => setInputText(e.target.value)}
+              placeholder='Nhập văn bản cần dịch...'
+              rows={isMobile ? 3 : 4}
+              autoSize={{ minRows: isMobile ? 3 : 4, maxRows: isMobile ? 5 : 6 }}
+              style={{
+                width: '100%',
+                borderRadius: '12px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+                borderColor: '#d9d9d9',
+                transition: 'all 0.3s',
+                fontSize: isMobile ? '14px' : '16px',
+                padding: isMobile ? '12px' : '16px',
+                paddingRight: '80px'
+              }}
+              className='hover:border-blue-400 focus:border-blue-400'
+            />
+            <div
+              style={{
+                position: 'absolute',
+                bottom: '8px',
+                right: '8px',
+                display: 'flex',
+                gap: '4px'
+              }}
+            >
+              <Tooltip title='Sao chép'>
+                <Button
+                  type='text'
+                  icon={<CopyOutlined />}
+                  onClick={() => {
+                    if (inputText) {
+                      navigator.clipboard.writeText(inputText)
+                      message.success('Đã sao chép vào clipboard!')
+                    }
+                  }}
+                  style={{
+                    color: '#1890ff',
+                    padding: '4px 8px',
+                    height: 'auto',
+                    background: 'rgba(255, 255, 255, 0.8)',
+                    borderRadius: '4px'
+                  }}
+                />
+              </Tooltip>
+              <Tooltip title='Dán'>
+                <Button
+                  type='text'
+                  icon={<FileTextOutlined />}
+                  onClick={async () => {
+                    try {
+                      const text = await navigator.clipboard.readText()
+                      setInputText(text)
+                      message.success('Đã dán văn bản!')
+                    } catch {
+                      message.error('Không thể dán văn bản!')
+                    }
+                  }}
+                  style={{
+                    color: '#1890ff',
+                    padding: '4px 8px',
+                    height: 'auto',
+                    background: 'rgba(255, 255, 255, 0.8)',
+                    borderRadius: '4px'
+                  }}
+                />
+              </Tooltip>
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center' }}>
+            <Button
+              type='primary'
+              icon={<SearchOutlined />}
+              onClick={handleTranslate}
+              size={isMobile ? 'middle' : 'large'}
+              loading={isTranslating}
+              style={{
+                background: 'linear-gradient(45deg, #1890ff, #40c4ff)',
+                border: 'none',
+                borderRadius: '12px',
+                padding: isMobile ? '0 24px' : '0 32px',
+                height: isMobile ? '40px' : '48px',
+                fontSize: isMobile ? '14px' : '16px',
+                boxShadow: '0 4px 12px rgba(24, 144, 255, 0.3)',
+                transition: 'all 0.3s'
+              }}
+              className='hover:scale-105'
+            >
+              Dịch
+            </Button>
+          </div>
+
+          {translatedText && (
+            <Card
+              style={{
+                marginTop: isMobile ? '16px' : '24px',
+                borderRadius: '12px',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                border: 'none',
+                background: '#f8f9fa'
+              }}
+            >
+              <Text
+                strong
+                style={{
+                  fontSize: isMobile ? '14px' : '16px',
+                  color: '#2c3e50',
+                  marginBottom: '8px',
+                  display: 'block'
+                }}
+              >
+                Kết quả dịch:
+              </Text>
+              <div
+                style={{
+                  padding: isMobile ? '12px' : '16px',
+                  background: '#ffffff',
+                  borderRadius: '8px',
+                  color: '#333',
+                  fontSize: isMobile ? '14px' : '16px',
+                  lineHeight: '1.6',
+                  minHeight: isMobile ? '80px' : '100px',
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  position: 'relative'
+                }}
+              >
+                {translatedText}
+                <div
+                  style={{
+                    position: 'absolute',
+                    bottom: '8px',
+                    right: '8px'
+                  }}
+                >
+                  <Tooltip title='Sao chép'>
+                    <Button
+                      type='text'
+                      icon={<CopyOutlined />}
+                      onClick={() => {
+                        navigator.clipboard.writeText(translatedText)
+                        message.success('Đã sao chép vào clipboard!')
+                      }}
+                      style={{
+                        color: '#1890ff',
+                        padding: '4px 8px',
+                        height: 'auto',
+                        background: 'rgba(255, 255, 255, 0.8)',
+                        borderRadius: '4px'
+                      }}
+                    />
+                  </Tooltip>
+                </div>
+              </div>
+            </Card>
+          )}
+        </Space>
+      </Card>
     </div>
   )
 }
