@@ -5,11 +5,11 @@ import {
   MenuFoldOutlined,
   UserOutlined,
   HomeOutlined,
-  SearchOutlined,
   BookOutlined,
   MessageOutlined,
   LogoutOutlined,
-  MenuOutlined
+  MenuOutlined,
+  TranslationOutlined
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 
@@ -53,8 +53,8 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
       },
       {
         key: '2',
-        icon: <SearchOutlined />,
-        label: 'Tra cứu',
+        icon: <TranslationOutlined />,
+        label: 'Phiên dịch',
         path: '/dashboard/search'
       },
       {
