@@ -1,10 +1,12 @@
 import React, { useState } from 'react'
-import { Input, Card, Tabs, Typography, Space, Button, List, Tag, Spin, message } from 'antd'
+import { AutoComplete, Card, Tabs, Typography, Space, Button, List, Tag, Spin, message } from 'antd'
 import { SearchOutlined, BookOutlined, StarOutlined, GlobalOutlined } from '@ant-design/icons'
 import { searchDictionaryApi } from '../features/dictionary/dictionaryApi'
-import { DictionaryApiResponse } from '../features/dictionary/dictionarytypes'
+import { DictionaryApiResponse, SearchDataDictionary, SearchParams } from '../features/dictionary/dictionarytypes'
+import axios from 'axios'
+import '../styles/laban.css'
 
-const { Title, Text } = Typography
+const { Text } = Typography
 
 interface Course {
   id: number
@@ -47,6 +49,7 @@ const DictionaryPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState('1')
   const [loading, setLoading] = useState(false)
   const [searchResults, setSearchResults] = useState<DictionaryApiResponse | null>(null)
+  const [content, setContent] = useState(false)
 
   const handleSearch = async (value: string) => {
     setSearchTerm(value)
@@ -55,11 +58,21 @@ const DictionaryPage: React.FC = () => {
       return
     }
 
+    const resultElement = document.getElementById('result')
+    if (resultElement) {
+      resultElement.innerHTML = ''
+    }
+
     try {
       setLoading(true)
-      const results = await searchDictionaryApi({ query: value })
-      console.log(results)
+      const params: SearchParams = {
+        query: value,
+        type: 1,
+        site: 'dictionary'
+      }
 
+      const results = await searchDictionaryApi(params)
+      console.log(results)
       setSearchResults(results)
     } catch (error) {
       message.error('Không thể tìm kiếm từ điển. Vui lòng thử lại sau.')
@@ -68,6 +81,62 @@ const DictionaryPage: React.FC = () => {
       setLoading(false)
     }
   }
+
+  const test = async (value: string) => {
+    setContent(true)
+    try {
+      const result = await axios.get('https://dict.laban.vn/ajax/find', {
+        params: {
+          type: 1,
+          query: value
+        }
+      })
+
+      const htmlContent = result.data?.enViData?.best?.details ?? '<div>Tìm kiếm thất bại</div>'
+
+      // Gán nội dung nếu có
+      const resultElement = document.getElementById('result')
+      if (resultElement) {
+        resultElement.innerHTML = htmlContent
+      }
+
+      console.log(`Test value: ${value}`, result)
+    } catch (error) {
+      console.error('Fetch failed:', error)
+    }
+  }
+
+  // Hàm tùy chỉnh giao diện mỗi gợi ý trong dropdown
+  const renderOption = (suggestion: SearchDataDictionary) => ({
+    value: suggestion.select, // Giá trị để AutoComplete sử dụng
+    label: (
+      <div
+        style={{
+          padding: '8px',
+          borderBottom: '1px solid #f0f0f0',
+          display: 'flex',
+          flexDirection: 'column'
+        }}
+      >
+        <Space style={{ justifyContent: 'space-between', width: '100%' }}>
+          <Text strong style={{ fontSize: '16px' }}>
+            <span dangerouslySetInnerHTML={{ __html: suggestion.select }} />
+          </Text>
+          {suggestion.pronunciation && (
+            <Space>
+              <Text type='secondary'>[{suggestion.pronunciation}]</Text>
+              <img
+                src='https://stc-laban.zdn.vn/dictionary/images/vi_dict_EV_icon.png'
+                alt='audio icon'
+                style={{ marginLeft: '5px', position: 'relative', top: '2px' }}
+              />
+            </Space>
+          )}
+        </Space>
+        <Text>{suggestion.meaning || 'Không có nghĩa'}</Text>
+      </div>
+    )
+  })
 
   const items = [
     {
@@ -81,72 +150,29 @@ const DictionaryPage: React.FC = () => {
       children: (
         <Card style={{ marginBottom: '24px' }}>
           <Space direction='vertical' style={{ width: '100%' }}>
-            <Input
-              size='large'
+            <AutoComplete
+              style={{ width: '100%' }}
+              value={searchTerm}
+              onChange={(value) => handleSearch(value)} // Cập nhật searchTerm khi nhập
+              onSearch={handleSearch} // Gọi handleSearch khi tìm kiếm
+              onSelect={(value) => test(value)} // Gọi handleSearch khi chọn gợi ý
               placeholder='Nhập từ cần tra cứu...'
-              prefix={<SearchOutlined />}
-              onChange={(e) => handleSearch(e.target.value)}
-              style={{ marginBottom: '16px' }}
-            />
+              options={searchResults?.suggestions?.map((suggestion) => renderOption(suggestion)) || []}
+              notFoundContent={searchResults && !loading ? <Text>Không có gợi ý từ.</Text> : null}
+            ></AutoComplete>
             {loading && (
               <div style={{ textAlign: 'center', padding: '20px' }}>
                 <Spin size='large' />
               </div>
             )}
-            {searchResults && !loading && (
-              <Card>
-                <Title level={4}>Kết quả tra cứu cho "{searchTerm}"</Title>
-                {searchResults.suggestions && searchResults.suggestions.length > 0 && (
-                  <div style={{ marginBottom: '16px' }}>
-                    <Text strong>Gợi ý từ:</Text>
-                    <Space wrap style={{ marginTop: '8px' }}>
-                      {searchResults.suggestions.map((suggestion, index) => (
-                        <Tag
-                          key={index}
-                          color='blue'
-                          style={{ cursor: 'pointer' }}
-                          onClick={() => handleSearch(suggestion)}
-                        >
-                          {suggestion}
-                        </Tag>
-                      ))}
-                    </Space>
-                  </div>
-                )}
-                {searchResults.data && searchResults.data.length > 0 ? (
-                  searchResults.data.map((item, index) => (
-                    <div key={index} style={{ marginBottom: '16px' }}>
-                      <Text strong style={{ fontSize: '16px' }}>
-                        {item.word}
-                      </Text>
-                      {item.pronunciation && (
-                        <Text type='secondary' style={{ marginLeft: '8px' }}>
-                          [{item.pronunciation}]
-                        </Text>
-                      )}
-                      <div style={{ marginTop: '8px' }}>
-                        <Text>{item.meaning}</Text>
-                      </div>
-                      {item.examples && item.examples.length > 0 && (
-                        <div style={{ marginTop: '8px' }}>
-                          <Text strong>Ví dụ:</Text>
-                          <ul style={{ marginTop: '4px' }}>
-                            {item.examples.map((example, idx) => (
-                              <li key={idx}>
-                                <Text>{example}</Text>
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
-                      )}
-                    </div>
-                  ))
-                ) : (
-                  <Text>Không tìm thấy kết quả phù hợp.</Text>
-                )}
-              </Card>
-            )}
           </Space>
+          {content && (
+            <div className='wrapper'>
+              <div className='details' id='result'>
+                Đang tải dữ liệu...
+              </div>
+            </div>
+          )}
         </Card>
       )
     },
@@ -155,7 +181,7 @@ const DictionaryPage: React.FC = () => {
       label: (
         <span>
           <BookOutlined />
-          Khóa Học
+          Từ điển của tôi
         </span>
       ),
       children: (
@@ -198,10 +224,6 @@ const DictionaryPage: React.FC = () => {
 
   return (
     <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-      <Title level={2} style={{ marginBottom: '24px', color: '#1890ff' }}>
-        <BookOutlined /> Từ Điển & Khóa Học
-      </Title>
-
       <Tabs activeKey={activeTab} onChange={setActiveTab} items={items} />
     </div>
   )

@@ -1,0 +1,149 @@
+.world {
+  padding-bottom: 6px;
+  margin-bottom: 20px
+}
+
+.wrapper {
+  width: 100%;
+  margin: 0 auto;
+  line-height: 19px;  
+  font-size: 14px;
+}
+
+.fl {
+  float: left
+}
+
+.color-black {
+  color: #000!important
+}
+
+.color-orange {
+  color: #D67104!important
+}
+
+/* hiển thị nút phát âm */
+a.sp_uk,a.sp_us {
+  display: block;
+  text-indent: -99999px;
+  width: 40px;
+  height: 25px;
+  float: left
+}
+
+a.sp_uk {
+  background: url(https://stc-laban.zdn.vn/dictionary/images/sp_uk_3.jpg) no-repeat;
+  margin-left: 10px
+}
+
+a.sp_uk:hover {
+  background: url(https://stc-laban.zdn.vn/dictionary/images/sp_uk_3_hover.jpg) no-repeat
+}
+
+a.sp_us {
+  background: url(https://stc-laban.zdn.vn/dictionary/images/sp_us_3.jpg) no-repeat;
+  margin-left: 13px
+}
+
+a.sp_us:hover {
+  background: url(https://stc-laban.zdn.vn/dictionary/images/sp_us_3_hover.jpg) no-repeat
+  
+}
+
+
+/* xóa box */
+.clr {
+  clear: both
+}
+
+.bg-grey span,.font-normal {
+  font-size: 14px
+}
+
+.bg-grey {
+  margin: 5px 0
+}
+
+.bg-grey span {
+  padding: 5px;
+  background-color: #f3f3f3
+}
+
+
+.bold {
+  font-weight: 700
+}
+
+
+.font-large,.font-large span {
+  font-size: 16px
+}
+
+
+.m-top20 {
+  margin-top: 20px!important
+}
+
+
+.dot-blue,.green,.grey {
+  padding-left: 15px
+}
+
+.green {
+  background: url(https://stc-laban.zdn.vn/dictionary/images/meaning_bullet.png) no-repeat;
+  background-size: 8px 19px
+}
+
+.dot-blue {
+  background: url(https://stc-laban.zdn.vn/dictionary/images/dot_blue_2.jpg) 0 50% no-repeat
+}
+
+.grey {
+  background: url(https://stc-laban.zdn.vn/dictionary/images/st_meaning_bullet.png) no-repeat;
+  background-size: 8px 19px
+}
+
+
+.margin25 {
+  margin-left: 25px!important
+}
+
+
+.m-top15 {
+  margin-top: 15px!important
+}
+
+
+.color-light-blue,.color-light-blue>a {
+  color: #1198b6!important
+}
+
+.bg-grey span,.font-normal {
+  font-size: 14px
+}
+
+
+.bg-grey span {
+  padding: 5px;
+  background-color: #f3f3f3
+}
+
+.details {
+  width: 100%;
+  margin: 30px auto 0;
+  min-height: 400px;
+  position: relative
+}
+
+
+.details h2 {
+  font-size: 1.4em;
+  color: #0a7be9
+}
+
+
+.details h2 span {
+  color: #999;
+  font-weight: 400;
+  font-size: 16px
+}

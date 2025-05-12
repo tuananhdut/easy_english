@@ -1,15 +1,20 @@
 export interface SearchParams {
   query: string
-  type?: number
-  site?: string
+  type: number | 1
+  site: string | 'dictionary'
+  limit?: number
 }
 
+//
+export interface SearchDataDictionary {
+  select: string
+  link: string
+  data: string
+  value: string
+  word: string
+  pronunciation: string
+  meaning: string
+}
 export interface DictionaryApiResponse {
-  suggestions?: string[] // Danh sách gợi ý từ
-  data?: {
-    word: string
-    meaning: string
-    pronunciation?: string
-    examples?: string[]
-  }[]
+  suggestions: SearchDataDictionary[] | null
 }
