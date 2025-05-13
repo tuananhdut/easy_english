@@ -5,6 +5,10 @@ export interface SearchParams {
   limit?: number
 }
 
+export interface SoundParams {
+  accent: string
+  word: string
+}
 //
 export interface SearchDataDictionary {
   select: string

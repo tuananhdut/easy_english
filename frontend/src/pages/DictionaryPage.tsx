@@ -1,10 +1,9 @@
 import React, { useState } from 'react'
-import { AutoComplete, Card, Tabs, Typography, Space, Button, List, Tag, Spin, message } from 'antd'
+import { AutoComplete, Card, Tabs, Typography, Space, Button, List, Tag, message } from 'antd'
 import { SearchOutlined, BookOutlined, StarOutlined, GlobalOutlined } from '@ant-design/icons'
 import { searchDictionaryApi } from '../features/dictionary/dictionaryApi'
 import { DictionaryApiResponse, SearchDataDictionary, SearchParams } from '../features/dictionary/dictionarytypes'
-import axios from 'axios'
-import '../styles/laban.css'
+import DictionaryResult from '../components/DictionaryResult'
 
 const { Text } = Typography
 
@@ -48,13 +47,14 @@ const DictionaryPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
   const [activeTab, setActiveTab] = useState('1')
   const [loading, setLoading] = useState(false)
-  const [searchResults, setSearchResults] = useState<DictionaryApiResponse | null>(null)
+  const [searchRecommend, setSearchRecommend] = useState<DictionaryApiResponse | null>(null)
   const [content, setContent] = useState(false)
 
   const handleSearch = async (value: string) => {
+    setContent(false)
     setSearchTerm(value)
     if (!value.trim()) {
-      setSearchResults(null)
+      setSearchRecommend(null)
       return
     }
 
@@ -73,7 +73,7 @@ const DictionaryPage: React.FC = () => {
 
       const results = await searchDictionaryApi(params)
       console.log(results)
-      setSearchResults(results)
+      setSearchRecommend(results)
     } catch (error) {
       message.error('Không thể tìm kiếm từ điển. Vui lòng thử lại sau.')
       console.error('Search error:', error)
@@ -84,31 +84,11 @@ const DictionaryPage: React.FC = () => {
 
   const test = async (value: string) => {
     setContent(true)
-    try {
-      const result = await axios.get('https://dict.laban.vn/ajax/find', {
-        params: {
-          type: 1,
-          query: value
-        }
-      })
-
-      const htmlContent = result.data?.enViData?.best?.details ?? '<div>Tìm kiếm thất bại</div>'
-
-      // Gán nội dung nếu có
-      const resultElement = document.getElementById('result')
-      if (resultElement) {
-        resultElement.innerHTML = htmlContent
-      }
-
-      console.log(`Test value: ${value}`, result)
-    } catch (error) {
-      console.error('Fetch failed:', error)
-    }
+    setSearchTerm(value)
   }
 
-  // Hàm tùy chỉnh giao diện mỗi gợi ý trong dropdown
   const renderOption = (suggestion: SearchDataDictionary) => ({
-    value: suggestion.select, // Giá trị để AutoComplete sử dụng
+    value: suggestion.select,
     label: (
       <div
         style={{
@@ -157,22 +137,12 @@ const DictionaryPage: React.FC = () => {
               onSearch={handleSearch} // Gọi handleSearch khi tìm kiếm
               onSelect={(value) => test(value)} // Gọi handleSearch khi chọn gợi ý
               placeholder='Nhập từ cần tra cứu...'
-              options={searchResults?.suggestions?.map((suggestion) => renderOption(suggestion)) || []}
-              notFoundContent={searchResults && !loading ? <Text>Không có gợi ý từ.</Text> : null}
+              options={searchRecommend?.suggestions?.map((suggestion) => renderOption(suggestion)) || []}
+              notFoundContent={searchRecommend && !loading ? <Text>Không có gợi ý từ.</Text> : null}
+              defaultActiveFirstOption={true}
             ></AutoComplete>
-            {loading && (
-              <div style={{ textAlign: 'center', padding: '20px' }}>
-                <Spin size='large' />
-              </div>
-            )}
           </Space>
-          {content && (
-            <div className='wrapper'>
-              <div className='details' id='result'>
-                Đang tải dữ liệu...
-              </div>
-            </div>
-          )}
+          {content && <DictionaryResult searchText={searchTerm} />}
         </Card>
       )
     },
