@@ -81,8 +81,6 @@ export default class DictionaryService {
       const data: DictionaryApiResponse = {
         suggestions
       }
-
-      console.log('Parsed data:', suggestions)
       return data
     } catch (error) {
       console.error('Error fetching dictionary data:', error)

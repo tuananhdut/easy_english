@@ -16,7 +16,6 @@ export default class DictionaryController {
 
   public async getSerchDictionary(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      console.log('check')
       const { query, type, site, limit } = req.query
 
       if (!query) {
