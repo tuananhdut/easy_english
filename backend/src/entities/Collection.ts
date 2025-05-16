@@ -1,14 +1,16 @@
-import 'reflect-metadata'
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm'
 import { User } from './User'
+
+export enum CollectionLevel {
+  EASY = 'easy',
+  MEDIUM = 'medium',
+  HARD = 'hard'
+}
 
 @Entity({ name: 'collections' })
 export class Collection {
   @PrimaryGeneratedColumn()
   id!: number
-
-  @ManyToOne(() => User, (user) => user.id, { nullable: false, onDelete: 'CASCADE' })
-  user!: User
 
   @Column({ type: 'varchar', nullable: false })
   name!: string
@@ -27,4 +29,17 @@ export class Collection {
 
   @Column({ type: 'varchar', default: 'en' })
   target_language!: string
+
+  @Column({ type: 'int', default: 0 })
+  total_flashcards!: number
+
+  @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
+  owner!: User
+
+  @Column({
+    type: 'enum',
+    enum: CollectionLevel,
+    default: CollectionLevel.EASY
+  })
+  level!: CollectionLevel
 }
