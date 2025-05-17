@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react'
-import { Menu, Button, Avatar, Dropdown, Drawer } from 'antd'
+import { Menu, Button, Avatar, Dropdown, Drawer, Space, Typography } from 'antd'
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -9,7 +9,9 @@ import {
   MessageOutlined,
   LogoutOutlined,
   MenuOutlined,
-  TranslationOutlined
+  TranslationOutlined,
+  SettingOutlined,
+  ProfileOutlined
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 
@@ -75,15 +77,46 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
 
   // Define dropdown menu for user info
   const userMenu = (
-    <Menu>
-      <Menu.Item key='0' disabled>
-        <div style={{ display: 'flex', flexDirection: 'column', padding: '8px 16px' }}>
-          <span style={{ fontWeight: 'bold' }}>{user.name}</span>
-          <span style={{ color: '#888' }}>{user.email}</span>
-        </div>
+    <Menu
+      style={{
+        minWidth: '200px',
+        padding: '8px 0'
+      }}
+    >
+      <Menu.Item key='0' disabled style={{ cursor: 'default', height: 'auto' }}>
+        <Space direction='vertical' size={0} style={{ width: '100%' }}>
+          <Typography.Text strong style={{ fontSize: '16px', display: 'block' }}>
+            {user.name}
+          </Typography.Text>
+          <Typography.Text type='secondary' style={{ fontSize: '14px' }}>
+            {user.email}
+          </Typography.Text>
+        </Space>
       </Menu.Item>
-      <Menu.Divider />
-      <Menu.Item key='1' icon={<LogoutOutlined />} onClick={() => navigate('/login')}>
+      <Menu.Divider style={{ margin: '8px 0' }} />
+      <Menu.Item
+        key='1'
+        icon={<ProfileOutlined />}
+        onClick={() => navigate('/dashboard/profile')}
+        style={{ padding: '8px 16px' }}
+      >
+        Thông tin cá nhân
+      </Menu.Item>
+      <Menu.Item
+        key='2'
+        icon={<SettingOutlined />}
+        onClick={() => navigate('/dashboard/settings')}
+        style={{ padding: '8px 16px' }}
+      >
+        Cài đặt
+      </Menu.Item>
+      <Menu.Divider style={{ margin: '8px 0' }} />
+      <Menu.Item
+        key='3'
+        icon={<LogoutOutlined />}
+        onClick={() => navigate('/login')}
+        style={{ padding: '8px 16px', color: '#ff4d4f' }}
+      >
         Đăng xuất
       </Menu.Item>
     </Menu>

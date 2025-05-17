@@ -1,47 +1,84 @@
 import React, { useState } from 'react'
-import { AutoComplete, Card, Tabs, Typography, Space, Button, List, Tag, message } from 'antd'
-import { SearchOutlined, BookOutlined, StarOutlined, GlobalOutlined } from '@ant-design/icons'
+import { AutoComplete, Card, Tabs, Typography, Space, List, message } from 'antd'
+import { SearchOutlined, BookOutlined } from '@ant-design/icons'
 import { searchDictionaryApi } from '../features/dictionary/dictionaryApi'
 import { DictionaryApiResponse, SearchDataDictionary, SearchParams } from '../features/dictionary/dictionarytypes'
 import DictionaryResult from '../components/DictionaryResult'
+import CollectionCard from '../components/ColectionCard'
 
-const { Text } = Typography
+const { Text, Title } = Typography
 
-interface Course {
-  id: number
-  title: string
-  description: string
-  level: string
-  duration: string
-  lessons: number
+// Mock data với các quyền truy cập khác nhau
+const mockCollections = {
+  owned: [
+    {
+      id: '1',
+      name: 'Từ vựng tiếng Anh cơ bản',
+      description: 'Bộ sưu tập từ vựng tiếng Anh cơ bản cho bắt đầu',
+      level: 'Cơ bản',
+      totalWords: 500,
+      learnedWords: 150,
+      reviewWords: 50,
+      progress: 30,
+      createdAt: '2024-01-01T00:00:00Z',
+      updatedAt: '2024-03-15T00:00:00Z',
+      userId: 'user1',
+      isPublic: true,
+      category: 'Từ vựng',
+      tags: ['cơ bản', 'giao tiếp'],
+      coverImage: 'https://example.com/basic-vocab.jpg',
+      owner: {
+        id: 'user1',
+        name: 'Nguyễn Văn A'
+      }
+    }
+  ],
+  sharedView: [
+    {
+      id: '2',
+      name: 'Từ vựng TOEIC',
+      description: 'Bộ sưu tập từ vựng chuyên ngành TOEIC',
+      level: 'Trung cấp',
+      totalWords: 1000,
+      learnedWords: 400,
+      reviewWords: 100,
+      progress: 40,
+      createdAt: '2024-01-15T00:00:00Z',
+      updatedAt: '2024-03-10T00:00:00Z',
+      userId: 'user2',
+      isPublic: true,
+      category: 'TOEIC',
+      tags: ['toeic', 'business'],
+      owner: {
+        id: 'user2',
+        name: 'Trần Thị B'
+      }
+    }
+  ],
+  sharedEdit: [
+    {
+      id: '3',
+      name: 'Từ vựng IELTS',
+      description: 'Bộ sưu tập từ vựng nâng cao cho IELTS',
+      level: 'Nâng cao',
+      totalWords: 1500,
+      learnedWords: 750,
+      reviewWords: 200,
+      progress: 50,
+      createdAt: '2024-02-01T00:00:00Z',
+      updatedAt: '2024-03-20T00:00:00Z',
+      userId: 'user3',
+      isPublic: true,
+      category: 'IELTS',
+      tags: ['ielts', 'academic', 'nâng cao'],
+      coverImage: 'https://example.com/ielts-vocab.jpg',
+      owner: {
+        id: 'user3',
+        name: 'Lê Văn C'
+      }
+    }
+  ]
 }
-
-const mockCourses: Course[] = [
-  {
-    id: 1,
-    title: 'Tiếng Anh Cơ Bản',
-    description: 'Khóa học dành cho người mới bắt đầu học tiếng Anh',
-    level: 'Cơ bản',
-    duration: '3 tháng',
-    lessons: 30
-  },
-  {
-    id: 2,
-    title: 'Tiếng Anh Giao Tiếp',
-    description: 'Học cách giao tiếp tự tin trong các tình huống hàng ngày',
-    level: 'Trung cấp',
-    duration: '4 tháng',
-    lessons: 40
-  },
-  {
-    id: 3,
-    title: 'Tiếng Anh Thương Mại',
-    description: 'Tiếng Anh chuyên ngành cho môi trường kinh doanh',
-    level: 'Nâng cao',
-    duration: '6 tháng',
-    lessons: 50
-  }
-]
 
 const DictionaryPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -85,6 +122,18 @@ const DictionaryPage: React.FC = () => {
   const test = async (value: string) => {
     setContent(true)
     setSearchTerm(value)
+  }
+
+  const handleEdit = (collectionId: string) => {
+    message.success(`Chỉnh sửa bộ sưu tập ID: ${collectionId}`)
+  }
+
+  const handleStudy = (collectionId: string) => {
+    message.success(`Bắt đầu học bộ sưu tập ID: ${collectionId}`)
+  }
+
+  const handleReview = (collectionId: string) => {
+    message.success(`Đánh giá bộ sưu tập ID: ${collectionId}`)
   }
 
   const renderOption = (suggestion: SearchDataDictionary) => ({
@@ -133,14 +182,14 @@ const DictionaryPage: React.FC = () => {
             <AutoComplete
               style={{ width: '100%' }}
               value={searchTerm}
-              onChange={(value) => handleSearch(value)} // Cập nhật searchTerm khi nhập
-              onSearch={handleSearch} // Gọi handleSearch khi tìm kiếm
-              onSelect={(value) => test(value)} // Gọi handleSearch khi chọn gợi ý
+              onChange={(value) => handleSearch(value)}
+              onSearch={handleSearch}
+              onSelect={(value) => test(value)}
               placeholder='Nhập từ cần tra cứu...'
               options={searchRecommend?.suggestions?.map((suggestion) => renderOption(suggestion)) || []}
               notFoundContent={searchRecommend && !loading ? <Text>Không có gợi ý từ.</Text> : null}
               defaultActiveFirstOption={true}
-            ></AutoComplete>
+            />
           </Space>
           {content && <DictionaryResult searchText={searchTerm} />}
         </Card>
@@ -151,43 +200,48 @@ const DictionaryPage: React.FC = () => {
       label: (
         <span>
           <BookOutlined />
-          Từ điển của tôi
+          Bộ sưu tập của tôi
         </span>
       ),
       children: (
-        <List
-          grid={{ gutter: 16, xs: 1, sm: 2, md: 3 }}
-          dataSource={mockCourses}
-          renderItem={(course) => (
-            <List.Item>
-              <Card
-                hoverable
-                style={{ height: '100%' }}
-                actions={[
-                  <Button type='primary' icon={<StarOutlined />}>
-                    Đăng Ký
-                  </Button>
-                ]}
-              >
-                <Card.Meta
-                  title={course.title}
-                  description={
-                    <Space direction='vertical'>
-                      <Text>{course.description}</Text>
-                      <Space>
-                        <Tag color='blue'>
-                          <GlobalOutlined /> {course.level}
-                        </Tag>
-                        <Tag color='green'>{course.duration}</Tag>
-                        <Tag color='purple'>{course.lessons} bài học</Tag>
-                      </Space>
-                    </Space>
-                  }
+        <Space direction='vertical' style={{ width: '100%' }}>
+          <Title level={4}>Bộ sưu tập của tôi</Title>
+          <List
+            grid={{ gutter: 16, xs: 1, sm: 2, md: 3 }}
+            dataSource={mockCollections.owned}
+            renderItem={(collection) => (
+              <List.Item>
+                <CollectionCard
+                  collection={collection}
+                  type='owned'
+                  onEdit={handleEdit}
+                  onStudy={handleStudy}
+                  onReview={handleReview}
                 />
-              </Card>
-            </List.Item>
-          )}
-        />
+              </List.Item>
+            )}
+          />
+
+          <Title level={4}>Được chia sẻ với tôi</Title>
+          <List
+            grid={{ gutter: 16, xs: 1, sm: 2, md: 3 }}
+            dataSource={[...mockCollections.sharedView, ...mockCollections.sharedEdit]}
+            renderItem={(collection) => {
+              const type = mockCollections.sharedView.some((c) => c.id === collection.id) ? 'sharedView' : 'sharedEdit'
+              return (
+                <List.Item>
+                  <CollectionCard
+                    collection={collection}
+                    type={type}
+                    onEdit={handleEdit}
+                    onStudy={handleStudy}
+                    onReview={handleReview}
+                  />
+                </List.Item>
+              )
+            }}
+          />
+        </Space>
       )
     }
   ]

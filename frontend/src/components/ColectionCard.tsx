@@ -1,0 +1,126 @@
+import React from 'react'
+import { Card, Space, Tag, Typography, Progress, Avatar, Button } from 'antd'
+import {
+  GlobalOutlined,
+  UserOutlined,
+  BookOutlined,
+  ClockCircleOutlined,
+  CheckCircleOutlined,
+  EditOutlined
+} from '@ant-design/icons'
+
+const { Text } = Typography
+
+export interface Collection {
+  id: string
+  name: string
+  description: string
+  level: string
+  totalWords: number
+  learnedWords: number
+  reviewWords: number
+  progress: number
+  createdAt: string
+  updatedAt: string
+  userId: string
+  isPublic: boolean
+  category: string
+  tags: string[]
+  coverImage?: string
+  owner: {
+    id: string
+    name: string
+  }
+}
+
+export interface CollectionCardProps {
+  collection: Collection
+  type: 'owned' | 'sharedView' | 'sharedEdit'
+  onEdit?: (collectionId: string) => void
+  onStudy?: (collectionId: string) => void
+  onReview?: (collectionId: string) => void
+}
+
+const CollectionCard: React.FC<CollectionCardProps> = ({ collection, type, onEdit, onStudy, onReview }) => {
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('vi-VN', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+  }
+
+  const handleEdit = () => onEdit && onEdit(collection.id)
+  const handleStudy = () => onStudy && onStudy(collection.id)
+  const handleReview = () => onReview && onReview(collection.id)
+
+  return (
+    <Card hoverable style={{ height: '100%', maxWidth: 500 }}>
+      <Card.Meta
+        avatar={<Avatar icon={<UserOutlined />} />}
+        title={collection.name}
+        description={
+          <Space direction='vertical' style={{ width: '100%' }}>
+            <Text>{collection.description}</Text>
+
+            {/* Progress Section */}
+            <div style={{ marginTop: 16 }}>
+              <Space direction='vertical' style={{ width: '100%' }}>
+                <Space style={{ justifyContent: 'space-between', width: '100%' }}>
+                  <Text strong>Tiến độ học tập</Text>
+                </Space>
+                <Progress percent={collection.progress} status='active' />
+              </Space>
+            </div>
+
+            {/* Word Count Section */}
+            <Space wrap style={{ marginTop: 16 }}>
+              <Tag color='blue'>
+                <BookOutlined /> Tổng số từ: {collection.totalWords}
+              </Tag>
+              <Tag color='green'>
+                <CheckCircleOutlined /> Đã học: {collection.learnedWords}
+              </Tag>
+              <Tag color='orange'>
+                <ClockCircleOutlined /> Cần ôn tập: {collection.reviewWords}
+              </Tag>
+            </Space>
+
+            {/* Other Tags */}
+            <Space wrap style={{ marginTop: 8 }}>
+              <Tag color='purple'>
+                <GlobalOutlined /> {collection.level}
+              </Tag>
+              <Tag color='cyan'>{collection.category}</Tag>
+              {collection.tags.map((tag, index) => (
+                <Tag key={index} color='magenta'>
+                  {tag}
+                </Tag>
+              ))}
+            </Space>
+
+            {/* Last Update */}
+            <Text type='secondary' style={{ display: 'block', marginTop: 8 }}>
+              <ClockCircleOutlined /> Cập nhật: {formatDate(collection.updatedAt)}
+            </Text>
+          </Space>
+        }
+      />
+      <div style={{ marginTop: 16, textAlign: 'center', display: 'flex', gap: 8, justifyContent: 'center' }}>
+        {type !== 'sharedView' && (
+          <Button icon={<EditOutlined />} onClick={handleEdit}>
+            Chỉnh sửa
+          </Button>
+        )}
+        <Button type='primary' onClick={handleStudy}>
+          Học
+        </Button>
+        <Button icon={<ClockCircleOutlined />} onClick={handleReview}>
+          Ôn tập
+        </Button>
+      </div>
+    </Card>
+  )
+}
+
+export default CollectionCard
