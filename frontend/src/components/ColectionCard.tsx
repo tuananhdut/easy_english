@@ -8,6 +8,7 @@ import {
   CheckCircleOutlined,
   EditOutlined
 } from '@ant-design/icons'
+import { useNavigate } from 'react-router-dom'
 
 const { Text } = Typography
 
@@ -39,9 +40,17 @@ export interface CollectionCardProps {
   onEdit?: (collectionId: string) => void
   onStudy?: (collectionId: string) => void
   onReview?: (collectionId: string) => void
+  onCardClick?: () => void
 }
 
-const CollectionCard: React.FC<CollectionCardProps> = ({ collection, type, onEdit, onStudy, onReview }) => {
+const CollectionCard: React.FC<CollectionCardProps> = ({
+  collection,
+  type,
+  onEdit,
+  onStudy,
+  onReview,
+  onCardClick
+}) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
       year: 'numeric',
@@ -50,12 +59,49 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, type, onEdi
     })
   }
 
-  const handleEdit = () => onEdit && onEdit(collection.id)
-  const handleStudy = () => onStudy && onStudy(collection.id)
-  const handleReview = () => onReview && onReview(collection.id)
+  const navigate = useNavigate()
+
+  const handleEdit = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (onEdit) {
+      onEdit(collection.id)
+    } else {
+      navigate(`/dashboard/edit-collection/${collection.id}`)
+    }
+  }
+
+  const handleStudy = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (onStudy) {
+      onStudy(collection.id)
+    }
+  }
+
+  const handleReview = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (onReview) {
+      onReview(collection.id)
+    }
+  }
+
+  const handleCardClick = () => {
+    if (onCardClick) {
+      onCardClick()
+    }
+  }
 
   return (
-    <Card hoverable style={{ height: '100%', maxWidth: 500 }}>
+    <Card
+      hoverable
+      onClick={handleCardClick}
+      style={{
+        height: '100%',
+        ...(window.innerWidth >= 768 && {
+          minWidth: 500,
+          maxWidth: 500
+        })
+      }}
+    >
       <Card.Meta
         avatar={<Avatar icon={<UserOutlined />} />}
         title={collection.name}
@@ -108,7 +154,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({ collection, type, onEdi
       />
       <div style={{ marginTop: 16, textAlign: 'center', display: 'flex', gap: 8, justifyContent: 'center' }}>
         {type !== 'sharedView' && (
-          <Button icon={<EditOutlined />} onClick={handleEdit}>
+          <Button icon={<EditOutlined />} onClick={handleEdit} type='primary'>
             Chỉnh sửa
           </Button>
         )}

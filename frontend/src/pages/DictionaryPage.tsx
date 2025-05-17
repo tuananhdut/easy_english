@@ -1,10 +1,11 @@
 import React, { useState } from 'react'
-import { AutoComplete, Card, Tabs, Typography, Space, List, message } from 'antd'
+import { AutoComplete, Card, Tabs, Typography, Space, List, message, Layout, Drawer } from 'antd'
 import { SearchOutlined, BookOutlined } from '@ant-design/icons'
 import { searchDictionaryApi } from '../features/dictionary/dictionaryApi'
 import { DictionaryApiResponse, SearchDataDictionary, SearchParams } from '../features/dictionary/dictionarytypes'
 import DictionaryResult from '../components/DictionaryResult'
 import CollectionCard from '../components/ColectionCard'
+import { useNavigate } from 'react-router-dom'
 
 const { Text, Title } = Typography
 
@@ -86,6 +87,10 @@ const DictionaryPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [searchRecommend, setSearchRecommend] = useState<DictionaryApiResponse | null>(null)
   const [content, setContent] = useState(false)
+  const [openedCollection, setOpenedCollection] = useState<import('../components/ColectionCard').Collection | null>(
+    null
+  )
+  const navigate = useNavigate()
 
   const handleSearch = async (value: string) => {
     setContent(false)
@@ -125,7 +130,7 @@ const DictionaryPage: React.FC = () => {
   }
 
   const handleEdit = (collectionId: string) => {
-    message.success(`Chỉnh sửa bộ sưu tập ID: ${collectionId}`)
+    navigate(`/edit-collection/${collectionId}`)
   }
 
   const handleStudy = (collectionId: string) => {
@@ -166,6 +171,34 @@ const DictionaryPage: React.FC = () => {
       </div>
     )
   })
+
+  // Mock CollectionDetail component
+  const CollectionDetail = ({ collection }: { collection: import('../components/ColectionCard').Collection }) => (
+    <div style={{ padding: 24 }}>
+      <Title level={4}>Chi tiết bộ sưu tập</Title>
+      <Text>
+        <b>Tên:</b> {collection.name}
+      </Text>
+      <br />
+      <Text>
+        <b>Mô tả:</b> {collection.description}
+      </Text>
+      <br />
+      <Text>
+        <b>Ngày tạo:</b> {new Date(collection.createdAt).toLocaleDateString()}
+      </Text>
+      <br />
+      <Text>
+        <b>Tags:</b>{' '}
+        {collection.tags &&
+          collection.tags.map((tag: string, idx: number) => (
+            <span key={idx} style={{ marginRight: 8 }}>
+              <span style={{ background: '#e6f7ff', padding: '2px 8px', borderRadius: 4 }}>{tag}</span>
+            </span>
+          ))}
+      </Text>
+    </div>
+  )
 
   const items = [
     {
@@ -211,13 +244,16 @@ const DictionaryPage: React.FC = () => {
             dataSource={mockCollections.owned}
             renderItem={(collection) => (
               <List.Item>
-                <CollectionCard
-                  collection={collection}
-                  type='owned'
-                  onEdit={handleEdit}
-                  onStudy={handleStudy}
-                  onReview={handleReview}
-                />
+                <div style={{ cursor: 'pointer' }}>
+                  <CollectionCard
+                    collection={collection}
+                    type='owned'
+                    onEdit={handleEdit}
+                    onStudy={handleStudy}
+                    onReview={handleReview}
+                    onCardClick={() => setOpenedCollection(collection)}
+                  />
+                </div>
               </List.Item>
             )}
           />
@@ -230,13 +266,16 @@ const DictionaryPage: React.FC = () => {
               const type = mockCollections.sharedView.some((c) => c.id === collection.id) ? 'sharedView' : 'sharedEdit'
               return (
                 <List.Item>
-                  <CollectionCard
-                    collection={collection}
-                    type={type}
-                    onEdit={handleEdit}
-                    onStudy={handleStudy}
-                    onReview={handleReview}
-                  />
+                  <div style={{ cursor: 'pointer' }}>
+                    <CollectionCard
+                      collection={collection}
+                      type={type}
+                      onEdit={handleEdit}
+                      onStudy={handleStudy}
+                      onReview={handleReview}
+                      onCardClick={() => setOpenedCollection(collection)}
+                    />
+                  </div>
                 </List.Item>
               )
             }}
@@ -247,9 +286,21 @@ const DictionaryPage: React.FC = () => {
   ]
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
-      <Tabs activeKey={activeTab} onChange={setActiveTab} items={items} />
-    </div>
+    <Layout style={{ background: 'transparent' }}>
+      <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
+        <Tabs activeKey={activeTab} onChange={setActiveTab} items={items} />
+      </div>
+      <Drawer
+        title='Chi tiết bộ sưu tập'
+        placement='right'
+        width={400}
+        open={!!openedCollection}
+        onClose={() => setOpenedCollection(null)}
+        destroyOnClose
+      >
+        {openedCollection && <CollectionDetail collection={openedCollection} />}
+      </Drawer>
+    </Layout>
   )
 }
 

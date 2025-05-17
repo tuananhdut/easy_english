@@ -13,6 +13,9 @@ import MainPage from '../pages/MainPage'
 import RegisterPage from '../pages/RegisterPage'
 import ForgotPasswordPage from '../pages/ForgotPasswordPage'
 import GoogleCallback from '../pages/GoogleCallbackPage'
+import CreateDictionaryPage from '../pages/CreateDictionaryPage'
+import CreateFlashcardPage from '../pages/CreateFlashcardPage'
+import EditCollectionPage from '../pages/EditCollectionPage'
 
 const useAuthCheck = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -101,6 +104,18 @@ const router = createBrowserRouter([
   {
     path: '/auth/google/callback',
     element: <GoogleCallback />
+  },
+  {
+    path: '/create-dictionary',
+    element: <CreateDictionaryPage />
+  },
+  {
+    path: '/create-flashcard/:id',
+    element: <CreateFlashcardPage />
+  },
+  {
+    path: '/edit-collection/:id',
+    element: <EditCollectionPage />
   }
 ])
 

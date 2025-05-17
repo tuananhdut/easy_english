@@ -1,4 +1,4 @@
-import { IUser } from '../../types/user'
+import { IUser } from '../user/userType'
 
 // Định nghĩa state của auth
 export interface AuthState {

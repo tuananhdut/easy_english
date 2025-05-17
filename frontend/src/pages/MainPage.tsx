@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react'
 import { Layout, Button, Space, Typography, Card, Row, Col, Avatar, Progress, Radio } from 'antd'
 import { UserOutlined, FireOutlined, BookOutlined } from '@ant-design/icons'
 import Chart from 'chart.js/auto'
+import { useNavigate } from 'react-router-dom'
 
 const { Content } = Layout
 const { Title, Text } = Typography
@@ -10,6 +11,7 @@ const MainPage: React.FC = () => {
   const [timeRange, setTimeRange] = useState<'week' | 'month'>('week')
   const chartRef = useRef<HTMLCanvasElement>(null)
   const chartInstance = useRef<Chart | null>(null)
+  const navigate = useNavigate()
 
   // Mock data - replace with real data from API
   const userStats = {
@@ -114,9 +116,19 @@ const MainPage: React.FC = () => {
                 <Text type='secondary'>Hãy tiếp tục học tập để cải thiện kỹ năng của bạn</Text>
               </Col>
               <Col>
-                <Button type='primary' size='large'>
-                  Tiếp tục học
-                </Button>
+                <Space>
+                  <Button type='primary' size='large'>
+                    Tiếp tục học
+                  </Button>
+                  <Button
+                    type='primary'
+                    icon={<BookOutlined />}
+                    size='large'
+                    onClick={() => navigate('/create-dictionary')}
+                  >
+                    Tạo từ điển
+                  </Button>
+                </Space>
               </Col>
             </Row>
           </Card>

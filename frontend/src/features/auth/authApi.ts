@@ -1,6 +1,6 @@
 import apiClient from '../../utils/apiClient'
 import { LoginCredentials, IAuthData, IUserRegister } from './authTypes'
-import { IUser } from '../../types/user'
+import { IUser } from '../user/userType'
 
 export const loginApi = async (credentials: LoginCredentials): Promise<IAuthData> => {
   const response = await apiClient.post('/auth/login', credentials)
