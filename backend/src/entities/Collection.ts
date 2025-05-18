@@ -1,5 +1,7 @@
-import { Entity, PrimaryGeneratedColumn, Column, CreateDateColumn, ManyToOne } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm'
 import { User } from './User'
+import { BaseEntity } from './BaseEntity'
+import { ICollection } from '../interfaces/ICollection'
 
 export enum CollectionLevel {
   EASY = 'easy',
@@ -8,7 +10,7 @@ export enum CollectionLevel {
 }
 
 @Entity({ name: 'collections' })
-export class Collection {
+export class Collection extends BaseEntity implements ICollection {
   @PrimaryGeneratedColumn()
   id!: number
 
@@ -20,9 +22,6 @@ export class Collection {
 
   @Column({ type: 'boolean', default: true })
   is_private!: boolean
-
-  @CreateDateColumn({ type: 'timestamp' })
-  created_at!: Date
 
   @Column({ type: 'varchar', default: 'vi' })
   source_language!: string

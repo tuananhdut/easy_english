@@ -1,9 +1,11 @@
 import 'reflect-metadata'
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm'
 import { Collection } from './Collection'
+import { BaseEntity } from './BaseEntity'
+import { IFlashCard } from '../interfaces/IFlashCard'
 
 @Entity({ name: 'flashcards' })
-export class Flashcard {
+export class Flashcard extends BaseEntity implements IFlashCard {
   @PrimaryGeneratedColumn()
   id!: number
 
@@ -22,6 +24,6 @@ export class Flashcard {
   @Column({ type: 'varchar', nullable: true })
   audio_url?: string
 
-  @CreateDateColumn({ type: 'timestamp' })
-  created_at!: Date
+  // thêm phiên âm với dạng từ
+  //dạng us-vi
 }

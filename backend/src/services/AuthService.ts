@@ -1,55 +1,65 @@
-import { Repository } from 'typeorm'
 import { User, AuthProvider, UserRole } from '~/entities/User'
 import * as bcrypt from 'bcrypt'
 import * as jwt from 'jsonwebtoken'
-import { AppDataSource } from '../config/data-source' // Giả định bạn đã cấu hình TypeORM DataSource
 import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import ClientRedis from '~/config/RedisClient'
 import { Leaderboard } from '~/entities/LeaderBoard'
-import { AuthResponse, IUserResponse } from '../types/auth.types'
-
-interface RegisterInput {
-  username: string
-  gmail: string
-  password: string
-  fullName?: string
-  role?: UserRole
-}
-
-export interface UserLoginGoogle {
-  googleId: string | null
-  gmail: string | null
-  fullName: string | null
-  image: string | null
-}
+import { IRegisterRequest, IUserResponse, AuthResponse, UserLoginGoogle } from '~/interfaces/IUser'
+import { UserRepository } from '~/repositories/UserRepository'
 
 export class AuthService {
-  private userRepository: Repository<User>
+  private userRepository: UserRepository
+  private readonly SALT_ROUNDS = 10
+  private readonly TOKEN_EXPIRATION = '1h'
 
   constructor() {
-    this.userRepository = AppDataSource.getRepository(User)
+    this.userRepository = new UserRepository()
   }
 
-  async register({ username, gmail, password, fullName, role }: RegisterInput): Promise<AuthResponse> {
-    const existingUser = await this.userRepository.findOne({ where: { username, gmail } })
+  private validateRegisterInput({ username, password }: IRegisterRequest): void {
+    if (!username || username.length < 3) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Username phải có ít nhất 3 ký tự')
+    }
+    if (!password || password.length < 6) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Password phải có ít nhất 6 ký tự')
+    }
+  }
+
+  private createUserResponse(user: User): IUserResponse {
+    return {
+      id: user.id,
+      email: user.gmail || null,
+      name: user.fullName || null,
+      avatar: user.image || null,
+      role: user.role
+    }
+  }
+
+  private async generateToken(user: IUserResponse | User): Promise<string> {
+    const payload = { user: this.createUserResponse(user as User) }
+    return jwt.sign(payload, process.env.JWT_SECRET_KEY || 'tuananh123', { expiresIn: this.TOKEN_EXPIRATION })
+  }
+
+  async register(input: IRegisterRequest): Promise<AuthResponse> {
+    this.validateRegisterInput(input)
+    const { username, gmail, password, fullName, role } = input
+
+    const existingUser = await this.userRepository.findOneByUsernameOrEmail(username, gmail)
     if (existingUser) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Tên đăng nhập hoặc email đã tồn tại')
     }
 
-    // Hash mật khẩu
-    const hashedPassword = await bcrypt.hash(password, 10)
-
+    const hashedPassword = await bcrypt.hash(password, this.SALT_ROUNDS)
     let leaderboard = undefined
 
     if (!role || role === UserRole.STUDENT) {
       leaderboard = new Leaderboard()
     }
 
-    // Tạo user mới
-    const user = this.userRepository.create({
+    const user = await this.userRepository.createUser({
       username,
-      gmail,
+      gmail: gmail ?? undefined,
       password: hashedPassword,
       fullName,
       role: role || UserRole.STUDENT,
@@ -57,23 +67,18 @@ export class AuthService {
       leaderboard: leaderboard ? leaderboard : undefined
     })
 
-    await this.userRepository.save(user)
+    const userResponse = this.createUserResponse(user)
+    const token = await this.generateToken(userResponse)
 
-    const userResponse: IUserResponse = {
-      id: user.id.toString(),
-      email: user.gmail || null,
-      name: user.fullName || null,
-      avatar: user.image || null,
-      role: user.role
-    }
-    // Tạo JWT
-    const token = this.generateToken(userResponse)
-
-    return { user: userResponse, token: token }
+    return { user: userResponse, token }
   }
 
   async login(username: string, password: string): Promise<AuthResponse> {
-    const user = await this.userRepository.findOne({ where: { username } })
+    if (!username || !password) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Username và password là bắt buộc')
+    }
+
+    const user = await this.userRepository.findByUsername(username)
     if (!user) {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Tài khoản không tồn tại')
     }
@@ -83,65 +88,43 @@ export class AuthService {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Mật khẩu không đúng')
     }
 
-    const userResponse: IUserResponse = {
-      id: user.id.toString(),
-      email: user.gmail || null,
-      name: user.fullName || null,
-      avatar: user.image || null,
-      role: user.role
-    }
+    const userResponse = this.createUserResponse(user)
+    const token = await this.generateToken(userResponse)
 
-    const token = this.generateToken(userResponse)
-    return {
-      user: userResponse,
-      token: token
-    }
+    return { user: userResponse, token }
   }
 
   async logout(token: string): Promise<void> {
-    //bỏ token vào blacklist
     const clientRedis = ClientRedis.getClient()
     await clientRedis.set(`blacklist:${token}`, 'true', 'EX', 60 * 60) // 1 hour expiration
     return Promise.resolve()
   }
 
   async findOrCreateGoogleUser({ googleId, gmail, fullName, image }: UserLoginGoogle): Promise<string> {
-    if (!googleId) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'Google ID is required')
+    if (!googleId || !gmail) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Google ID và Gmail là bắt buộc')
     }
-    if (!gmail) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'Gmail is required')
-    }
-    const existingUser = await this.userRepository.findOne({ where: { gmail } })
+
+    const existingUser = await this.userRepository.findByEmail(gmail)
     if (existingUser) {
-      this.userRepository.merge(existingUser, {
-        googleId: googleId,
+      const updatedUser = await this.userRepository.mergeUserData(existingUser, {
+        googleId,
         fullName: existingUser.fullName || fullName,
         image: existingUser.image || image,
         provider: AuthProvider.GOOGLE
       })
-      await this.userRepository.save(existingUser)
-
-      const token = this.generateToken(existingUser)
-      return token
+      return this.generateToken(updatedUser)
     }
 
     const leaderboard = new Leaderboard()
-    const newUser = this.userRepository.create({
+    const newUser = await this.userRepository.createUser({
       googleId,
       gmail,
-      fullName,
-      image,
+      fullName: fullName ?? undefined,
+      image: image ?? undefined,
       provider: AuthProvider.GOOGLE,
-      leaderboard: leaderboard
+      leaderboard
     })
-    await this.userRepository.save(newUser)
-    const token = this.generateToken(newUser)
-    return token
-  }
-
-  private generateToken(user: IUserResponse | User): string {
-    const payload = { user }
-    return jwt.sign(payload, process.env.JWT_SECRET_KEY || 'tuananh123', { expiresIn: '1h' })
+    return this.generateToken(newUser)
   }
 }

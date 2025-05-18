@@ -1,10 +1,12 @@
 import 'reflect-metadata'
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, UpdateDateColumn } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm'
 import { User } from './User'
 import { Flashcard } from './FlashCard'
+import { BaseEntity } from './BaseEntity'
+import { IUserProgress } from '../interfaces/IUserProgress'
 
 @Entity({ name: 'user_progress' })
-export class UserProgress {
+export class UserProgress extends BaseEntity implements IUserProgress {
   @PrimaryGeneratedColumn()
   id!: number
 
@@ -16,9 +18,6 @@ export class UserProgress {
 
   @Column({ type: 'int', default: 0 })
   study_count!: number // Số lần đã ôn tập flashcard này
-
-  @UpdateDateColumn({ type: 'timestamp', nullable: true })
-  last_reviewed?: Date // Lần ôn tập gần nhất
 
   @Column({ type: 'float', default: 2.5 })
   ease_factor!: number // Hệ số dễ dàng (công thức SM-2)

@@ -1,6 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm'
 import { Collection } from './Collection'
 import { User } from './User'
+import { BaseEntity } from './BaseEntity'
+import { ISharedCollection } from '../interfaces/ISharedCollection'
 
 export enum SharePermission {
   VIEW = 'view',
@@ -8,7 +10,7 @@ export enum SharePermission {
 }
 
 @Entity({ name: 'shared_collections' })
-export class SharedCollection {
+export class SharedCollection extends BaseEntity implements ISharedCollection {
   @PrimaryGeneratedColumn()
   id!: number
 
@@ -17,12 +19,6 @@ export class SharedCollection {
 
   @ManyToOne(() => User, (user) => user.id, { nullable: false, onDelete: 'CASCADE' })
   shared_with!: User
-
-  @CreateDateColumn({ type: 'timestamp' })
-  shared_at!: Date
-
-  @UpdateDateColumn({ type: 'timestamp' })
-  last_updated!: Date
 
   @Column({ type: 'int', default: 0 })
   total_points!: number

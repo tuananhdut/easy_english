@@ -1,6 +1,8 @@
 import 'reflect-metadata'
 import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BeforeUpdate, OneToOne } from 'typeorm'
 import { Leaderboard } from './LeaderBoard'
+import { BaseEntity } from './BaseEntity'
+import { IUser } from '../interfaces/IUser'
 
 export enum UserRole {
   STUDENT = 'học sinh',
@@ -14,7 +16,7 @@ export enum AuthProvider {
 }
 
 @Entity({ name: 'users' })
-export class User {
+export class User extends BaseEntity implements IUser {
   @PrimaryGeneratedColumn()
   id!: number
 

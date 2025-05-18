@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from 'express'
-import { AuthService, UserLoginGoogle } from '../services/AuthService'
+import { AuthService } from '../services/AuthService'
 import { UserRole } from '../entities/User'
 import { ApiSuccess } from '~/utils/ApiSuccess'
 import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
-import { IUserResponse } from '~/types/auth.types'
+import { IUserResponse, UserLoginGoogle, IRegisterRequest, ILoginRequest } from '~/interfaces/IUser'
 import dotenv from 'dotenv'
 dotenv.config()
 
@@ -17,26 +17,51 @@ export class AuthController {
     this.register = this.register.bind(this)
     this.login = this.login.bind(this)
     this.getProfile = this.getProfile.bind(this)
+    this.logout = this.logout.bind(this)
+  }
+
+  private validateRegisterRequest(req: Request): IRegisterRequest {
+    const { username, password, fullName, role, gmail } = req.body
+
+    if (!username || !password) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Tên đăng nhập và mật khẩu là bắt buộc')
+    }
+
+    return {
+      username,
+      password,
+      gmail: gmail?.trim() === '' ? null : gmail,
+      fullName,
+      role: role as UserRole
+    }
+  }
+
+  private validateLoginRequest(req: Request): ILoginRequest {
+    const { username, password } = req.body
+
+    if (!username || !password) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Tên đăng nhập và mật khẩu là bắt buộc')
+    }
+
+    return { username, password }
+  }
+
+  private extractTokenFromHeader(req: Request): string {
+    const authHeader = req.headers.authorization
+    const token = authHeader?.split(' ')[1]
+
+    if (!token) {
+      throw new ApiError(StatusCodes.UNAUTHORIZED, 'Token is required')
+    }
+
+    return token
   }
 
   public async register(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { username, password, fullName, role } = req.body
-      let { gmail } = req.body
-
-      if (!username || !password) {
-        throw new ApiError(400, 'Tên đăng nhập và mật khẩu là bắt buộc')
-      }
-
-      gmail = gmail?.trim() === '' ? null : gmail
-      const data = await this.authService.register({
-        username,
-        gmail,
-        password,
-        fullName,
-        role: role as UserRole
-      })
-      new ApiSuccess(data, 'Đăng ký thành công', 201).send(res)
+      const registerData = this.validateRegisterRequest(req)
+      const data = await this.authService.register(registerData)
+      new ApiSuccess(data, 'Đăng ký thành công', StatusCodes.CREATED).send(res)
     } catch (err) {
       next(err)
     }
@@ -44,25 +69,21 @@ export class AuthController {
 
   public async login(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const { username, password } = req.body
-
-      if (!username || !password) {
-        throw new ApiError(400, 'Tên đăng nhập và mật khẩu là bắt buộc')
-      }
-
+      const { username, password } = this.validateLoginRequest(req)
       const data = await this.authService.login(username, password)
       new ApiSuccess(data, 'Đăng nhập thành công').send(res)
     } catch (err) {
       next(err)
     }
   }
+
   public async getProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const user = req.user as IUserResponse
       if (!user) {
-        throw new ApiError(401, 'Unauthorized')
+        throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
       }
-      new ApiSuccess({ user: user }, 'Lấy thông tin người dùng thành công').send(res)
+      new ApiSuccess({ user }, 'Lấy thông tin người dùng thành công').send(res)
     } catch (err) {
       next(err)
     }
@@ -70,13 +91,7 @@ export class AuthController {
 
   public async logout(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const authHeader = req.headers.authorization
-      const token = authHeader?.split(' ')[1]
-
-      if (!token) {
-        return next(new ApiError(StatusCodes.UNAUTHORIZED, 'Token is required.'))
-      }
-
+      const token = this.extractTokenFromHeader(req)
       await this.authService.logout(token)
       new ApiSuccess(null, 'Đăng xuất thành công').send(res)
     } catch (err) {
@@ -86,17 +101,12 @@ export class AuthController {
 
   public async googleCallback(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      // Lấy dữ liệu từ req.user do Passport cung cấp
       const userData = req.user
-
-      // Kiểm tra nếu không có userData (xác thực thất bại)
       if (!userData) {
         return next(new ApiError(StatusCodes.UNAUTHORIZED, 'Đăng nhập Google thất bại'))
       }
 
-      // Destructuring trực tiếp từ req.user vì dữ liệu đã phẳng
       const { googleId, gmail, fullName, image } = userData as UserLoginGoogle
-
       const token = await this.authService.findOrCreateGoogleUser({ gmail, fullName, image, googleId })
 
       res.redirect(`${process.env.CLIENT_URL}/auth/google/callback?token=${token}`)
