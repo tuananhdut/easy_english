@@ -1,7 +1,7 @@
 import React from 'react'
 import { Card, Typography, message } from 'antd'
 import { useNavigate } from 'react-router-dom'
-import DictionaryForm, { DictionaryFormValues } from '../components/DictionaryForm'
+import DictionaryForm, { DictionaryFormValues } from '../components/collection/CollectionForm'
 
 const { Title } = Typography
 

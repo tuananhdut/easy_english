@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Form, Input, Button, Card, Typography, message, Space, Popconfirm, Row, Col } from 'antd'
 import { EditOutlined, DeleteOutlined, ArrowLeftOutlined, ShareAltOutlined } from '@ant-design/icons'
-import DictionaryForm from '../components/DictionaryForm'
+import DictionaryForm from '../components/collection/CollectionForm'
 
 const { Title, Text } = Typography
 

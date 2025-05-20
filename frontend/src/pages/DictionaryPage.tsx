@@ -4,7 +4,7 @@ import { SearchOutlined, BookOutlined } from '@ant-design/icons'
 import { searchDictionaryApi } from '../features/dictionary/dictionaryApi'
 import { DictionaryApiResponse, SearchDataDictionary, SearchParams } from '../features/dictionary/dictionarytypes'
 import DictionaryResult from '../components/DictionaryResult'
-import CollectionCard from '../components/ColectionCard'
+import CollectionCard from '../components/collection/ColectionCard'
 import { useNavigate } from 'react-router-dom'
 
 const { Text, Title } = Typography
@@ -87,9 +87,9 @@ const DictionaryPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [searchRecommend, setSearchRecommend] = useState<DictionaryApiResponse | null>(null)
   const [content, setContent] = useState(false)
-  const [openedCollection, setOpenedCollection] = useState<import('../components/ColectionCard').Collection | null>(
-    null
-  )
+  const [openedCollection, setOpenedCollection] = useState<
+    import('../components/collection/ColectionCard').Collection | null
+  >(null)
   const navigate = useNavigate()
 
   const handleSearch = async (value: string) => {
@@ -173,7 +173,11 @@ const DictionaryPage: React.FC = () => {
   })
 
   // Mock CollectionDetail component
-  const CollectionDetail = ({ collection }: { collection: import('../components/ColectionCard').Collection }) => (
+  const CollectionDetail = ({
+    collection
+  }: {
+    collection: import('../components/collection/ColectionCard').Collection
+  }) => (
     <div style={{ padding: 24 }}>
       <Title level={4}>Chi tiết bộ sưu tập</Title>
       <Text>

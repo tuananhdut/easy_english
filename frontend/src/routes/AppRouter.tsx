@@ -13,7 +13,7 @@ import MainPage from '../pages/MainPage'
 import RegisterPage from '../pages/RegisterPage'
 import ForgotPasswordPage from '../pages/ForgotPasswordPage'
 import GoogleCallback from '../pages/GoogleCallbackPage'
-import CreateDictionaryPage from '../pages/CreateDictionaryPage'
+import CreateDictionaryPage from '../pages/CreateCollectionPage'
 import CreateFlashcardPage from '../pages/CreateFlashcardPage'
 import EditCollectionPage from '../pages/EditCollectionPage'
 

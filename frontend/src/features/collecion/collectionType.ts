@@ -15,6 +15,7 @@ export enum CollectionLevel {
   HARD = 'hard'
 }
 
+// fix cái này
 export interface Collection {
   id: number
   name: string

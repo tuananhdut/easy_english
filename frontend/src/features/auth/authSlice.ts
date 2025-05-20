@@ -1,6 +1,6 @@
 import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { loginApi, logoutApi, meApi, registerApi, initiateGoogleLogin } from './authApi'
-import { IUser } from '../../types/user'
+import { IUser } from '../user/userType'
 import { AuthState, IUserRegister, LoginCredentials } from './authTypes'
 
 const initialState: AuthState = {
