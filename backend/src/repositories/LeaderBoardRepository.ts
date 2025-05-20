@@ -36,8 +36,7 @@ export class LeaderBoardRepository extends BaseRepository<Leaderboard> {
 
   async updatePoints(id: number, points: number): Promise<Leaderboard | null> {
     await this.repository.update(id, {
-      total_points: points,
-      last_updated: new Date()
+      total_points: points
     })
     return this.findOne(id)
   }

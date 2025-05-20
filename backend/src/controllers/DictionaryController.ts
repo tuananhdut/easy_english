@@ -3,7 +3,7 @@ import { ApiSuccess } from '~/utils/ApiSuccess'
 import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import DictionaryService from '~/services/DictionaryService'
-import { SearchParams } from '~/types/dictionary.types'
+import { SearchParams } from '~/interfaces/IDictionary'
 
 export default class DictionaryController {
   private dictionaryService: DictionaryService

@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { SearchParams, DictionaryApiResponse, Suggestion } from '~/types/dictionary.types'
+import { DictionaryApiResponse, SearchParams, Suggestion } from '~/interfaces/IDictionary'
 
 interface ParsedData {
   word: string
