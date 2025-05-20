@@ -1,4 +1,11 @@
-import { Repository, EntityTarget, FindOptionsWhere, DeepPartial } from 'typeorm'
+import {
+  Repository,
+  EntityTarget,
+  FindOptionsWhere,
+  DeepPartial,
+  FindOptionsRelations,
+  FindOptionsSelect
+} from 'typeorm'
 import { AppDataSource } from '../config/data-source'
 import { BaseEntity } from '../entities/BaseEntity'
 
@@ -11,6 +18,14 @@ export class BaseRepository<T extends BaseEntity> {
 
   async findOne(id: number): Promise<T | null> {
     return this.repository.findOneBy({ id } as unknown as FindOptionsWhere<T>)
+  }
+
+  async findOneWithOptions(options: {
+    where: FindOptionsWhere<T>
+    relations?: FindOptionsRelations<T>
+    select?: FindOptionsSelect<T>
+  }): Promise<T | null> {
+    return this.repository.findOne(options)
   }
 
   async findAll(): Promise<T[]> {

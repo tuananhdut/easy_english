@@ -1,7 +1,8 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm'
 import { User } from './User'
 import { BaseEntity } from './BaseEntity'
 import { ICollection } from '../interfaces/ICollection'
+import { SharedCollection } from './SharedCollection'
 
 export enum CollectionLevel {
   EASY = 'easy',
@@ -34,6 +35,9 @@ export class Collection extends BaseEntity implements ICollection {
 
   @ManyToOne(() => User, { nullable: false, onDelete: 'CASCADE' })
   owner!: User
+
+  @OneToMany(() => SharedCollection, (sharedCollection) => sharedCollection.collection)
+  sharedCollections!: SharedCollection[]
 
   @Column({
     type: 'enum',
