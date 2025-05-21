@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { AutoComplete, Card, Tabs, Typography, Space, List, message, Layout, Drawer } from 'antd'
 import { SearchOutlined, BookOutlined } from '@ant-design/icons'
 import { searchDictionaryApi } from '../features/dictionary/dictionaryApi'
@@ -6,80 +6,9 @@ import { DictionaryApiResponse, SearchDataDictionary, SearchParams } from '../fe
 import DictionaryResult from '../components/DictionaryResult'
 import CollectionCard from '../components/collection/ColectionCard'
 import { useNavigate } from 'react-router-dom'
+import { getOwnCollections, ICollection } from '../features/collecion/collectionApi'
 
 const { Text, Title } = Typography
-
-// Mock data với các quyền truy cập khác nhau
-const mockCollections = {
-  owned: [
-    {
-      id: '1',
-      name: 'Từ vựng tiếng Anh cơ bản',
-      description: 'Bộ sưu tập từ vựng tiếng Anh cơ bản cho bắt đầu',
-      level: 'Cơ bản',
-      totalWords: 500,
-      learnedWords: 150,
-      reviewWords: 50,
-      progress: 30,
-      createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-03-15T00:00:00Z',
-      userId: 'user1',
-      isPublic: true,
-      category: 'Từ vựng',
-      tags: ['cơ bản', 'giao tiếp'],
-      coverImage: 'https://example.com/basic-vocab.jpg',
-      owner: {
-        id: 'user1',
-        name: 'Nguyễn Văn A'
-      }
-    }
-  ],
-  sharedView: [
-    {
-      id: '2',
-      name: 'Từ vựng TOEIC',
-      description: 'Bộ sưu tập từ vựng chuyên ngành TOEIC',
-      level: 'Trung cấp',
-      totalWords: 1000,
-      learnedWords: 400,
-      reviewWords: 100,
-      progress: 40,
-      createdAt: '2024-01-15T00:00:00Z',
-      updatedAt: '2024-03-10T00:00:00Z',
-      userId: 'user2',
-      isPublic: true,
-      category: 'TOEIC',
-      tags: ['toeic', 'business'],
-      owner: {
-        id: 'user2',
-        name: 'Trần Thị B'
-      }
-    }
-  ],
-  sharedEdit: [
-    {
-      id: '3',
-      name: 'Từ vựng IELTS',
-      description: 'Bộ sưu tập từ vựng nâng cao cho IELTS',
-      level: 'Nâng cao',
-      totalWords: 1500,
-      learnedWords: 750,
-      reviewWords: 200,
-      progress: 50,
-      createdAt: '2024-02-01T00:00:00Z',
-      updatedAt: '2024-03-20T00:00:00Z',
-      userId: 'user3',
-      isPublic: true,
-      category: 'IELTS',
-      tags: ['ielts', 'academic', 'nâng cao'],
-      coverImage: 'https://example.com/ielts-vocab.jpg',
-      owner: {
-        id: 'user3',
-        name: 'Lê Văn C'
-      }
-    }
-  ]
-}
 
 const DictionaryPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -87,10 +16,27 @@ const DictionaryPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [searchRecommend, setSearchRecommend] = useState<DictionaryApiResponse | null>(null)
   const [content, setContent] = useState(false)
-  const [openedCollection, setOpenedCollection] = useState<
-    import('../components/collection/ColectionCard').Collection | null
-  >(null)
+  const [openedCollection, setOpenedCollection] = useState<ICollection | null>(null)
+  const [collections, setCollections] = useState<ICollection[]>([])
+  const [loadingCollections, setLoadingCollections] = useState(false)
   const navigate = useNavigate()
+
+  useEffect(() => {
+    fetchCollections()
+  }, [])
+
+  const fetchCollections = async () => {
+    try {
+      setLoadingCollections(true)
+      const response = await getOwnCollections()
+      setCollections(response)
+    } catch (error) {
+      message.error('Có lỗi xảy ra khi lấy danh sách bộ sưu tập')
+      console.error('Error fetching collections:', error)
+    } finally {
+      setLoadingCollections(false)
+    }
+  }
 
   const handleSearch = async (value: string) => {
     setContent(false)
@@ -172,12 +118,8 @@ const DictionaryPage: React.FC = () => {
     )
   })
 
-  // Mock CollectionDetail component
-  const CollectionDetail = ({
-    collection
-  }: {
-    collection: import('../components/collection/ColectionCard').Collection
-  }) => (
+  // CollectionDetail component
+  const CollectionDetail = ({ collection }: { collection: ICollection }) => (
     <div style={{ padding: 24 }}>
       <Title level={4}>Chi tiết bộ sưu tập</Title>
       <Text>
@@ -189,17 +131,19 @@ const DictionaryPage: React.FC = () => {
       </Text>
       <br />
       <Text>
-        <b>Ngày tạo:</b> {new Date(collection.createdAt).toLocaleDateString()}
+        <b>Ngày tạo:</b> {new Date(collection.created_at).toLocaleDateString()}
       </Text>
       <br />
       <Text>
-        <b>Tags:</b>{' '}
-        {collection.tags &&
-          collection.tags.map((tag: string, idx: number) => (
-            <span key={idx} style={{ marginRight: 8 }}>
-              <span style={{ background: '#e6f7ff', padding: '2px 8px', borderRadius: 4 }}>{tag}</span>
-            </span>
-          ))}
+        <b>Ngôn ngữ:</b> {collection.source_language} - {collection.target_language}
+      </Text>
+      <br />
+      <Text>
+        <b>Cấp độ:</b> {collection.level}
+      </Text>
+      <br />
+      <Text>
+        <b>Số thẻ:</b> {collection.total_flashcards}
       </Text>
     </div>
   )
@@ -245,12 +189,32 @@ const DictionaryPage: React.FC = () => {
           <Title level={4}>Bộ sưu tập của tôi</Title>
           <List
             grid={{ gutter: 16, xs: 1, sm: 2, md: 3 }}
-            dataSource={mockCollections.owned}
+            dataSource={collections}
+            loading={loadingCollections}
             renderItem={(collection) => (
               <List.Item>
                 <div style={{ cursor: 'pointer' }}>
                   <CollectionCard
-                    collection={collection}
+                    collection={{
+                      id: collection.id.toString(),
+                      name: collection.name,
+                      description: collection.description,
+                      level: collection.level,
+                      totalWords: collection.total_flashcards,
+                      learnedWords: 0,
+                      reviewWords: 0,
+                      progress: 0,
+                      createdAt: collection.created_at,
+                      updatedAt: collection.updated_at,
+                      userId: collection.owner.id.toString(),
+                      isPublic: !collection.is_private,
+                      category: 'Từ vựng',
+                      tags: [],
+                      owner: {
+                        id: collection.owner.id.toString(),
+                        name: collection.owner.username
+                      }
+                    }}
                     type='owned'
                     onEdit={handleEdit}
                     onStudy={handleStudy}
@@ -260,29 +224,6 @@ const DictionaryPage: React.FC = () => {
                 </div>
               </List.Item>
             )}
-          />
-
-          <Title level={4}>Được chia sẻ với tôi</Title>
-          <List
-            grid={{ gutter: 16, xs: 1, sm: 2, md: 3 }}
-            dataSource={[...mockCollections.sharedView, ...mockCollections.sharedEdit]}
-            renderItem={(collection) => {
-              const type = mockCollections.sharedView.some((c) => c.id === collection.id) ? 'sharedView' : 'sharedEdit'
-              return (
-                <List.Item>
-                  <div style={{ cursor: 'pointer' }}>
-                    <CollectionCard
-                      collection={collection}
-                      type={type}
-                      onEdit={handleEdit}
-                      onStudy={handleStudy}
-                      onReview={handleReview}
-                      onCardClick={() => setOpenedCollection(collection)}
-                    />
-                  </div>
-                </List.Item>
-              )
-            }}
           />
         </Space>
       )

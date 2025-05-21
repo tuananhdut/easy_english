@@ -3,6 +3,7 @@ import { Layout, Button, Space, Typography, Card, Row, Col, Avatar, Progress, Ra
 import { UserOutlined, FireOutlined, BookOutlined } from '@ant-design/icons'
 import Chart from 'chart.js/auto'
 import { useNavigate } from 'react-router-dom'
+import { useAppSelector } from '../app/hooks'
 
 const { Content } = Layout
 const { Title, Text } = Typography
@@ -12,6 +13,7 @@ const MainPage: React.FC = () => {
   const chartRef = useRef<HTMLCanvasElement>(null)
   const chartInstance = useRef<Chart | null>(null)
   const navigate = useNavigate()
+  const user = useAppSelector((state) => state.auth.user)
 
   // Mock data - replace with real data from API
   const userStats = {
@@ -107,11 +109,11 @@ const MainPage: React.FC = () => {
           <Card style={{ marginBottom: '24px' }}>
             <Row align='middle' gutter={24}>
               <Col>
-                <Avatar size={64} icon={<UserOutlined />} />
+                <Avatar size={64} src={user?.avatar} icon={!user?.avatar && <UserOutlined />} />
               </Col>
               <Col flex='auto'>
                 <Title level={4} style={{ margin: 0 }}>
-                  Xin chào, Nguyễn Văn A
+                  Xin chào, {user?.name || 'Người dùng'}
                 </Title>
                 <Text type='secondary'>Hãy tiếp tục học tập để cải thiện kỹ năng của bạn</Text>
               </Col>
