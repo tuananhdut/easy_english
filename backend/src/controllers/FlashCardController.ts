@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from 'express'
-import { FlashCardService } from '../services/FlashCardService'
+import { FlashCardService } from '~/services/FlashCardService'
 import { ApiSuccess } from '~/utils/ApiSuccess'
 import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
