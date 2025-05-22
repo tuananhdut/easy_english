@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Layout, Button, Space, Typography, Card, Row, Col, Avatar, Progress, Radio } from 'antd'
+import { Layout, Button, Space, Typography, Card, Row, Col, Avatar, Progress, Radio, Spin } from 'antd'
 import { UserOutlined, FireOutlined, BookOutlined } from '@ant-design/icons'
 import Chart from 'chart.js/auto'
 import { useNavigate } from 'react-router-dom'
@@ -13,7 +13,7 @@ const MainPage: React.FC = () => {
   const chartRef = useRef<HTMLCanvasElement>(null)
   const chartInstance = useRef<Chart | null>(null)
   const navigate = useNavigate()
-  const user = useAppSelector((state) => state.auth.user)
+  const { user, loading } = useAppSelector((state) => state.auth)
 
   // Mock data - replace with real data from API
   const userStats = {
@@ -100,6 +100,24 @@ const MainPage: React.FC = () => {
       }
     }
   }, [timeRange])
+
+  if (loading) {
+    return (
+      <Layout style={{ minHeight: '100vh' }}>
+        <Content
+          style={{
+            padding: '24px',
+            background: '#f0f2f5',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}
+        >
+          <Spin size='large' />
+        </Content>
+      </Layout>
+    )
+  }
 
   return (
     <Layout style={{ minHeight: '100vh' }}>

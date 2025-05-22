@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { Select, Input, Button, Space, Typography, Tooltip, Card, message } from 'antd'
 import { SearchOutlined, SwapOutlined, TranslationOutlined, CopyOutlined, FileTextOutlined } from '@ant-design/icons'
+import { translateText } from '../features/translate/translateApi'
+import { TranslationRequest } from '../features/translate/translatetypes'
 
 const { Option } = Select
 const { TextArea } = Input
@@ -42,19 +44,31 @@ const SearchPage: React.FC = () => {
   }
 
   // Xử lý khi bấm nút dịch
-  const handleTranslate = () => {
+  const handleTranslate = async () => {
     if (!inputText) {
-      setTranslatedText('Vui lòng nhập văn bản để dịch.')
+      message.warning('Vui lòng nhập văn bản để dịch.')
       return
     }
 
     setIsTranslating(true)
-    // Giả lập chức năng dịch với delay
-    setTimeout(() => {
-      const mockTranslation = `Đã dịch từ ${sourceLang} sang ${targetLang}: ${inputText}`
-      setTranslatedText(mockTranslation)
+    try {
+      const request: TranslationRequest = {
+        sourceLanguage: sourceLang,
+        targetLanguage: targetLang,
+        text: inputText
+      }
+
+      const response = await translateText(request)
+      console.log(response)
+      if (response) {
+        setTranslatedText(response.translation)
+      }
+    } catch (error) {
+      console.error('Translation error:', error)
+      message.error('Có lỗi xảy ra khi dịch văn bản')
+    } finally {
       setIsTranslating(false)
-    }, 1000)
+    }
   }
 
   return (
