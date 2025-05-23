@@ -9,12 +9,17 @@ export interface IFlashCard {
   audio_url?: string
   created_at: Date
   updated_at: Date
+  pronunciation?: string
+  is_private?: boolean
+  source_language: string
+  target_language: string
 }
 
 export interface IFlashCardRequest {
   collection_id: number
   front_text: string
   back_text: string
+  pronunciation?: string
   image_url?: string
   audio_url?: string
 }
