@@ -47,6 +47,24 @@ export class FlashCardController {
     }
   }
 
+  private validateUpdateFlashCardRequest(req: Request): Partial<IFlashCardRequest> {
+    const { front_text, back_text, image_url, audio_url, pronunciation } = req.body
+
+    const updateData: Partial<IFlashCardRequest> = {}
+
+    if (front_text !== undefined) updateData.front_text = front_text
+    if (back_text !== undefined) updateData.back_text = back_text
+    if (image_url !== undefined) updateData.image_url = image_url
+    if (audio_url !== undefined) updateData.audio_url = audio_url
+    if (pronunciation !== undefined) updateData.pronunciation = pronunciation
+
+    if (Object.keys(updateData).length === 0) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Không có dữ liệu để cập nhật')
+    }
+
+    return updateData
+  }
+
   public async createFlashCard(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const user = req.user as User
@@ -70,7 +88,7 @@ export class FlashCardController {
       }
 
       const { id } = req.params
-      const flashCardData = this.validateFlashCardRequest(req)
+      const flashCardData = this.validateUpdateFlashCardRequest(req)
       const flashCard = await this.flashCardService.updateFlashCard(Number(id), flashCardData, user)
       new ApiSuccess(flashCard, 'Cập nhật flashcard thành công').send(res)
     } catch (err) {

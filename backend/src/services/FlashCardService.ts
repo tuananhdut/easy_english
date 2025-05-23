@@ -52,7 +52,7 @@ export class FlashCardService {
     return { ...rest, collection: { id, name } }
   }
 
-  async updateFlashCard(id: number, data: IFlashCardRequest, user: User): Promise<Flashcard> {
+  async updateFlashCard(id: number, data: Partial<IFlashCardRequest>, user: User): Promise<Flashcard> {
     const flashCard = await this.flashCardRepository.findOneWithOptions({
       where: { id },
       relations: {
