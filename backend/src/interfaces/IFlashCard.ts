@@ -10,7 +10,7 @@ export interface IFlashCard {
   created_at: Date
   updated_at: Date
   pronunciation?: string
-  is_private?: boolean
+  is_private: boolean
   source_language: string
   target_language: string
 }
@@ -22,6 +22,9 @@ export interface IFlashCardRequest {
   pronunciation?: string
   image_url?: string
   audio_url?: string
+  is_private?: boolean
+  source_language?: string
+  target_language?: string
 }
 
 export interface IFlashCardResponse {

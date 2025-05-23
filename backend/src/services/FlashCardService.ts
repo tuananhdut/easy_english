@@ -25,6 +25,7 @@ export class FlashCardService {
       select: {
         id: true,
         name: true,
+        is_private: true,
         owner: {
           id: true
         }
@@ -38,6 +39,10 @@ export class FlashCardService {
       throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền thêm flashcard vào collection này')
     }
 
+    if (data.source_language === data.target_language && data.source_language != null) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Ngôn ngữ nguồn và ngôn ngữ mục tiêu không được giống nhau')
+    }
+    data.is_private = collection.is_private
     const flashcard = await this.flashCardRepository.createFlashCard(data, collection)
 
     const {

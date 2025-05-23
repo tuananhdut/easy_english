@@ -20,7 +20,16 @@ export class FlashCardController {
   }
 
   private validateFlashCardRequest(req: Request): IFlashCardRequest {
-    const { collection_id, front_text, back_text, image_url, audio_url } = req.body
+    const {
+      collection_id,
+      front_text,
+      back_text,
+      image_url,
+      audio_url,
+      pronunciation,
+      source_language,
+      target_language
+    } = req.body
 
     if (!collection_id || !front_text || !back_text) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Collection ID, front text và back text là bắt buộc')
@@ -31,7 +40,10 @@ export class FlashCardController {
       front_text,
       back_text,
       image_url,
-      audio_url
+      audio_url,
+      pronunciation,
+      source_language,
+      target_language
     }
   }
 
