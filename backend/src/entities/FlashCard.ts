@@ -24,6 +24,15 @@ export class Flashcard extends BaseEntity implements IFlashCard {
   @Column({ type: 'varchar', nullable: true })
   audio_url?: string
 
-  // thêm phiên âm với dạng từ
-  //dạng us-vi
+  @Column({ type: 'varchar', nullable: true })
+  pronunciation?: string
+
+  @Column({ type: 'boolean', default: true })
+  is_private!: boolean
+
+  @Column({ type: 'varchar', default: 'vi' })
+  source_language!: string
+
+  @Column({ type: 'varchar', default: 'en' })
+  target_language!: string
 }
