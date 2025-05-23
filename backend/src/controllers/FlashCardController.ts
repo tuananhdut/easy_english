@@ -5,6 +5,8 @@ import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { IFlashCardRequest } from '~/interfaces/IFlashCard'
 import { User } from '~/entities/User'
+import fs from 'fs'
+import path from 'path'
 
 export class FlashCardController {
   private flashCardService: FlashCardService
@@ -17,6 +19,15 @@ export class FlashCardController {
     this.getFlashCardsByCollection = this.getFlashCardsByCollection.bind(this)
     this.getRandomFlashCards = this.getRandomFlashCards.bind(this)
     this.getSuggestFlashCards = this.getSuggestFlashCards.bind(this)
+  }
+
+  private deleteUploadedFiles(files: { image?: Express.Multer.File[]; audio?: Express.Multer.File[] }) {
+    if (files.image?.[0]) {
+      fs.unlinkSync(files.image[0].path)
+    }
+    if (files.audio?.[0]) {
+      fs.unlinkSync(files.audio[0].path)
+    }
   }
 
   private validateFlashCardRequest(req: Request): IFlashCardRequest {
@@ -47,8 +58,34 @@ export class FlashCardController {
     }
   }
 
+  private validateUpdateFlashCardRequest(req: Request): Partial<IFlashCardRequest> {
+    const { front_text, back_text, image_url, audio_url, pronunciation } = req.body
+
+    const updateData: Partial<IFlashCardRequest> = {}
+
+    if (front_text !== undefined) updateData.front_text = front_text
+    if (back_text !== undefined) updateData.back_text = back_text
+    if (image_url !== undefined) updateData.image_url = image_url
+    if (audio_url !== undefined) updateData.audio_url = audio_url
+    if (pronunciation !== undefined) updateData.pronunciation = pronunciation
+
+    if (Object.keys(updateData).length === 0) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Không có dữ liệu để cập nhật')
+    }
+
+    return updateData
+  }
+
   public async createFlashCard(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const files = req.files as {
+      image?: Express.Multer.File[]
+      audio?: Express.Multer.File[]
+    }
+
     try {
+      req.body.image_url = files.image?.[0]?.filename
+      req.body.audio_url = files.audio?.[0]?.filename
+
       const user = req.user as User
       if (!user) {
         throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
@@ -58,22 +95,33 @@ export class FlashCardController {
       const flashCard = await this.flashCardService.createFlashCard(flashCardData, user)
       new ApiSuccess(flashCard, 'Tạo flashcard thành công').send(res)
     } catch (err) {
+      this.deleteUploadedFiles(files)
       next(err)
     }
   }
 
   public async updateFlashCard(req: Request, res: Response, next: NextFunction): Promise<void> {
+    const files = req.files as {
+      image?: Express.Multer.File[]
+      audio?: Express.Multer.File[]
+    }
+
     try {
+      req.body.image_url = files.image?.[0]?.filename
+      req.body.audio_url = files.audio?.[0]?.fieldname
+
       const user = req.user as User
       if (!user) {
         throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
       }
 
       const { id } = req.params
-      const flashCardData = this.validateFlashCardRequest(req)
+      const flashCardData = this.validateUpdateFlashCardRequest(req)
       const flashCard = await this.flashCardService.updateFlashCard(Number(id), flashCardData, user)
       new ApiSuccess(flashCard, 'Cập nhật flashcard thành công').send(res)
     } catch (err) {
+      // Delete uploaded files if update fails
+      this.deleteUploadedFiles(files)
       next(err)
     }
   }

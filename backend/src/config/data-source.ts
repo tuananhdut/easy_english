@@ -12,7 +12,7 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USER || 'root',
   password: process.env.DB_PASSWORD || '',
   database: process.env.DB_NAME || 'easyenglish',
-  synchronize: true, //process.env.NODE_ENV === 'development', //TypeORM sẽ tự động cập nhật schema của database theo entity.
+  synchronize: false, //process.env.NODE_ENV === 'development', //TypeORM sẽ tự động cập nhật schema của database theo entity.
   logging: process.env.NODE_ENV === 'development',
   entities: [__dirname + '/../entities/*.ts'],
   migrations: [__dirname + '/../migrations/*.ts'],

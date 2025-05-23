@@ -20,7 +20,10 @@ export class FlashCardService {
     const collection = await this.collectionRepository.findOneWithOptions({
       where: { id: data.collection_id },
       relations: {
-        owner: true
+        owner: true,
+        sharedCollections: {
+          shared_with: true
+        }
       },
       select: {
         id: true,
@@ -36,9 +39,13 @@ export class FlashCardService {
     }
 
     if (collection.owner.id !== user.id) {
-      throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền thêm flashcard vào collection này')
+      const hasEditPermission = collection.sharedCollections.some(
+        (shared) => shared.shared_with.id === user.id && shared.permission === SharePermission.EDIT
+      )
+      if (!hasEditPermission) {
+        throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền tạo flashcard trong collection này')
+      }
     }
-
     if (data.source_language === data.target_language && data.source_language != null) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Ngôn ngữ nguồn và ngôn ngữ mục tiêu không được giống nhau')
     }
@@ -52,7 +59,7 @@ export class FlashCardService {
     return { ...rest, collection: { id, name } }
   }
 
-  async updateFlashCard(id: number, data: IFlashCardRequest, user: User): Promise<Flashcard> {
+  async updateFlashCard(id: number, data: Partial<IFlashCardRequest>, user: User): Promise<Flashcard> {
     const flashCard = await this.flashCardRepository.findOneWithOptions({
       where: { id },
       relations: {
@@ -121,6 +128,8 @@ export class FlashCardService {
     // Update total flashcards count
     const totalFlashcards = await this.flashCardRepository.findByCollection(flashCard.collection)
     await this.collectionRepository.updateTotalFlashcards(flashCard.collection.id, totalFlashcards.length)
+
+    //update user leaderboard
   }
 
   async getFlashCardsByCollection(collectionId: number, user: User): Promise<Flashcard[]> {
@@ -133,7 +142,6 @@ export class FlashCardService {
         }
       }
     })
-
     if (!collection) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Collection không tồn tại')
     }
@@ -142,12 +150,12 @@ export class FlashCardService {
     if (collection.owner.id !== user.id) {
       const hasAccess = collection.sharedCollections.some((shared) => shared.shared_with.id === user.id)
 
-      if (!hasAccess && collection.is_private) {
+      if (!hasAccess) {
         throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền xem flashcard trong collection này')
       }
     }
-
-    return this.flashCardRepository.findByCollection(collection)
+    const flashcard = await this.flashCardRepository.findByCollection(collection)
+    return flashcard
   }
 
   async getRandomFlashCards(collectionId: number, limit: number, user: User): Promise<Flashcard[]> {
