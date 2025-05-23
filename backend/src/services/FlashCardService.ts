@@ -142,7 +142,6 @@ export class FlashCardService {
         }
       }
     })
-
     if (!collection) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Collection không tồn tại')
     }
@@ -151,12 +150,12 @@ export class FlashCardService {
     if (collection.owner.id !== user.id) {
       const hasAccess = collection.sharedCollections.some((shared) => shared.shared_with.id === user.id)
 
-      if (!hasAccess && collection.is_private) {
+      if (!hasAccess) {
         throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền xem flashcard trong collection này')
       }
     }
-
-    return this.flashCardRepository.findByCollection(collection)
+    const flashcard = await this.flashCardRepository.findByCollection(collection)
+    return flashcard
   }
 
   async getRandomFlashCards(collectionId: number, limit: number, user: User): Promise<Flashcard[]> {

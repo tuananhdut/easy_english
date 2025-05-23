@@ -11,8 +11,7 @@ export class FlashCardRepository extends BaseRepository<Flashcard> {
 
   async findByCollection(collection: Collection): Promise<Flashcard[]> {
     return this.repository.find({
-      where: { collection },
-      relations: ['collection']
+      where: { collection: { id: collection.id } }
     })
   }
 
