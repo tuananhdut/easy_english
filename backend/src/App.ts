@@ -8,6 +8,7 @@ import routes from './routes/index'
 import { ApiError } from './utils/ApiError'
 import { errorHandlingMiddleware } from './middlewares/errorHandlingMiddleware'
 import { StatusCodes } from 'http-status-codes'
+import path from 'path'
 dotenv.config()
 
 class App {
@@ -39,6 +40,7 @@ class App {
 
   private routes(): void {
     this.app.use('/api', routes)
+    this.app.use('/uploads', express.static(path.join(__dirname, '../uploads')))
   }
 
   private plugins(): void {

@@ -46,8 +46,7 @@ export class UserProgressRepository extends BaseRepository<UserProgress> {
 
   async updateProgress(id: number, data: Partial<IUserProgressRequest>): Promise<UserProgress | null> {
     await this.repository.update(id, {
-      ...data,
-      last_reviewed: new Date()
+      ...data
     })
     return this.findOne(id)
   }
