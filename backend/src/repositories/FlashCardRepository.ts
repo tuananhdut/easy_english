@@ -1,4 +1,4 @@
-import { Repository, DeepPartial } from 'typeorm'
+import { DeepPartial } from 'typeorm'
 import { Flashcard } from '../entities/FlashCard'
 import { BaseRepository } from './BaseRepository'
 import { IFlashCardRequest } from '../interfaces/IFlashCard'
@@ -30,6 +30,17 @@ export class FlashCardRepository extends BaseRepository<Flashcard> {
       .where('flashcard.collection = :collectionId', { collectionId: collection.id })
       .orderBy('RANDOM()')
       .limit(limit)
+      .getMany()
+  }
+
+  async findSuggestFlashcards(query: string, source: string, target: string): Promise<Flashcard[]> {
+    return this.repository
+      .createQueryBuilder('flashcard')
+      .where('flashcard.source_language = :source', { source })
+      .andWhere('flashcard.target_language = :target', { target })
+      .andWhere('flashcard.is_private = :isPrivate', { isPrivate: false })
+      .andWhere('flashcard.front_text LIKE :query', { query: `%${query}%` })
+      .limit(10)
       .getMany()
   }
 }

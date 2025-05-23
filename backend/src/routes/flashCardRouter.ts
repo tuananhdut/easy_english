@@ -8,20 +8,12 @@ const router = Router()
 
 // All routes require authentication
 router.use(authMiddleware)
-
-// Create a new flashcard
 router.post('/', flashCardController.createFlashCard)
-
-// Update a flashcard
 router.put('/:id', flashCardController.updateFlashCard)
-
-// Delete a flashcard
 router.delete('/:id', flashCardController.deleteFlashCard)
-
-// Get all flashcards in a collection
 router.get('/collection/:collectionId', flashCardController.getFlashCardsByCollection)
-
-// Get random flashcards from a collection
 router.get('/collection/:collectionId/random', flashCardController.getRandomFlashCards)
+router.get('/suggest', flashCardController.getSuggestFlashCards)
+//GET /flashcards/suggest?query=chào&source=vi&target=en
 
 export default router

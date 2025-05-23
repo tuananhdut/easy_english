@@ -16,6 +16,7 @@ export class FlashCardController {
     this.deleteFlashCard = this.deleteFlashCard.bind(this)
     this.getFlashCardsByCollection = this.getFlashCardsByCollection.bind(this)
     this.getRandomFlashCards = this.getRandomFlashCards.bind(this)
+    this.getSuggestFlashCards = this.getSuggestFlashCards.bind(this)
   }
 
   private validateFlashCardRequest(req: Request): IFlashCardRequest {
@@ -106,6 +107,25 @@ export class FlashCardController {
       const { limit = 10 } = req.query
       const flashCards = await this.flashCardService.getRandomFlashCards(Number(collectionId), Number(limit), user)
       new ApiSuccess(flashCards, 'Lấy danh sách flashcard ngẫu nhiên thành công').send(res)
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  public async getSuggestFlashCards(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.user as User
+      if (!user) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
+      }
+
+      const { query, source, target } = req.query
+      const flashCards = await this.flashCardService.getSuggestFlashCards(
+        query as string,
+        source as string,
+        target as string
+      )
+      new ApiSuccess(flashCards, 'Lấy danh sách flashcard đề xuất thành công').send(res)
     } catch (err) {
       next(err)
     }

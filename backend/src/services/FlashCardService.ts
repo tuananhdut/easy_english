@@ -178,4 +178,8 @@ export class FlashCardService {
 
     return this.flashCardRepository.findRandomFlashcards(collection, limit)
   }
+
+  async getSuggestFlashCards(query: string, source: string, target: string): Promise<Flashcard[]> {
+    return this.flashCardRepository.findSuggestFlashcards(query, source, target)
+  }
 }
