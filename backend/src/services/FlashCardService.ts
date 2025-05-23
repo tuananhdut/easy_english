@@ -1,7 +1,7 @@
 import { FlashCardRepository } from '../repositories/FlashCardRepository'
 import { CollectionRepository } from '../repositories/CollectionRepository'
 import { Flashcard } from '../entities/FlashCard'
-import { IFlashCardRequest } from '../interfaces/IFlashCard'
+import { IFlashCardRequest, IFlashCardResponse } from '../interfaces/IFlashCard'
 import { User } from '../entities/User'
 import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
@@ -16,42 +16,35 @@ export class FlashCardService {
     this.collectionRepository = new CollectionRepository()
   }
 
-  async createFlashCard(data: IFlashCardRequest, user: User): Promise<Flashcard> {
-    const collection = await this.collectionRepository.findOne(data.collection_id)
+  async createFlashCard(data: IFlashCardRequest, user: User): Promise<IFlashCardResponse> {
+    const collection = await this.collectionRepository.findOneWithOptions({
+      where: { id: data.collection_id },
+      relations: {
+        owner: true
+      },
+      select: {
+        id: true,
+        name: true,
+        owner: {
+          id: true
+        }
+      }
+    })
     if (!collection) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Collection không tồn tại')
     }
 
-    // Check if user is the owner or has edit permission
     if (collection.owner.id !== user.id) {
-      const sharedCollection = await this.collectionRepository.findOneWithOptions({
-        where: {
-          id: data.collection_id,
-          sharedCollections: {
-            shared_with: { id: user.id },
-            permission: SharePermission.EDIT
-          }
-        },
-        relations: {
-          owner: true,
-          sharedCollections: {
-            shared_with: true
-          }
-        }
-      })
-
-      if (!sharedCollection) {
-        throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền thêm flashcard vào collection này')
-      }
+      throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền thêm flashcard vào collection này')
     }
 
-    const flashCard = await this.flashCardRepository.createFlashCard(data, collection)
+    const flashcard = await this.flashCardRepository.createFlashCard(data, collection)
 
-    // Update total flashcards count
-    const totalFlashcards = await this.flashCardRepository.findByCollection(collection)
-    await this.collectionRepository.updateTotalFlashcards(collection.id, totalFlashcards.length)
-
-    return flashCard
+    const {
+      collection: { id, name },
+      ...rest
+    } = flashcard
+    return { ...rest, collection: { id, name } }
   }
 
   async updateFlashCard(id: number, data: IFlashCardRequest, user: User): Promise<Flashcard> {

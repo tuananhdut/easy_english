@@ -1,7 +1,7 @@
 import { DeepPartial } from 'typeorm'
 import { Flashcard } from '../entities/FlashCard'
 import { BaseRepository } from './BaseRepository'
-import { IFlashCardRequest } from '../interfaces/IFlashCard'
+import { IFlashCardRequest, IFlashCardResponse } from '../interfaces/IFlashCard'
 import { Collection } from '../entities/Collection'
 
 export class FlashCardRepository extends BaseRepository<Flashcard> {
@@ -16,7 +16,7 @@ export class FlashCardRepository extends BaseRepository<Flashcard> {
     })
   }
 
-  async createFlashCard(data: IFlashCardRequest, collection: Collection): Promise<Flashcard> {
+  async createFlashCard(data: IFlashCardRequest, collection: Collection): Promise<IFlashCardResponse> {
     const flashcard = this.repository.create({
       ...data,
       collection
