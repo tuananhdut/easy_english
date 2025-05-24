@@ -13,7 +13,6 @@ export class CollectionController {
     this.collectionService = new CollectionService()
     this.createCollection = this.createCollection.bind(this)
     this.getCollectionById = this.getCollectionById.bind(this)
-    this.getUserCollections = this.getUserCollections.bind(this)
     this.updateCollection = this.updateCollection.bind(this)
     this.deleteCollection = this.deleteCollection.bind(this)
     this.getPublicCollections = this.getPublicCollections.bind(this)
@@ -59,20 +58,6 @@ export class CollectionController {
       const user = req.user as User
       const collection = await this.collectionService.getCollectionById(Number(id), user)
       new ApiSuccess(collection, 'Lấy thông tin collection thành công').send(res)
-    } catch (err) {
-      next(err)
-    }
-  }
-
-  public async getUserCollections(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const user = req.user as User
-      if (!user) {
-        throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
-      }
-
-      const collections = await this.collectionService.getUserCollections(user)
-      new ApiSuccess(collections, 'Lấy danh sách collections thành công').send(res)
     } catch (err) {
       next(err)
     }

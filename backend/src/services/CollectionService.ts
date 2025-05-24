@@ -1,43 +1,112 @@
 import { CollectionRepository } from '../repositories/CollectionRepository'
 import { Collection } from '../entities/Collection'
-import { ICollectionRequest } from '../interfaces/ICollection'
+import { ICollectionRequest, ICollectionResponse } from '../interfaces/ICollection'
 import { User } from '../entities/User'
 import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
+import { FlashCardRepository } from '../repositories/FlashCardRepository'
+import { UserProgressRepository } from '../repositories/UserProgressRepository'
+
+interface PaginationParams {
+  page: number
+  limit: number
+}
+
+interface PaginatedResponse<T> {
+  collections: T[]
+  total: number
+}
 
 export class CollectionService {
   private collectionRepository: CollectionRepository
+  private flashCardRepository: FlashCardRepository
+  private userProgressRepository: UserProgressRepository
 
   constructor() {
     this.collectionRepository = new CollectionRepository()
+    this.flashCardRepository = new FlashCardRepository()
+    this.userProgressRepository = new UserProgressRepository()
   }
 
-  async createCollection(data: ICollectionRequest, owner: User): Promise<Collection> {
-    return this.collectionRepository.createCollection(data, owner)
+  private validatePaginationParams(params: PaginationParams): PaginationParams {
+    return {
+      page: Math.max(1, Math.floor(params.page)),
+      limit: Math.max(1, Math.min(100, Math.floor(params.limit)))
+    }
   }
 
-  async getCollectionById(id: number, user?: User): Promise<Collection> {
+  private async getCollectionStudyProgress(
+    collection: Collection,
+    user: User
+  ): Promise<{ learnedWords: number; reviewWords: number }> {
+    const flashcards = await this.flashCardRepository.findByCollection(collection)
+    const flashcardIds = flashcards.map((f) => f.id)
+
+    const userProgress = await this.userProgressRepository.findByUser(user)
+    const collectionProgress = userProgress.filter((up) => flashcardIds.includes(up.flashcard.id))
+
+    const learnedWords = collectionProgress.length
+    const reviewWords = collectionProgress.filter((up) => up.next_review && up.next_review <= new Date()).length
+
+    return { learnedWords, reviewWords }
+  }
+
+  private transformOwnerData(owner: User) {
+    return {
+      id: owner.id,
+      fullName: owner.fullName || '',
+      email: owner.gmail || '',
+      avatar: owner.image || ''
+    }
+  }
+
+  private transformCollectionToResponse(
+    collection: Collection,
+    studyProgress: { learnedWords: number; reviewWords: number }
+  ): ICollectionResponse {
+    return {
+      id: collection.id,
+      name: collection.name,
+      description: collection.description,
+      is_private: collection.is_private,
+      source_language: collection.source_language,
+      target_language: collection.target_language,
+      total_flashcards: collection.total_flashcards,
+      level: collection.level,
+      created_at: collection.created_at,
+      updated_at: collection.updated_at,
+      owner: this.transformOwnerData(collection.owner),
+      learnedWords: studyProgress.learnedWords,
+      reviewWords: studyProgress.reviewWords,
+      sharedUsersCount: collection.sharedCollections?.length || 0
+    }
+  }
+
+  async createCollection(data: ICollectionRequest, owner: User): Promise<ICollectionResponse> {
+    const collection = await this.collectionRepository.createCollection(data, owner)
+    const studyProgress = await this.getCollectionStudyProgress(collection, owner)
+    return this.transformCollectionToResponse(collection, studyProgress)
+  }
+
+  async getCollectionById(id: number, user?: User): Promise<ICollectionResponse> {
     const collection = await this.collectionRepository.findOne(id)
     if (!collection) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Collection not found')
     }
 
-    // Check if user has access to the collection
     if (collection.is_private && (!user || collection.owner.id !== user.id)) {
       throw new ApiError(StatusCodes.FORBIDDEN, 'You do not have access to this collection')
     }
 
-    return collection
+    const studyProgress = user
+      ? await this.getCollectionStudyProgress(collection, user)
+      : { learnedWords: 0, reviewWords: 0 }
+    return this.transformCollectionToResponse(collection, studyProgress)
   }
 
-  async getUserCollections(user: User): Promise<Collection[]> {
-    return this.collectionRepository.findByOwner(user)
-  }
-
-  async updateCollection(id: number, data: Partial<ICollectionRequest>, user: User): Promise<Collection> {
+  async updateCollection(id: number, data: Partial<ICollectionRequest>, user: User): Promise<ICollectionResponse> {
     const collection = await this.getCollectionById(id, user)
 
-    // Check if user is the owner
     if (collection.owner.id !== user.id) {
       throw new ApiError(StatusCodes.FORBIDDEN, 'You do not have permission to update this collection')
     }
@@ -47,13 +116,13 @@ export class CollectionService {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Collection not found')
     }
 
-    return updatedCollection
+    const studyProgress = await this.getCollectionStudyProgress(updatedCollection, user)
+    return this.transformCollectionToResponse(updatedCollection, studyProgress)
   }
 
   async deleteCollection(id: number, user: User): Promise<void> {
     const collection = await this.getCollectionById(id, user)
 
-    // Check if user is the owner
     if (collection.owner.id !== user.id) {
       throw new ApiError(StatusCodes.FORBIDDEN, 'You do not have permission to delete this collection')
     }
@@ -61,23 +130,70 @@ export class CollectionService {
     await this.collectionRepository.delete(id)
   }
 
-  async getPublicCollections(): Promise<Collection[]> {
-    return this.collectionRepository.findPublicCollections()
+  async getPublicCollections(page: number = 1, limit: number = 10): Promise<PaginatedResponse<ICollectionResponse>> {
+    const { page: validPage, limit: validLimit } = this.validatePaginationParams({ page, limit })
+    const result = await this.collectionRepository.findPublicCollections(validPage, validLimit)
+
+    const collectionsWithProgress = await Promise.all(
+      result.collections.map(async (collection: Collection) => {
+        const studyProgress = await this.getCollectionStudyProgress(collection, collection.owner)
+        return this.transformCollectionToResponse(collection, studyProgress)
+      })
+    )
+
+    return {
+      collections: collectionsWithProgress,
+      total: result.total
+    }
   }
 
-  async getUserOwnCollections(user: User): Promise<Collection[]> {
-    return this.collectionRepository.findByOwner(user)
+  async getUserOwnCollections(
+    user: User,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<PaginatedResponse<ICollectionResponse>> {
+    const { page: validPage, limit: validLimit } = this.validatePaginationParams({ page, limit })
+    const result = await this.collectionRepository.findOwnCollectionsWithPagination(user, validPage, validLimit)
+
+    const collectionsWithProgress = await Promise.all(
+      result.collections.map(async (collection: Collection) => {
+        const studyProgress = await this.getCollectionStudyProgress(collection, user)
+        return this.transformCollectionToResponse(collection, studyProgress)
+      })
+    )
+
+    return {
+      collections: collectionsWithProgress,
+      total: result.total
+    }
   }
 
   async getUserSharedCollections(
     user: User,
     page: number = 1,
     limit: number = 10
-  ): Promise<{ collections: Collection[]; total: number }> {
-    return this.collectionRepository.findSharedCollections(user, page, limit)
+  ): Promise<PaginatedResponse<ICollectionResponse>> {
+    const { page: validPage, limit: validLimit } = this.validatePaginationParams({ page, limit })
+    const result = await this.collectionRepository.findSharedCollections(user, validPage, validLimit)
+
+    const collectionsWithProgress = await Promise.all(
+      result.collections.map(async (collection: Collection) => {
+        const studyProgress = await this.getCollectionStudyProgress(collection, user)
+        return this.transformCollectionToResponse(collection, studyProgress)
+      })
+    )
+
+    return {
+      collections: collectionsWithProgress,
+      total: result.total
+    }
   }
 
-  async updateTotalFlashcards(id: number, count: number): Promise<Collection | null> {
-    return this.collectionRepository.updateTotalFlashcards(id, count)
+  async updateTotalFlashcards(id: number, count: number): Promise<ICollectionResponse | null> {
+    const collection = await this.collectionRepository.updateTotalFlashcards(id, count)
+    if (!collection) return null
+
+    const studyProgress = await this.getCollectionStudyProgress(collection, collection.owner)
+    return this.transformCollectionToResponse(collection, studyProgress)
   }
 }
