@@ -4,9 +4,8 @@ import { UserRole, AuthProvider } from '../entities/User'
 export interface IUser {
   id: number
   leaderboard: Leaderboard
-  gmail: string | null
+  email: string | null
   username?: string | null
-  password?: string | null
   image?: string | null
   provider: AuthProvider
   role: UserRole
@@ -17,7 +16,7 @@ export interface IUser {
 }
 
 export interface IUserRequest {
-  gmail?: string
+  email?: string
   username?: string
   password?: string
   image?: string
@@ -31,15 +30,15 @@ export interface IUserRequest {
 export interface IUserResponse {
   id: number
   email: string | null
-  name: string | null
-  avatar: string | null
+  fullName: string | null
+  image: string | null
   role: UserRole
 }
 
 export interface IRegisterRequest {
   username: string
   password: string
-  gmail: string | null
+  email: string | null
   fullName?: string
   role?: UserRole
 }
@@ -52,7 +51,7 @@ export interface ILoginRequest {
 export interface IUpdateUserRequest {
   username?: string
   password?: string
-  gmail?: string
+  email?: string
   fullName?: string
   image?: string
   role?: UserRole
@@ -60,7 +59,7 @@ export interface IUpdateUserRequest {
 
 export interface IGoogleLoginRequest {
   googleId: string
-  gmail: string
+  email: string
   fullName?: string
   image?: string
   provider: AuthProvider
@@ -73,7 +72,7 @@ export interface IChangePasswordRequest {
 }
 
 export interface IForgotPasswordRequest {
-  gmail: string
+  email: string
 }
 
 export interface IResetPasswordRequest {
@@ -89,7 +88,7 @@ export interface AuthResponse {
 
 export interface UserLoginGoogle {
   googleId: string | null
-  gmail: string | null
+  email: string | null
   fullName: string | null
   image: string | null
 }

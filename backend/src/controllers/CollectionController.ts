@@ -5,6 +5,7 @@ import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { ICollectionRequest } from '~/interfaces/ICollection'
 import { User } from '~/entities/User'
+import { IUser } from '~/interfaces/IUser'
 
 export class CollectionController {
   private collectionService: CollectionService
@@ -107,7 +108,7 @@ export class CollectionController {
 
   public async getUserOwnCollections(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const user = req.user as User
+      const user = req.user as IUser
       if (!user) {
         throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
       }

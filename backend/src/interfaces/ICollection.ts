@@ -41,7 +41,7 @@ export interface ICollectionResponse {
     id: number
     fullName: string
     email: string
-    avatar: string
+    image: string
   }
   level: CollectionLevel
   learnedWords: number

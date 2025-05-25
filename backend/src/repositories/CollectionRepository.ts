@@ -3,6 +3,7 @@ import { Collection } from '../entities/Collection'
 import { BaseRepository } from './BaseRepository'
 import { ICollectionRequest } from '../interfaces/ICollection'
 import { User } from '../entities/User'
+import { IUser } from '~/interfaces/IUser'
 
 interface CollectionSelectOptions {
   id: boolean
@@ -17,9 +18,10 @@ interface CollectionSelectOptions {
   level: boolean
   owner: {
     id: boolean
-    username: boolean
-    gmail: boolean
+    fullName: boolean
+    email: boolean
     image: boolean
+    role: boolean
   }
 }
 
@@ -36,9 +38,10 @@ const DEFAULT_COLLECTION_SELECT: CollectionSelectOptions = {
   level: true,
   owner: {
     id: true,
-    username: true,
-    gmail: true,
-    image: true
+    fullName: true,
+    email: true,
+    image: true,
+    role: true
   }
 }
 
@@ -57,9 +60,9 @@ export class CollectionRepository extends BaseRepository<Collection> {
     }
   }
 
-  async findByOwner(owner: User): Promise<Collection[]> {
+  async findByOwner(owner: IUser): Promise<Collection[]> {
     return this.repository.find({
-      where: { owner },
+      where: { owner: { id: owner.id } },
       ...this.getBaseCollectionOptions()
     })
   }
@@ -131,15 +134,34 @@ export class CollectionRepository extends BaseRepository<Collection> {
   }
 
   async findOwnCollectionsWithPagination(
-    owner: User,
+    owner: IUser,
     page: number = 1,
     limit: number = 10
   ): Promise<{ collections: Collection[]; total: number }> {
     const skip = (page - 1) * limit
 
     const [collections, total] = await this.repository.findAndCount({
-      where: { owner },
-      ...this.getBaseCollectionOptions(['owner', 'sharedCollections']),
+      where: { owner: { id: owner.id } },
+      relations: ['owner'],
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        is_private: true,
+        created_at: true,
+        updated_at: true,
+        source_language: true,
+        target_language: true,
+        total_flashcards: true,
+        level: true,
+        owner: {
+          id: true,
+          fullName: true,
+          email: true,
+          image: true,
+          role: true
+        }
+      },
       order: {
         updated_at: 'DESC'
       },

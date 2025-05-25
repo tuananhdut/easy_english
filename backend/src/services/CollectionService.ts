@@ -6,6 +6,7 @@ import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { FlashCardRepository } from '../repositories/FlashCardRepository'
 import { UserProgressRepository } from '../repositories/UserProgressRepository'
+import { IUser } from '~/interfaces/IUser'
 
 interface PaginationParams {
   page: number
@@ -55,8 +56,8 @@ export class CollectionService {
     return {
       id: owner.id,
       fullName: owner.fullName || '',
-      email: owner.gmail || '',
-      avatar: owner.image || ''
+      email: owner.email || '',
+      image: owner.image || ''
     }
   }
 
@@ -149,7 +150,7 @@ export class CollectionService {
   }
 
   async getUserOwnCollections(
-    user: User,
+    user: IUser,
     page: number = 1,
     limit: number = 10
   ): Promise<PaginatedResponse<ICollectionResponse>> {
@@ -158,7 +159,7 @@ export class CollectionService {
 
     const collectionsWithProgress = await Promise.all(
       result.collections.map(async (collection: Collection) => {
-        const studyProgress = await this.getCollectionStudyProgress(collection, user)
+        const studyProgress = await this.getCollectionStudyProgress(collection, user as User)
         return this.transformCollectionToResponse(collection, studyProgress)
       })
     )

@@ -6,7 +6,6 @@ import { StatusCodes } from 'http-status-codes'
 import { IFlashCardRequest } from '~/interfaces/IFlashCard'
 import { User } from '~/entities/User'
 import fs from 'fs'
-import path from 'path'
 
 export class FlashCardController {
   private flashCardService: FlashCardService
