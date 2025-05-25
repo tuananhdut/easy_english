@@ -6,7 +6,8 @@ import { DictionaryApiResponse, SearchDataDictionary, SearchParams } from '../fe
 import DictionaryResult from '../components/DictionaryResult'
 import CollectionCard from '../components/collection/ColectionCard'
 import { useNavigate } from 'react-router-dom'
-import { getOwnCollections, ICollection } from '../features/collecion/collectionApi'
+import { getOwnCollections } from '../features/collecion/collectionApi'
+import { ICollection } from '../features/collecion/collectionType'
 
 const { Text, Title } = Typography
 
@@ -29,8 +30,15 @@ const DictionaryPage: React.FC = () => {
     try {
       setLoadingCollections(true)
       const response = await getOwnCollections()
-      setCollections(response)
+      console.log(response)
+      if (response.status === 'success' && response.data?.collections) {
+        setCollections(response.data.collections)
+      } else {
+        setCollections([])
+        message.error('Không thể lấy danh sách bộ sưu tập')
+      }
     } catch (error) {
+      setCollections([])
       message.error('Có lỗi xảy ra khi lấy danh sách bộ sưu tập')
       console.error('Error fetching collections:', error)
     } finally {
@@ -60,8 +68,7 @@ const DictionaryPage: React.FC = () => {
       }
 
       const results = await searchDictionaryApi(params)
-      console.log(results)
-      setSearchRecommend(results)
+      setSearchRecommend(results.data)
     } catch (error) {
       message.error('Không thể tìm kiếm từ điển. Vui lòng thử lại sau.')
       console.error('Search error:', error)
@@ -189,7 +196,7 @@ const DictionaryPage: React.FC = () => {
           <Title level={4}>Bộ sưu tập của tôi</Title>
           <List
             grid={{ gutter: 16, xs: 1, sm: 2, md: 3 }}
-            dataSource={collections}
+            dataSource={collections || []}
             loading={loadingCollections}
             renderItem={(collection) => (
               <List.Item>
@@ -212,7 +219,7 @@ const DictionaryPage: React.FC = () => {
                       tags: [],
                       owner: {
                         id: collection.owner.id.toString(),
-                        name: collection.owner.username
+                        name: collection.owner.fullName || collection.owner.email || 'Unknown'
                       }
                     }}
                     type='owned'

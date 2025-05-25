@@ -14,18 +14,14 @@ const DictionaryResult: React.FC<DictionaryResultProps> = ({ searchText }) => {
     const fetchData = async () => {
       const handlePlaySound = async (type: string) => {
         try {
-          const urlSound = await getSound(searchText, type)
-          const audio = new Audio(urlSound)
+          const response = await getSound(searchText, type)
+          const audio = new Audio(response)
           audio.play()
-          console.log('Đã phát âm thanh:', urlSound)
         } catch (error) {
           console.error('Không thể phát âm thanh:', error)
         }
       }
       try {
-        // Gọi API âm thanh
-
-        // Gọi API lấy HTML từ Laban
         const result = await axios.get('https://dict.laban.vn/ajax/find', {
           params: {
             type: 1,
@@ -57,15 +53,14 @@ const DictionaryResult: React.FC<DictionaryResultProps> = ({ searchText }) => {
     }
   }, [searchText])
 
-  //lấy url sound us/uk
   const getSound = async (word: string, type: string = 'us'): Promise<string> => {
     const soundParams: SoundParams = {
       accent: type,
       word: word
     }
 
-    const url = await getSoundApi(soundParams)
-    return url
+    const response = await getSoundApi(soundParams)
+    return response.data
   }
 
   return (

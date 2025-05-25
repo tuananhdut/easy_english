@@ -18,11 +18,10 @@ const CreateDictionaryPage: React.FC = () => {
         is_private: values.is_private,
         level: values.level
       })
-      console.log('Response:', response)
 
-      if (response && response.id) {
+      if (response && response.data.id) {
         message.success(`Tạo bộ từ điển "${values.name}" thành công!`)
-        navigate(`/create-flashcard/${response.id}`)
+        navigate(`/create-flashcard/${response.data.id}`)
       } else {
         message.error('Có lỗi xảy ra khi tạo bộ từ điển')
       }

@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { Card, Typography, Form, Input, Button, Upload, AutoComplete, Row, Col, message } from 'antd'
-import { UploadOutlined, AudioOutlined } from '@ant-design/icons'
+import { UploadOutlined, AudioOutlined, ArrowLeftOutlined } from '@ant-design/icons'
 
 const { Title, Text } = Typography
 
@@ -156,175 +156,209 @@ const CreateFlashcardPage: React.FC = () => {
     return false // prevent auto upload
   }
 
+  const handleBack = () => {
+    navigate('/dashboard/dictionary')
+  }
+
   return (
-    <div style={{ maxWidth: 1200, margin: '32px auto', background: '#f0f2f5', minHeight: '100vh', borderRadius: 12 }}>
-      <div style={{ padding: '32px 24px' }}>
-        <Card style={{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-          <Title level={3} style={{ textAlign: 'center', marginBottom: 24 }}>
-            Thêm Flashcard cho bộ từ điển
-          </Title>
-          <Text strong>Bộ từ điển ID: {collectionId}</Text>
-          <Form form={form} layout='vertical' onFinish={handleAdd} style={{ marginTop: 24 }}>
-            <Row gutter={24}>
-              <Col xs={24} md={12}>
-                <Form.Item label='Từ mới' name='term' rules={[{ required: true, message: 'Vui lòng nhập mặt trước!' }]}>
-                  <AutoComplete
-                    placeholder='Nhập từ hoặc cụm từ'
-                    style={{ width: '100%' }}
-                    options={autoOptions}
-                    onSearch={handleTermSearch}
-                  />
-                </Form.Item>
-                <Form.Item label='Nghĩa' name='meaning' rules={[{ required: true, message: 'Vui lòng nhập nghĩa!' }]}>
-                  <Input placeholder='Nhập nghĩa' />
-                </Form.Item>
-              </Col>
-              <Col xs={24} md={12}>
-                <Form.Item label='Ảnh minh họa'>
-                  <Upload beforeUpload={beforeImageUpload} showUploadList={!!imageFile} accept='image/*' maxCount={1}>
-                    <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
-                  </Upload>
-                  {imageFile && (
-                    <div style={{ marginTop: 8 }}>
-                      <img
-                        src={URL.createObjectURL(imageFile)}
-                        alt='preview'
-                        style={{ maxWidth: 120, maxHeight: 80, borderRadius: 4 }}
-                      />
-                    </div>
-                  )}
-                </Form.Item>
-                <Form.Item label='Âm thanh'>
-                  <Upload beforeUpload={beforeAudioUpload} showUploadList={!!audioFile} accept='audio/*' maxCount={1}>
-                    <Button icon={<AudioOutlined />}>Chọn file âm thanh</Button>
-                  </Upload>
-                  {audioFile && (
-                    <div style={{ marginTop: 8 }}>
-                      <audio controls src={URL.createObjectURL(audioFile)} />
-                    </div>
-                  )}
-                </Form.Item>
-              </Col>
-            </Row>
-            <Form.Item>
-              <Button type='primary' htmlType='submit' size='large' style={{ minWidth: 140 }}>
-                Thêm flashcard
-              </Button>
-            </Form.Item>
-          </Form>
-          <div style={{ margin: '32px 0' }}>
-            <Title level={5}>Danh sách flashcard đã thêm</Title>
-            <Input.Search
-              placeholder='Tìm kiếm từ hoặc nghĩa...'
-              allowClear
-              style={{ width: 260, marginBottom: 16 }}
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              size='large'
+    <>
+      <div
+        style={{
+          padding: '24px',
+          background: '#fff',
+          borderBottom: '1px solid #f0f0f0',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
+        }}
+      >
+        <div style={{ maxWidth: 1200, margin: '0 auto' }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 24 }}>
+            <Button
+              type='text'
+              icon={<ArrowLeftOutlined />}
+              onClick={handleBack}
+              style={{
+                marginRight: 16,
+                color: '#1890ff',
+                fontSize: '16px'
+              }}
             />
-            <Row gutter={[16, 16]}>
-              {flashcards.filter(
-                (item) =>
-                  item.term.toLowerCase().includes(search.toLowerCase()) ||
-                  item.meaning.toLowerCase().includes(search.toLowerCase())
-              ).length === 0 && (
-                <Col span={24} style={{ textAlign: 'center', color: '#888', padding: '32px' }}>
-                  Chưa có flashcard nào.
+            <Title level={3} style={{ flex: 1, margin: 0 }}>
+              Thêm Flashcard cho bộ từ điển
+            </Title>
+          </div>
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 1200, margin: '32px auto', background: '#f0f2f5', minHeight: '100vh', borderRadius: 12 }}>
+        <div style={{ padding: '32px 24px' }}>
+          <Card style={{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+            <Text strong>Bộ từ điển ID: {collectionId}</Text>
+            <Form form={form} layout='vertical' onFinish={handleAdd} style={{ marginTop: 24 }}>
+              <Row gutter={24}>
+                <Col xs={24} md={12}>
+                  <Form.Item
+                    label='Từ mới'
+                    name='term'
+                    rules={[{ required: true, message: 'Vui lòng nhập mặt trước!' }]}
+                  >
+                    <AutoComplete
+                      placeholder='Nhập từ hoặc cụm từ'
+                      style={{ width: '100%' }}
+                      options={autoOptions}
+                      onSearch={handleTermSearch}
+                    />
+                  </Form.Item>
+                  <Form.Item label='Nghĩa' name='meaning' rules={[{ required: true, message: 'Vui lòng nhập nghĩa!' }]}>
+                    <Input placeholder='Nhập nghĩa' />
+                  </Form.Item>
                 </Col>
-              )}
-              {flashcards
-                .filter(
+                <Col xs={24} md={12}>
+                  <Form.Item label='Ảnh minh họa'>
+                    <Upload beforeUpload={beforeImageUpload} showUploadList={!!imageFile} accept='image/*' maxCount={1}>
+                      <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
+                    </Upload>
+                    {imageFile && (
+                      <div style={{ marginTop: 8 }}>
+                        <img
+                          src={URL.createObjectURL(imageFile)}
+                          alt='preview'
+                          style={{ maxWidth: 120, maxHeight: 80, borderRadius: 4 }}
+                        />
+                      </div>
+                    )}
+                  </Form.Item>
+                  <Form.Item label='Âm thanh'>
+                    <Upload beforeUpload={beforeAudioUpload} showUploadList={!!audioFile} accept='audio/*' maxCount={1}>
+                      <Button icon={<AudioOutlined />}>Chọn file âm thanh</Button>
+                    </Upload>
+                    {audioFile && (
+                      <div style={{ marginTop: 8 }}>
+                        <audio controls src={URL.createObjectURL(audioFile)} />
+                      </div>
+                    )}
+                  </Form.Item>
+                </Col>
+              </Row>
+              <Form.Item>
+                <Button type='primary' htmlType='submit' size='large' style={{ minWidth: 140 }}>
+                  Thêm flashcard
+                </Button>
+              </Form.Item>
+            </Form>
+            <div style={{ margin: '32px 0' }}>
+              <Title level={5}>Danh sách flashcard đã thêm</Title>
+              <Input.Search
+                placeholder='Tìm kiếm từ hoặc nghĩa...'
+                allowClear
+                style={{ width: 260, marginBottom: 16 }}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                size='large'
+              />
+              <Row gutter={[16, 16]}>
+                {flashcards.filter(
                   (item) =>
                     item.term.toLowerCase().includes(search.toLowerCase()) ||
                     item.meaning.toLowerCase().includes(search.toLowerCase())
-                )
-                .map((item, idx) => (
-                  <Col xs={24} sm={12} md={8} key={idx}>
-                    <Card
-                      hoverable
-                      style={{
-                        borderRadius: 12,
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        transition: 'all 0.3s ease'
-                      }}
-                      bodyStyle={{ padding: 16, display: 'flex', flexDirection: 'column', height: '100%' }}
-                      cover={
-                        item.image_url ? (
-                          <img
-                            alt='img'
-                            src={item.image_url}
-                            style={{
-                              maxHeight: 120,
-                              objectFit: 'contain',
-                              borderTopLeftRadius: 12,
-                              borderTopRightRadius: 12,
-                              padding: '8px'
-                            }}
-                          />
-                        ) : null
-                      }
-                      actions={[
-                        <Button
-                          icon={<UploadOutlined />}
-                          size='small'
-                          onClick={() => handleEdit(idx)}
-                          key='edit'
-                          type='text'
-                        >
-                          Sửa
-                        </Button>,
-                        <Button danger size='small' onClick={() => handleDelete(idx)} key='delete' type='text'>
-                          Xóa
-                        </Button>
-                      ]}
-                    >
-                      <div
+                ).length === 0 && (
+                  <Col span={24} style={{ textAlign: 'center', color: '#888', padding: '32px' }}>
+                    Chưa có flashcard nào.
+                  </Col>
+                )}
+                {flashcards
+                  .filter(
+                    (item) =>
+                      item.term.toLowerCase().includes(search.toLowerCase()) ||
+                      item.meaning.toLowerCase().includes(search.toLowerCase())
+                  )
+                  .map((item, idx) => (
+                    <Col xs={24} sm={12} md={8} key={idx}>
+                      <Card
+                        hoverable
                         style={{
-                          flex: 1,
+                          borderRadius: 12,
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                          height: '100%',
                           display: 'flex',
                           flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center'
+                          justifyContent: 'space-between',
+                          transition: 'all 0.3s ease'
                         }}
+                        bodyStyle={{ padding: 16, display: 'flex', flexDirection: 'column', height: '100%' }}
+                        cover={
+                          item.image_url ? (
+                            <img
+                              alt='img'
+                              src={item.image_url}
+                              style={{
+                                maxHeight: 120,
+                                objectFit: 'contain',
+                                borderTopLeftRadius: 12,
+                                borderTopRightRadius: 12,
+                                padding: '8px'
+                              }}
+                            />
+                          ) : null
+                        }
+                        actions={[
+                          <Button
+                            icon={<UploadOutlined />}
+                            size='small'
+                            onClick={() => handleEdit(idx)}
+                            key='edit'
+                            type='text'
+                          >
+                            Sửa
+                          </Button>,
+                          <Button danger size='small' onClick={() => handleDelete(idx)} key='delete' type='text'>
+                            Xóa
+                          </Button>
+                        ]}
                       >
-                        <Text strong style={{ fontSize: 18, marginBottom: 8 }}>
-                          {item.term}
-                        </Text>
-                        <Text style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>{item.meaning}</Text>
-                        {item.audio_url && (
-                          <audio
-                            controls
-                            src={item.audio_url}
-                            style={{
-                              marginTop: 16,
-                              width: '100%',
-                              borderRadius: '8px'
-                            }}
-                          />
-                        )}
-                      </div>
-                    </Card>
-                  </Col>
-                ))}
-            </Row>
-          </div>
-          <Button
-            type='primary'
-            block
-            size='large'
-            onClick={handleSave}
-            disabled={flashcards.length === 0}
-            style={{ borderRadius: 8 }}
-          >
-            Lưu tất cả flashcard
-          </Button>
-        </Card>
+                        <div
+                          style={{
+                            flex: 1,
+                            display: 'flex',
+                            flexDirection: 'column',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <Text strong style={{ fontSize: 18, marginBottom: 8 }}>
+                            {item.term}
+                          </Text>
+                          <Text style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>{item.meaning}</Text>
+                          {item.audio_url && (
+                            <audio
+                              controls
+                              src={item.audio_url}
+                              style={{
+                                marginTop: 16,
+                                width: '100%',
+                                borderRadius: '8px'
+                              }}
+                            />
+                          )}
+                        </div>
+                      </Card>
+                    </Col>
+                  ))}
+              </Row>
+            </div>
+            <Button
+              type='primary'
+              block
+              size='large'
+              onClick={handleSave}
+              disabled={flashcards.length === 0}
+              style={{ borderRadius: 8 }}
+            >
+              Lưu tất cả flashcard
+            </Button>
+          </Card>
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 

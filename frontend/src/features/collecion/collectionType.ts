@@ -1,5 +1,3 @@
-import { IUser } from '../user/userType'
-
 export interface CollectionType {
   name: string
   description: string
@@ -15,15 +13,38 @@ export enum CollectionLevel {
   HARD = 'hard'
 }
 
-// fix cái này
-export interface Collection {
+export interface ICollection {
   id: number
   name: string
   description: string
   is_private: boolean
   source_language: string
   target_language: string
-  level: CollectionLevel
   total_flashcards: number
-  owner: IUser
+  level: string
+  created_at: string
+  updated_at: string
+  owner: {
+    id: number
+    fullName: string
+    email: string
+    image: string
+  }
+  learnedWords: number
+  reviewWords: number
+  sharedUsersCount: number
+}
+
+export interface ICollectionsResponse {
+  collections: ICollection[]
+  total: number
+}
+
+export interface ICreateCollectionRequest {
+  name: string
+  description?: string
+  is_private: boolean
+  level: string
+  source_language?: string
+  target_language?: string
 }

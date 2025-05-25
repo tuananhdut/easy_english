@@ -22,7 +22,7 @@ apiClient.interceptors.request.use(
 )
 
 apiClient.interceptors.response.use(
-  (response) => response.data,
+  (response) => response,
   (error) => {
     const message = error.response?.data?.message || 'Có lỗi xảy ra'
     return Promise.reject(new Error(message))

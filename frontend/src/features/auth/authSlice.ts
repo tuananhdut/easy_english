@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit'
 import { loginApi, logoutApi, meApi, registerApi, initiateGoogleLogin } from './authApi'
 import { IUser } from '../user/userType'
 import { AuthState, IUserRegister, LoginCredentials } from './authTypes'
+import { IApiResponse } from '../type/resposeType'
 
 const initialState: AuthState = {
   isAuthenticated: false,
@@ -21,7 +22,7 @@ const handleAuthResponse = (response: { user: IUser; token: string }) => {
 export const login = createAsyncThunk('auth/login', async (credentials: LoginCredentials, { rejectWithValue }) => {
   try {
     const response = await loginApi(credentials)
-    return handleAuthResponse(response)
+    return handleAuthResponse(response.data)
   } catch (error) {
     return rejectWithValue((error as Error).message)
   }
@@ -42,7 +43,8 @@ export const me = createAsyncThunk('auth/me', async (_, { rejectWithValue }) => 
     const token = localStorage.getItem('token')
     if (!token) throw new Error('Không có token')
     const response = await meApi()
-    handleAuthResponse({ user: response.user, token })
+    console.log(response)
+    handleAuthResponse({ user: response.data.user, token })
     return response
   } catch (error) {
     localStorage.removeItem('token')
@@ -54,7 +56,7 @@ export const me = createAsyncThunk('auth/me', async (_, { rejectWithValue }) => 
 export const register = createAsyncThunk('auth/register', async (userRegister: IUserRegister, { rejectWithValue }) => {
   try {
     const response = await registerApi(userRegister)
-    return handleAuthResponse(response)
+    return handleAuthResponse(response.data)
   } catch (error) {
     return rejectWithValue((error as Error).message)
   }
@@ -108,10 +110,10 @@ const authSlice = createSlice({
         state.loading = true
         state.error = null
       })
-      .addCase(me.fulfilled, (state, action: PayloadAction<{ user: IUser }>) => {
+      .addCase(me.fulfilled, (state, action: PayloadAction<IApiResponse<{ user: IUser }>>) => {
         state.loading = false
         state.isAuthenticated = true
-        state.user = action.payload.user
+        state.user = action.payload.data.user
       })
       .addCase(me.rejected, (state, action) => {
         state.loading = false

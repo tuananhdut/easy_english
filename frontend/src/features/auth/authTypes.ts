@@ -25,7 +25,7 @@ export interface LoginCredentials {
 
 export interface IUserRegister {
   username: string
-  gmail: string
+  email: string
   fullName: string
   password: string
 }

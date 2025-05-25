@@ -83,7 +83,7 @@ const RegisterPage: React.FC = () => {
             <Input size='large' placeholder='username' />
           </Form.Item>
 
-          <Form.Item name='gmail' label='Email' rules={[{ type: 'email', message: 'Email không hợp lệ!' }]}>
+          <Form.Item name='email' label='Email' rules={[{ type: 'email', message: 'Email không hợp lệ!' }]}>
             <Input
               size='large'
               placeholder='example@email.com'

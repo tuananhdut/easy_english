@@ -3,7 +3,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { RootState, AppDispatch } from '../app/store'
 import LoginPage from '../pages/LoginPage'
 import HomePage from '../pages/HomePage'
-import { me } from '../features/auth/authSlice'
+import { me, logout } from '../features/auth/authSlice'
 import { useEffect, useState } from 'react'
 import MainLayout from '../components/layout/MainLayout'
 import SearchPage from '../pages/SearchPage'
@@ -24,11 +24,21 @@ const useAuthCheck = () => {
 
   useEffect(() => {
     const checkAuth = async () => {
-      const token = localStorage.getItem('token')
-      if (!isAuthenticated && token) {
-        await dispatch(me())
+      try {
+        const token = localStorage.getItem('token')
+        if (token) {
+          if (!isAuthenticated) {
+            await dispatch(me())
+          }
+        } else {
+          dispatch(logout())
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
+        dispatch(logout())
+      } finally {
+        setAuthChecked(true)
       }
-      setAuthChecked(true)
     }
 
     checkAuth()

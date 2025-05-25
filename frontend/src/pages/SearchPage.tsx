@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { Select, Input, Button, Space, Typography, Tooltip, Card, message } from 'antd'
 import { SearchOutlined, SwapOutlined, TranslationOutlined, CopyOutlined, FileTextOutlined } from '@ant-design/icons'
 import { translateText } from '../features/translate/translateApi'
-import { TranslationRequest } from '../features/translate/translatetypes'
+import { TranslationRequest } from '../features/translate/translateTypes'
 
 const { Option } = Select
 const { TextArea } = Input
@@ -59,9 +59,8 @@ const SearchPage: React.FC = () => {
       }
 
       const response = await translateText(request)
-      console.log(response)
       if (response) {
-        setTranslatedText(response.translation)
+        setTranslatedText(response.data.translation)
       }
     } catch (error) {
       console.error('Translation error:', error)

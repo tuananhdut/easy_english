@@ -37,7 +37,6 @@ const MainPage: React.FC = () => {
 
   useEffect(() => {
     if (chartRef.current) {
-      // Destroy existing chart if it exists
       if (chartInstance.current) {
         chartInstance.current.destroy()
       }
@@ -131,7 +130,7 @@ const MainPage: React.FC = () => {
               </Col>
               <Col flex='auto'>
                 <Title level={4} style={{ margin: 0 }}>
-                  Xin chào, {user?.name || 'Người dùng'}
+                  Xin chào, {user?.fullName || 'Người dùng'}
                 </Title>
                 <Text type='secondary'>Hãy tiếp tục học tập để cải thiện kỹ năng của bạn</Text>
               </Col>
