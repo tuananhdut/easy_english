@@ -32,7 +32,7 @@ export class FlashCardRepository extends BaseRepository<Flashcard> {
       .getMany()
   }
 
-  async findSuggestFlashcards(query: string, source: string, target: string): Promise<Flashcard[]> {
+  async findSuggestFlashcards(query: string, source: string, target: string): Promise<IFlashCardResponse[]> {
     return this.repository
       .createQueryBuilder('flashcard')
       .where('flashcard.source_language = :source', { source })
@@ -40,6 +40,17 @@ export class FlashCardRepository extends BaseRepository<Flashcard> {
       .andWhere('flashcard.is_private = :isPrivate', { isPrivate: false })
       .andWhere('flashcard.front_text LIKE :query', { query: `%${query}%` })
       .limit(10)
+      .getMany()
+  }
+
+  async findFirstFlashcards(collection: Collection, limit: number): Promise<Flashcard[]> {
+    return this.repository
+      .createQueryBuilder('flashcard')
+      .leftJoinAndSelect('flashcard.userProgress', 'userProgress')
+      .where('flashcard.collection = :collectionId', { collectionId: collection.id })
+      .andWhere('userProgress.id IS NULL')
+      .orderBy('flashcard.created_at', 'ASC')
+      .take(limit)
       .getMany()
   }
 }

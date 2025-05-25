@@ -29,6 +29,7 @@ export class FlashCardService {
         id: true,
         name: true,
         is_private: true,
+        total_flashcards: true,
         owner: {
           id: true
         }
@@ -51,6 +52,9 @@ export class FlashCardService {
     }
     data.is_private = collection.is_private
     const flashcard = await this.flashCardRepository.createFlashCard(data, collection)
+
+    const totalFlashcards = await this.flashCardRepository.findByCollection(collection)
+    await this.collectionRepository.updateTotalFlashcards(collection.id, totalFlashcards.length)
 
     const {
       collection: { id, name },
@@ -185,7 +189,7 @@ export class FlashCardService {
     return this.flashCardRepository.findRandomFlashcards(collection, limit)
   }
 
-  async getSuggestFlashCards(query: string, source: string, target: string): Promise<Flashcard[]> {
+  async getSuggestFlashCards(query: string, source: string, target: string): Promise<IFlashCardResponse[]> {
     return this.flashCardRepository.findSuggestFlashcards(query, source, target)
   }
 }

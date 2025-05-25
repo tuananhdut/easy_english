@@ -10,11 +10,12 @@ const router = Router()
 router.get('/public', collectionController.getPublicCollections)
 
 // Protected routes
-router.get('/user/own', authMiddleware, collectionController.getUserOwnCollections)
-router.get('/user/shared', authMiddleware, collectionController.getUserSharedCollections)
-router.get('/:id', authMiddleware, collectionController.getCollectionById)
-router.post('/', authMiddleware, collectionController.createCollection)
-router.put('/:id', authMiddleware, collectionController.updateCollection)
-router.delete('/:id', authMiddleware, collectionController.deleteCollection)
+router.use(authMiddleware)
+router.get('/user/own', collectionController.getUserOwnCollections)
+router.get('/user/shared', collectionController.getUserSharedCollections)
+router.get('/:id', collectionController.getCollectionById)
+router.post('/', collectionController.createCollection)
+router.put('/:id', collectionController.updateCollection)
+router.delete('/:id', collectionController.deleteCollection)
 
 export default router

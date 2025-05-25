@@ -8,14 +8,18 @@ export class UserRepository extends BaseRepository<User> {
     super(User)
   }
 
-  async findOneByUsernameOrEmail(username: string, gmail: string | null): Promise<User | null> {
+  async findOneById(id: number): Promise<User | null> {
+    return this.repository.findOneBy({ id })
+  }
+
+  async findOneByUsernameOrEmail(username: string, email: string | null): Promise<User | null> {
     return this.repository.findOne({
-      where: [{ username }, { gmail: gmail ?? undefined }]
+      where: [{ username }, { email: email ?? undefined }]
     })
   }
 
   async findByEmail(email: string): Promise<User | null> {
-    return this.repository.findOneBy({ gmail: email })
+    return this.repository.findOneBy({ email })
   }
 
   async findByUsername(username: string): Promise<User | null> {

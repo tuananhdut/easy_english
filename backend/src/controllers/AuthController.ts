@@ -4,7 +4,7 @@ import { UserRole } from '../entities/User'
 import { ApiSuccess } from '~/utils/ApiSuccess'
 import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
-import { IUserResponse, UserLoginGoogle, IRegisterRequest, ILoginRequest } from '~/interfaces/IUser'
+import { UserLoginGoogle, IRegisterRequest, ILoginRequest } from '~/interfaces/IUser'
 import dotenv from 'dotenv'
 dotenv.config()
 
@@ -21,7 +21,7 @@ export class AuthController {
   }
 
   private validateRegisterRequest(req: Request): IRegisterRequest {
-    const { username, password, fullName, role, gmail } = req.body
+    const { username, password, fullName, role, email } = req.body
 
     if (!username || !password) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Tên đăng nhập và mật khẩu là bắt buộc')
@@ -30,7 +30,7 @@ export class AuthController {
     return {
       username,
       password,
-      gmail: gmail?.trim() === '' ? null : gmail,
+      email: email?.trim() === '' ? null : email,
       fullName,
       role: role as UserRole
     }
@@ -79,7 +79,7 @@ export class AuthController {
 
   public async getProfile(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const user = req.user as IUserResponse
+      const user = req.user
       if (!user) {
         throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
       }
@@ -106,8 +106,8 @@ export class AuthController {
         return next(new ApiError(StatusCodes.UNAUTHORIZED, 'Đăng nhập Google thất bại'))
       }
 
-      const { googleId, gmail, fullName, image } = userData as UserLoginGoogle
-      const token = await this.authService.findOrCreateGoogleUser({ gmail, fullName, image, googleId })
+      const { googleId, email, fullName, image } = userData as UserLoginGoogle
+      const token = await this.authService.findOrCreateGoogleUser({ email, fullName, image, googleId })
 
       res.redirect(`${process.env.CLIENT_URL}/auth/google/callback?token=${token}`)
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
