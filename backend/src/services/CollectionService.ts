@@ -89,6 +89,7 @@ export class CollectionService {
   }
 
   async getCollectionById(id: number, user?: User): Promise<ICollectionResponse> {
+    console.log(id)
     const collection = await this.collectionRepository.findOne(id)
     if (!collection) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Collection not found')
