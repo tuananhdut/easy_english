@@ -4,6 +4,8 @@ import { ApiError } from '~/utils/ApiError'
 import ClientRedis from '~/config/RedisClient'
 import jwt from 'jsonwebtoken'
 import dotenv from 'dotenv'
+import { UserRepository } from '~/repositories/UserRepository'
+import { IUserResponse } from '~/interfaces/IUser'
 dotenv.config()
 
 const clientRedis = ClientRedis.getClient()
@@ -26,7 +28,20 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
     if (!decoded || !decoded.user) {
       return next(new ApiError(StatusCodes.UNAUTHORIZED, 'Phiên đang nhập đã hết hạn.'))
     }
-    req.user = decoded.user
+    const userRepository = new UserRepository()
+    const user = await userRepository.findOneById(decoded.user.id)
+    if (!user) {
+      return next(new ApiError(StatusCodes.UNAUTHORIZED, 'Người dùng không tồn tại.'))
+    }
+
+    const userResponse: IUserResponse = {
+      id: user.id,
+      email: user.email || null,
+      fullName: user.fullName || null,
+      image: user.image || null,
+      role: user.role
+    }
+    req.user = userResponse
     return next()
   } catch (error) {
     if (error instanceof jwt.TokenExpiredError) {

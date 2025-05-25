@@ -1,4 +1,4 @@
-import { User, AuthProvider, UserRole } from '~/entities/User'
+import { AuthProvider, UserRole } from '~/entities/User'
 import * as bcrypt from 'bcrypt'
 import * as jwt from 'jsonwebtoken'
 import { ApiError } from '~/utils/ApiError'
@@ -26,26 +26,16 @@ export class AuthService {
     }
   }
 
-  private createUserResponse(user: User): IUserResponse {
-    return {
-      id: user.id,
-      email: user.gmail || null,
-      name: user.fullName || null,
-      avatar: user.image || null,
-      role: user.role
-    }
-  }
-
-  private async generateToken(user: IUserResponse | User): Promise<string> {
-    const payload = { user: this.createUserResponse(user as User) }
+  private async generateToken(user: IUserResponse): Promise<string> {
+    const payload = { user: user }
     return jwt.sign(payload, process.env.JWT_SECRET_KEY || 'tuananh123', { expiresIn: this.TOKEN_EXPIRATION })
   }
 
   async register(input: IRegisterRequest): Promise<AuthResponse> {
     this.validateRegisterInput(input)
-    const { username, gmail, password, fullName, role } = input
+    const { username, email, password, fullName, role } = input
 
-    const existingUser = await this.userRepository.findOneByUsernameOrEmail(username, gmail)
+    const existingUser = await this.userRepository.findOneByUsernameOrEmail(username, email)
     if (existingUser) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Tên đăng nhập hoặc email đã tồn tại')
     }
@@ -59,7 +49,7 @@ export class AuthService {
 
     const user = await this.userRepository.createUser({
       username,
-      gmail: gmail ?? undefined,
+      email: email ?? undefined,
       password: hashedPassword,
       fullName,
       role: role || UserRole.STUDENT,
@@ -67,7 +57,14 @@ export class AuthService {
       leaderboard: leaderboard ? leaderboard : undefined
     })
 
-    const userResponse = this.createUserResponse(user)
+    const userResponse: IUserResponse = {
+      id: user.id,
+      email: user.email || null,
+      fullName: user.fullName || null,
+      image: user.image || null,
+      role: user.role
+    }
+
     const token = await this.generateToken(userResponse)
 
     return { user: userResponse, token }
@@ -88,7 +85,13 @@ export class AuthService {
       throw new ApiError(StatusCodes.UNAUTHORIZED, 'Mật khẩu không đúng')
     }
 
-    const userResponse = this.createUserResponse(user)
+    const userResponse: IUserResponse = {
+      id: user.id,
+      email: user.email || null,
+      fullName: user.fullName || null,
+      image: user.image || null,
+      role: user.role
+    }
     const token = await this.generateToken(userResponse)
 
     return { user: userResponse, token }
@@ -100,12 +103,12 @@ export class AuthService {
     return Promise.resolve()
   }
 
-  async findOrCreateGoogleUser({ googleId, gmail, fullName, image }: UserLoginGoogle): Promise<string> {
-    if (!googleId || !gmail) {
+  async findOrCreateGoogleUser({ googleId, email, fullName, image }: UserLoginGoogle): Promise<string> {
+    if (!googleId || !email) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Google ID và Gmail là bắt buộc')
     }
 
-    const existingUser = await this.userRepository.findByEmail(gmail)
+    const existingUser = await this.userRepository.findByEmail(email)
     if (existingUser) {
       const updatedUser = await this.userRepository.mergeUserData(existingUser, {
         googleId,
@@ -113,18 +116,33 @@ export class AuthService {
         image: existingUser.image || image,
         provider: AuthProvider.GOOGLE
       })
-      return this.generateToken(updatedUser)
+
+      const userResponse: IUserResponse = {
+        id: updatedUser.id,
+        email: updatedUser.email || null,
+        fullName: updatedUser.fullName || null,
+        image: updatedUser.image || null,
+        role: updatedUser.role
+      }
+      return this.generateToken(userResponse)
     }
 
     const leaderboard = new Leaderboard()
     const newUser = await this.userRepository.createUser({
       googleId,
-      gmail,
+      email,
       fullName: fullName ?? undefined,
       image: image ?? undefined,
       provider: AuthProvider.GOOGLE,
       leaderboard
     })
-    return this.generateToken(newUser)
+    const userResponse: IUserResponse = {
+      id: newUser.id,
+      email: newUser.email || null,
+      fullName: newUser.fullName || null,
+      image: newUser.image || null,
+      role: newUser.role
+    }
+    return this.generateToken(userResponse)
   }
 }

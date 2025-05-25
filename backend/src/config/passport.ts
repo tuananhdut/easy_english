@@ -14,7 +14,7 @@ passport.use(
       return done(null, {
         googleId: profile._json.sub || null,
         fullName: profile._json.family_name + ' ' + profile._json.given_name || null,
-        gmail: profile._json.email || null,
+        email: profile._json.email || null,
         image: profile._json.picture || null
       })
     }
