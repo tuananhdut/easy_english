@@ -89,9 +89,13 @@ export class CollectionService {
     return this.transformCollectionToResponse(collection, studyProgress)
   }
 
-  async getCollectionById(id: number, user?: User): Promise<ICollectionResponse> {
-    console.log(id)
-    const collection = await this.collectionRepository.findOne(id)
+  async getCollectionById(id: number, user?: IUser): Promise<ICollectionResponse> {
+    const collection = await this.collectionRepository.findOneWithOptions({
+      where: { id },
+      relations: {
+        owner: true
+      }
+    })
     if (!collection) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Collection not found')
     }
@@ -101,7 +105,7 @@ export class CollectionService {
     }
 
     const studyProgress = user
-      ? await this.getCollectionStudyProgress(collection, user)
+      ? await this.getCollectionStudyProgress(collection, user as User)
       : { learnedWords: 0, reviewWords: 0 }
     return this.transformCollectionToResponse(collection, studyProgress)
   }

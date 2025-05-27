@@ -56,7 +56,7 @@ export class CollectionController {
   public async getCollectionById(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params
-      const user = req.user as User
+      const user = req.user as IUser
       const collection = await this.collectionService.getCollectionById(Number(id), user)
       new ApiSuccess(collection, 'Lấy thông tin collection thành công').send(res)
     } catch (err) {
