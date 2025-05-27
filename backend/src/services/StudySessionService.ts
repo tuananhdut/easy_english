@@ -189,7 +189,7 @@ export class StudySessionService {
     }
 
     const currentCard = session.flashcards[session.currentIndex]
-    const isCorrect = answer.toLowerCase() === currentCard.back_text.toLowerCase()
+    const isCorrect = answer.toLowerCase() === currentCard.front_text.toLowerCase()
 
     // Cập nhật trạng thái
     let newCurrentIndex = session.currentIndex
@@ -214,13 +214,13 @@ export class StudySessionService {
               user,
               flashcard
             )
+            session.flashcards = session.flashcards.filter(
+              (card) => card.id !== session.flashcards[session.currentIndex].id
+            )
           }
         }
       }
       if (session.flashcards.length > 0) {
-        session.flashcards = session.flashcards.filter(
-          (card) => card.id !== session.flashcards[session.currentIndex].id
-        )
         newCurrentIndex = this.getRandomIndex(session.currentIndex, session.flashcards.length)
         session.status = this.getCurrentPhase(session.flashcards[newCurrentIndex])
       } else {
@@ -253,7 +253,7 @@ export class StudySessionService {
 
     return {
       isCorrect,
-      correctAnswer: currentCard.back_text,
+      correctAnswer: currentCard.front_text,
       nextPhase: updatedSession
     }
   }
