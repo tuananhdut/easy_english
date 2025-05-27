@@ -16,6 +16,7 @@ import GoogleCallback from '../pages/GoogleCallbackPage'
 import CreateDictionaryPage from '../pages/CreateCollectionPage'
 import CreateFlashcardPage from '../pages/CreateFlashcardPage'
 import EditCollectionPage from '../pages/EditCollectionPage'
+import StudyPage from '../pages/StudyPage'
 
 const useAuthCheck = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -126,6 +127,10 @@ const router = createBrowserRouter([
   {
     path: '/edit-collection/:id',
     element: <EditCollectionPage />
+  },
+  {
+    path: '/study/:id',
+    element: <StudyPage />
   }
 ])
 

@@ -43,7 +43,6 @@ export const me = createAsyncThunk('auth/me', async (_, { rejectWithValue }) => 
     const token = localStorage.getItem('token')
     if (!token) throw new Error('Không có token')
     const response = await meApi()
-    console.log(response)
     handleAuthResponse({ user: response.data.user, token })
     return response
   } catch (error) {

@@ -87,7 +87,12 @@ const DictionaryPage: React.FC = () => {
   }
 
   const handleStudy = (collectionId: string) => {
-    message.success(`Bắt đầu học bộ sưu tập ID: ${collectionId}`)
+    try {
+      navigate(`/study/${collectionId}`)
+    } catch (error) {
+      console.error('Error starting study session:', error)
+      message.error('Có lỗi xảy ra khi bắt đầu phiên học')
+    }
   }
 
   const handleReview = (collectionId: string) => {
@@ -223,7 +228,7 @@ const DictionaryPage: React.FC = () => {
                       }
                     }}
                     type='owned'
-                    onEdit={handleEdit}
+                    onEdit={() => handleEdit(collection.id.toString())}
                     onStudy={handleStudy}
                     onReview={handleReview}
                     onCardClick={() => setOpenedCollection(collection)}
