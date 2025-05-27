@@ -1,8 +1,9 @@
 import 'reflect-metadata'
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne } from 'typeorm'
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany } from 'typeorm'
 import { Collection } from './Collection'
 import { BaseEntity } from './BaseEntity'
 import { IFlashCard } from '../interfaces/IFlashCard'
+import { UserProgress } from './UserProgress'
 
 @Entity({ name: 'flashcards' })
 export class Flashcard extends BaseEntity implements IFlashCard {
@@ -24,6 +25,18 @@ export class Flashcard extends BaseEntity implements IFlashCard {
   @Column({ type: 'varchar', nullable: true })
   audio_url?: string
 
-  // thêm phiên âm với dạng từ
-  //dạng us-vi
+  @Column({ type: 'varchar', nullable: true })
+  pronunciation?: string
+
+  @Column({ type: 'boolean', default: true })
+  is_private!: boolean
+
+  @Column({ type: 'varchar', default: 'vi' })
+  source_language!: string
+
+  @Column({ type: 'varchar', default: 'en' })
+  target_language!: string
+
+  @OneToMany(() => UserProgress, (userProgress) => userProgress.flashcard)
+  userProgress!: UserProgress[]
 }

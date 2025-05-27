@@ -3,64 +3,87 @@ import { Collection } from '../entities/Collection'
 import { BaseRepository } from './BaseRepository'
 import { ICollectionRequest } from '../interfaces/ICollection'
 import { User } from '../entities/User'
+import { IUser } from '~/interfaces/IUser'
+
+interface CollectionSelectOptions {
+  id: boolean
+  name: boolean
+  description: boolean
+  is_private: boolean
+  created_at: boolean
+  updated_at: boolean
+  source_language: boolean
+  target_language: boolean
+  total_flashcards: boolean
+  level: boolean
+  owner: {
+    id: boolean
+    fullName: boolean
+    email: boolean
+    image: boolean
+    role: boolean
+  }
+}
+
+const DEFAULT_COLLECTION_SELECT: CollectionSelectOptions = {
+  id: true,
+  name: true,
+  description: true,
+  is_private: true,
+  created_at: true,
+  updated_at: true,
+  source_language: true,
+  target_language: true,
+  total_flashcards: true,
+  level: true,
+  owner: {
+    id: true,
+    fullName: true,
+    email: true,
+    image: true,
+    role: true
+  }
+}
 
 export class CollectionRepository extends BaseRepository<Collection> {
   constructor() {
     super(Collection)
   }
 
-  async findByOwner(owner: User): Promise<Collection[]> {
+  private getBaseCollectionOptions(relations: string[] = ['owner']): {
+    relations: string[]
+    select: CollectionSelectOptions
+  } {
+    return {
+      relations,
+      select: DEFAULT_COLLECTION_SELECT
+    }
+  }
+
+  async findByOwner(owner: IUser): Promise<Collection[]> {
     return this.repository.find({
-      where: { owner },
-      relations: ['owner'],
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        is_private: true,
-        created_at: true,
-        updated_at: true,
-        source_language: true,
-        target_language: true,
-        total_flashcards: true,
-        level: true,
-        owner: {
-          id: true,
-          username: true,
-          gmail: true,
-          image: true,
-          created_at: true,
-          updated_at: true
-        }
-      }
+      where: { owner: { id: owner.id } },
+      ...this.getBaseCollectionOptions()
     })
   }
 
-  async findPublicCollections(): Promise<Collection[]> {
-    return this.repository.find({
+  async findPublicCollections(
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ collections: Collection[]; total: number }> {
+    const skip = (page - 1) * limit
+
+    const [collections, total] = await this.repository.findAndCount({
       where: { is_private: false },
-      relations: ['owner'],
-      select: {
-        id: true,
-        name: true,
-        description: true,
-        is_private: true,
-        created_at: true,
-        updated_at: true,
-        source_language: true,
-        target_language: true,
-        total_flashcards: true,
-        level: true,
-        owner: {
-          id: true,
-          username: true,
-          gmail: true,
-          image: true,
-          created_at: true,
-          updated_at: true
-        }
-      }
+      ...this.getBaseCollectionOptions(),
+      order: {
+        updated_at: 'DESC'
+      },
+      skip,
+      take: limit
     })
+
+    return { collections, total }
   }
 
   async createCollection(data: ICollectionRequest, owner: User): Promise<Collection> {
@@ -84,12 +107,42 @@ export class CollectionRepository extends BaseRepository<Collection> {
     const skip = (page - 1) * limit
 
     const [collections, total] = await this.repository.findAndCount({
-      relations: ['owner', 'sharedCollections', 'sharedCollections.shared_with'],
+      ...this.getBaseCollectionOptions(['owner', 'sharedCollections', 'sharedCollections.shared_with']),
       where: {
         sharedCollections: {
           shared_with: user
         }
       },
+      select: {
+        ...DEFAULT_COLLECTION_SELECT,
+        sharedCollections: {
+          id: true,
+          permission: true,
+          total_points: true,
+          created_at: true,
+          updated_at: true
+        }
+      },
+      order: {
+        updated_at: 'DESC'
+      },
+      skip,
+      take: limit
+    })
+
+    return { collections, total }
+  }
+
+  async findOwnCollectionsWithPagination(
+    owner: IUser,
+    page: number = 1,
+    limit: number = 10
+  ): Promise<{ collections: Collection[]; total: number }> {
+    const skip = (page - 1) * limit
+
+    const [collections, total] = await this.repository.findAndCount({
+      where: { owner: { id: owner.id } },
+      relations: ['owner'],
       select: {
         id: true,
         name: true,
@@ -103,18 +156,10 @@ export class CollectionRepository extends BaseRepository<Collection> {
         level: true,
         owner: {
           id: true,
-          username: true,
-          gmail: true,
+          fullName: true,
+          email: true,
           image: true,
-          created_at: true,
-          updated_at: true
-        },
-        sharedCollections: {
-          id: true,
-          permission: true,
-          total_points: true,
-          created_at: true,
-          updated_at: true
+          role: true
         }
       },
       order: {

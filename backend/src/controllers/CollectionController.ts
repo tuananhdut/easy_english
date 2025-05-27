@@ -5,6 +5,7 @@ import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import { ICollectionRequest } from '~/interfaces/ICollection'
 import { User } from '~/entities/User'
+import { IUser } from '~/interfaces/IUser'
 
 export class CollectionController {
   private collectionService: CollectionService
@@ -13,7 +14,6 @@ export class CollectionController {
     this.collectionService = new CollectionService()
     this.createCollection = this.createCollection.bind(this)
     this.getCollectionById = this.getCollectionById.bind(this)
-    this.getUserCollections = this.getUserCollections.bind(this)
     this.updateCollection = this.updateCollection.bind(this)
     this.deleteCollection = this.deleteCollection.bind(this)
     this.getPublicCollections = this.getPublicCollections.bind(this)
@@ -64,20 +64,6 @@ export class CollectionController {
     }
   }
 
-  public async getUserCollections(req: Request, res: Response, next: NextFunction): Promise<void> {
-    try {
-      const user = req.user as User
-      if (!user) {
-        throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
-      }
-
-      const collections = await this.collectionService.getUserCollections(user)
-      new ApiSuccess(collections, 'Lấy danh sách collections thành công').send(res)
-    } catch (err) {
-      next(err)
-    }
-  }
-
   public async updateCollection(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
       const { id } = req.params
@@ -111,7 +97,9 @@ export class CollectionController {
 
   public async getPublicCollections(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const collections = await this.collectionService.getPublicCollections()
+      const page = parseInt(req.query.page as string) || 1
+      const limit = parseInt(req.query.limit as string) || 10
+      const collections = await this.collectionService.getPublicCollections(page, limit)
       new ApiSuccess(collections, 'Lấy danh sách collections công khai thành công').send(res)
     } catch (err) {
       next(err)
@@ -120,12 +108,13 @@ export class CollectionController {
 
   public async getUserOwnCollections(req: Request, res: Response, next: NextFunction): Promise<void> {
     try {
-      const user = req.user as User
+      const user = req.user as IUser
       if (!user) {
         throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
       }
-
-      const collections = await this.collectionService.getUserOwnCollections(user)
+      const page = parseInt(req.query.page as string) || 1
+      const limit = parseInt(req.query.limit as string) || 10
+      const collections = await this.collectionService.getUserOwnCollections(user, page, limit)
       new ApiSuccess(collections, 'Lấy danh sách collections của người dùng thành công').send(res)
     } catch (err) {
       next(err)

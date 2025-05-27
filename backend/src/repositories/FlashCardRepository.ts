@@ -1,7 +1,7 @@
-import { Repository, DeepPartial } from 'typeorm'
+import { DeepPartial } from 'typeorm'
 import { Flashcard } from '../entities/FlashCard'
 import { BaseRepository } from './BaseRepository'
-import { IFlashCardRequest } from '../interfaces/IFlashCard'
+import { IFlashCardRequest, IFlashCardResponse } from '../interfaces/IFlashCard'
 import { Collection } from '../entities/Collection'
 
 export class FlashCardRepository extends BaseRepository<Flashcard> {
@@ -11,12 +11,11 @@ export class FlashCardRepository extends BaseRepository<Flashcard> {
 
   async findByCollection(collection: Collection): Promise<Flashcard[]> {
     return this.repository.find({
-      where: { collection },
-      relations: ['collection']
+      where: { collection: { id: collection.id } }
     })
   }
 
-  async createFlashCard(data: IFlashCardRequest, collection: Collection): Promise<Flashcard> {
+  async createFlashCard(data: IFlashCardRequest, collection: Collection): Promise<IFlashCardResponse> {
     const flashcard = this.repository.create({
       ...data,
       collection
@@ -30,6 +29,28 @@ export class FlashCardRepository extends BaseRepository<Flashcard> {
       .where('flashcard.collection = :collectionId', { collectionId: collection.id })
       .orderBy('RANDOM()')
       .limit(limit)
+      .getMany()
+  }
+
+  async findSuggestFlashcards(query: string, source: string, target: string): Promise<IFlashCardResponse[]> {
+    return this.repository
+      .createQueryBuilder('flashcard')
+      .where('flashcard.source_language = :source', { source })
+      .andWhere('flashcard.target_language = :target', { target })
+      .andWhere('flashcard.is_private = :isPrivate', { isPrivate: false })
+      .andWhere('flashcard.front_text LIKE :query', { query: `%${query}%` })
+      .limit(10)
+      .getMany()
+  }
+
+  async findFirstFlashcards(collection: Collection, limit: number): Promise<Flashcard[]> {
+    return this.repository
+      .createQueryBuilder('flashcard')
+      .leftJoinAndSelect('flashcard.userProgress', 'userProgress')
+      .where('flashcard.collection = :collectionId', { collectionId: collection.id })
+      .andWhere('userProgress.id IS NULL')
+      .orderBy('flashcard.created_at', 'ASC')
+      .take(limit)
       .getMany()
   }
 }
