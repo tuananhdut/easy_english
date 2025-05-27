@@ -1,167 +1,139 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Typography, Form, Input, Button, Upload, AutoComplete, Row, Col, message } from 'antd'
+import { Card, Typography, Form, Input, Button, Upload, Row, Col, message, notification } from 'antd'
 import { UploadOutlined, AudioOutlined, ArrowLeftOutlined } from '@ant-design/icons'
+import { createFlashcard, deleteFlashcard, getFlashcardsByCollection } from '../features/flashcard/flashcardApi'
+import { ICreateFlashcardRequest, IFlashcard } from '../features/flashcard/flashcardType'
 
 const { Title, Text } = Typography
+const FILE_URL = import.meta.env.VITE_FILE_URL || 'http://localhost:8089/uploads/'
 
-interface Flashcard {
-  term: string
-  meaning: string
-  image_url?: string
-  audio_url?: string
+interface FormValues {
+  front_text: string
+  back_text: string
 }
 
 const CreateFlashcardPage: React.FC = () => {
+  const [api, contextHolder] = notification.useNotification()
   const { id: collectionId } = useParams<{ id: string }>()
-  const [form] = Form.useForm()
-  const [flashcards, setFlashcards] = useState<Flashcard[]>([])
+  const [form] = Form.useForm<FormValues>()
+  const [flashcards, setFlashcards] = useState<IFlashcard[]>([])
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [audioFile, setAudioFile] = useState<File | null>(null)
   const navigate = useNavigate()
-  const [autoOptions, setAutoOptions] = useState<Array<{ value: string; label: React.ReactNode }>>([])
-  const [search, setSearch] = useState('')
-  const [editingIndex, setEditingIndex] = useState<number | null>(null)
 
-  const mockTerms = [
-    {
-      value: 'apple',
-      meaning: 'quả táo',
-      image: 'https://cdn-icons-png.flaticon.com/128/415/415733.png',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
-    },
-    {
-      value: 'banana',
-      meaning: 'quả chuối',
-      image: 'https://cdn-icons-png.flaticon.com/128/415/415734.png',
-      audio: ''
-    },
-    { value: 'cat', meaning: 'con mèo', image: 'https://cdn-icons-png.flaticon.com/128/616/616408.png', audio: '' },
-    {
-      value: 'dog',
-      meaning: 'con chó',
-      image: 'https://cdn-icons-png.flaticon.com/128/616/616408.png',
-      audio: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'
-    },
-    { value: 'hello world', meaning: 'xin chào thế giới', image: '', audio: '' },
-    { value: 'good morning', meaning: 'chào buổi sáng', image: '', audio: '' },
-    {
-      value: 'computer',
-      meaning: 'máy tính',
-      image: 'https://cdn-icons-png.flaticon.com/128/424/424062.png',
-      audio: ''
-    },
-    { value: 'university', meaning: 'trường đại học', image: '', audio: '' },
-    { value: 'student', meaning: 'học sinh', image: '', audio: '' },
-    { value: 'teacher', meaning: 'giáo viên', image: '', audio: '' },
-    { value: 'book', meaning: 'quyển sách', image: 'https://cdn-icons-png.flaticon.com/128/29/29302.png', audio: '' },
-    { value: 'pen', meaning: 'bút', image: 'https://cdn-icons-png.flaticon.com/128/29/29302.png', audio: '' },
-    { value: 'notebook', meaning: 'vở', image: '', audio: '' },
-    { value: 'car', meaning: 'xe hơi', image: 'https://cdn-icons-png.flaticon.com/128/743/743131.png', audio: '' },
-    { value: 'bus', meaning: 'xe buýt', image: '', audio: '' },
-    { value: 'train', meaning: 'tàu hỏa', image: '', audio: '' },
-    {
-      value: 'phone',
-      meaning: 'điện thoại',
-      image: 'https://cdn-icons-png.flaticon.com/128/724/724664.png',
-      audio: ''
-    },
-    { value: 'music', meaning: 'âm nhạc', image: '', audio: '' },
-    { value: 'movie', meaning: 'phim', image: '', audio: '' },
-    { value: 'friend', meaning: 'bạn bè', image: '', audio: '' }
-  ]
-
-  const handleTermSearch = (value: string) => {
-    setAutoOptions(
-      !value
-        ? []
-        : mockTerms
-            .filter((term) => term.value.toLowerCase().includes(value.toLowerCase()))
-            .map((term) => ({
-              value: term.value,
-              label: (
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                  {term.image && (
-                    <img
-                      src={term.image}
-                      alt=''
-                      style={{ width: 28, height: 28, objectFit: 'cover', borderRadius: 4 }}
-                    />
-                  )}
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontWeight: 500 }}>{term.value}</div>
-                    <div style={{ fontSize: 13, color: '#888' }}>{term.meaning}</div>
-                  </div>
-                  {term.audio && (
-                    <audio controls src={term.audio} style={{ height: 28 }} onClick={(e) => e.stopPropagation()} />
-                  )}
-                </div>
-              )
-            }))
-    )
+  const fetchFlashcards = async () => {
+    try {
+      const response = await getFlashcardsByCollection(parseInt(collectionId || '0'))
+      if (response.data) {
+        const flashcardsWithUrls = response.data.map((flashcard) => ({
+          ...flashcard,
+          image_url: flashcard.image_url ? `${FILE_URL}${flashcard.image_url}` : undefined,
+          audio_url: flashcard.audio_url ? `${FILE_URL}${flashcard.audio_url}` : undefined
+        }))
+        setFlashcards(flashcardsWithUrls)
+      }
+    } catch (error) {
+      console.error('Error fetching flashcards:', error)
+      message.error('Có lỗi xảy ra khi tải danh sách flashcard!')
+    }
   }
 
-  const handleAdd = (values: Flashcard) => {
-    const newCard: Flashcard = {
-      ...values,
-      image_url: imageFile ? URL.createObjectURL(imageFile) : undefined,
-      audio_url: audioFile ? URL.createObjectURL(audioFile) : undefined
+  useEffect(() => {
+    fetchFlashcards()
+  }, [collectionId])
+
+  const handleAdd = async (values: FormValues) => {
+    try {
+      const flashcardData: ICreateFlashcardRequest = {
+        collection_id: parseInt(collectionId || '0'),
+        front_text: values.front_text,
+        back_text: values.back_text,
+        image: imageFile || undefined,
+        audio: audioFile || undefined
+      }
+
+      const response = await createFlashcard(flashcardData)
+
+      if (response.status === 'success') {
+        form.resetFields()
+        setImageFile(null)
+        setAudioFile(null)
+        message.success('Thêm flashcard thành công!')
+        fetchFlashcards()
+        api.success({
+          message: 'Thêm flashcard thành công',
+          description: 'Flashcard đã được thêm vào hệ thống'
+        })
+      }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
+      api.error({
+        message: 'Thêm flashcard thất bại',
+        description: JSON.stringify('Có lỗi xảy ra khi thêm flashcard')
+      })
     }
-    if (editingIndex !== null) {
-      // Edit mode
-      const updated = [...flashcards]
-      updated[editingIndex] = newCard
-      setFlashcards(updated)
-      setEditingIndex(null)
-    } else {
-      setFlashcards([...flashcards, newCard])
-    }
-    form.resetFields()
-    setImageFile(null)
-    setAudioFile(null)
   }
 
   const handleEdit = (idx: number) => {
     const fc = flashcards[idx]
-    form.setFieldsValue({ term: fc.term, meaning: fc.meaning })
+    form.setFieldsValue({ front_text: fc.front_text, back_text: fc.back_text })
     setImageFile(null)
     setAudioFile(null)
-    setEditingIndex(idx)
     message.info('Đã điền dữ liệu flashcard lên form để sửa')
   }
 
-  const handleDelete = (idx: number) => {
-    setFlashcards(flashcards.filter((_, i) => i !== idx))
-    message.success('Đã xóa flashcard!')
-    if (editingIndex === idx) {
-      setEditingIndex(null)
-      form.resetFields()
-      setImageFile(null)
-      setAudioFile(null)
+  const handleDelete = async (idx: number) => {
+    try {
+      const flashcard = flashcards[idx]
+      if (!flashcard.id) {
+        api.error({
+          message: 'Lỗi xóa flashcard',
+          description: 'Không thể xóa flashcard chưa được lưu!'
+        })
+        return
+      }
+
+      const response = await deleteFlashcard(flashcard.id)
+
+      if (response.status === 'success') {
+        fetchFlashcards()
+        api.success({
+          message: 'Xóa flashcard thành công',
+          description: 'Flashcard đã được xóa khỏi hệ thống'
+        })
+      } else {
+        api.error({
+          message: 'Xóa flashcard thất bại',
+          description: response.message || 'Có lỗi xảy ra khi xóa flashcard'
+        })
+      }
+    } catch (error) {
+      console.error('Error deleting flashcard:', error)
+      api.error({
+        message: 'Lỗi hệ thống',
+        description: 'Có lỗi xảy ra khi xóa flashcard'
+      })
     }
-  }
-
-  const handleSave = () => {
-    message.success('Lưu flashcard thành công!')
-    navigate('/dashboard/dictionary')
-  }
-
-  const beforeImageUpload = (file: File) => {
-    setImageFile(file)
-    return false // prevent auto upload
-  }
-
-  const beforeAudioUpload = (file: File) => {
-    setAudioFile(file)
-    return false // prevent auto upload
   }
 
   const handleBack = () => {
     navigate('/dashboard/dictionary')
   }
 
+  const beforeImageUpload = (file: File) => {
+    setImageFile(file)
+    return false
+  }
+
+  const beforeAudioUpload = (file: File) => {
+    setAudioFile(file)
+    return false
+  }
+
   return (
     <>
+      {contextHolder}
       <div
         style={{
           padding: '24px',
@@ -198,17 +170,16 @@ const CreateFlashcardPage: React.FC = () => {
                 <Col xs={24} md={12}>
                   <Form.Item
                     label='Từ mới'
-                    name='term'
+                    name='front_text'
                     rules={[{ required: true, message: 'Vui lòng nhập mặt trước!' }]}
                   >
-                    <AutoComplete
-                      placeholder='Nhập từ hoặc cụm từ'
-                      style={{ width: '100%' }}
-                      options={autoOptions}
-                      onSearch={handleTermSearch}
-                    />
+                    <Input placeholder='Nhập từ hoặc cụm từ' />
                   </Form.Item>
-                  <Form.Item label='Nghĩa' name='meaning' rules={[{ required: true, message: 'Vui lòng nhập nghĩa!' }]}>
+                  <Form.Item
+                    label='Nghĩa'
+                    name='back_text'
+                    rules={[{ required: true, message: 'Vui lòng nhập nghĩa!' }]}
+                  >
                     <Input placeholder='Nhập nghĩa' />
                   </Form.Item>
                 </Col>
@@ -245,116 +216,96 @@ const CreateFlashcardPage: React.FC = () => {
                 </Button>
               </Form.Item>
             </Form>
+
             <div style={{ margin: '32px 0' }}>
               <Title level={5}>Danh sách flashcard đã thêm</Title>
-              <Input.Search
-                placeholder='Tìm kiếm từ hoặc nghĩa...'
-                allowClear
-                style={{ width: 260, marginBottom: 16 }}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                size='large'
-              />
               <Row gutter={[16, 16]}>
-                {flashcards.filter(
-                  (item) =>
-                    item.term.toLowerCase().includes(search.toLowerCase()) ||
-                    item.meaning.toLowerCase().includes(search.toLowerCase())
-                ).length === 0 && (
+                {flashcards.length === 0 && (
                   <Col span={24} style={{ textAlign: 'center', color: '#888', padding: '32px' }}>
                     Chưa có flashcard nào.
                   </Col>
                 )}
-                {flashcards
-                  .filter(
-                    (item) =>
-                      item.term.toLowerCase().includes(search.toLowerCase()) ||
-                      item.meaning.toLowerCase().includes(search.toLowerCase())
-                  )
-                  .map((item, idx) => (
-                    <Col xs={24} sm={12} md={8} key={idx}>
-                      <Card
-                        hoverable
-                        style={{
-                          borderRadius: 12,
-                          boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                          height: '100%',
+                {flashcards.map((item, idx) => (
+                  <Col xs={24} sm={12} md={8} key={idx}>
+                    <Card
+                      hoverable
+                      style={{
+                        borderRadius: 12,
+                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
+                        height: '100%',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        justifyContent: 'space-between',
+                        transition: 'all 0.3s ease'
+                      }}
+                      styles={{
+                        body: {
+                          padding: 16,
                           display: 'flex',
                           flexDirection: 'column',
-                          justifyContent: 'space-between',
-                          transition: 'all 0.3s ease'
-                        }}
-                        bodyStyle={{ padding: 16, display: 'flex', flexDirection: 'column', height: '100%' }}
-                        cover={
-                          item.image_url ? (
-                            <img
-                              alt='img'
-                              src={item.image_url}
-                              style={{
-                                maxHeight: 120,
-                                objectFit: 'contain',
-                                borderTopLeftRadius: 12,
-                                borderTopRightRadius: 12,
-                                padding: '8px'
-                              }}
-                            />
-                          ) : null
+                          height: '100%'
                         }
-                        actions={[
-                          <Button
-                            icon={<UploadOutlined />}
-                            size='small'
-                            onClick={() => handleEdit(idx)}
-                            key='edit'
-                            type='text'
-                          >
-                            Sửa
-                          </Button>,
-                          <Button danger size='small' onClick={() => handleDelete(idx)} key='delete' type='text'>
-                            Xóa
-                          </Button>
-                        ]}
-                      >
-                        <div
-                          style={{
-                            flex: 1,
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            justifyContent: 'center'
-                          }}
+                      }}
+                      cover={
+                        item.image_url ? (
+                          <img
+                            alt='img'
+                            src={item.image_url}
+                            style={{
+                              maxHeight: 120,
+                              objectFit: 'contain',
+                              borderTopLeftRadius: 12,
+                              borderTopRightRadius: 12,
+                              padding: '8px'
+                            }}
+                          />
+                        ) : null
+                      }
+                      actions={[
+                        <Button
+                          icon={<UploadOutlined />}
+                          size='small'
+                          onClick={() => handleEdit(idx)}
+                          key='edit'
+                          type='text'
                         >
-                          <Text strong style={{ fontSize: 18, marginBottom: 8 }}>
-                            {item.term}
-                          </Text>
-                          <Text style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>{item.meaning}</Text>
-                          {item.audio_url && (
-                            <audio
-                              controls
-                              src={item.audio_url}
-                              style={{
-                                marginTop: 16,
-                                width: '100%',
-                                borderRadius: '8px'
-                              }}
-                            />
-                          )}
-                        </div>
-                      </Card>
-                    </Col>
-                  ))}
+                          Sửa
+                        </Button>,
+                        <Button danger size='small' onClick={() => handleDelete(idx)} key='delete' type='text'>
+                          Xóa
+                        </Button>
+                      ]}
+                    >
+                      <div
+                        style={{
+                          flex: 1,
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center'
+                        }}
+                      >
+                        <Text strong style={{ fontSize: 18, marginBottom: 8 }}>
+                          {item.front_text}
+                        </Text>
+                        <Text style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>{item.back_text}</Text>
+                        {item.audio_url && (
+                          <audio
+                            controls
+                            src={item.audio_url}
+                            style={{
+                              marginTop: 16,
+                              width: '100%',
+                              borderRadius: '8px'
+                            }}
+                          />
+                        )}
+                      </div>
+                    </Card>
+                  </Col>
+                ))}
               </Row>
             </div>
-            <Button
-              type='primary'
-              block
-              size='large'
-              onClick={handleSave}
-              disabled={flashcards.length === 0}
-              style={{ borderRadius: 8 }}
-            >
-              Lưu tất cả flashcard
-            </Button>
           </Card>
         </div>
       </div>

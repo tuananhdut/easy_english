@@ -1,78 +1,64 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Form, Input, Button, Card, Typography, message, Space, Popconfirm, Row, Col } from 'antd'
-import { EditOutlined, DeleteOutlined, ArrowLeftOutlined, ShareAltOutlined } from '@ant-design/icons'
+import { Form, Button, Card, Typography, message, Space } from 'antd'
+import { ArrowLeftOutlined, ShareAltOutlined } from '@ant-design/icons'
 import DictionaryForm from '../components/collection/CollectionForm'
+import { getCollectionById, updateCollection } from '../features/collecion/collectionApi'
+import { ICollection } from '../features/collecion/collectionType'
+import { DictionaryFormValues } from '../components/collection/CollectionForm'
 
-const { Title, Text } = Typography
-
-// Mock dữ liệu bộ sưu tập
-const mockCollection = {
-  name: 'Từ vựng tiếng Anh cơ bản',
-  description: 'Bộ sưu tập từ vựng tiếng Anh cơ bản cho bắt đầu',
-  is_private: true,
-  source_language: 'vi',
-  target_language: 'en',
-  level: 'easy'
-}
-
-// Mock dữ liệu flashcard
-const initialFlashcards = [
-  {
-    term: 'apple',
-    meaning: 'quả táo',
-    image_url: 'https://cdn-icons-png.flaticon.com/128/415/415733.png',
-    audio_url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3'
-  },
-  {
-    term: 'banana',
-    meaning: 'quả chuối',
-    image_url: 'https://cdn-icons-png.flaticon.com/128/415/415734.png',
-    audio_url: ''
-  },
-  {
-    term: 'cat',
-    meaning: 'con mèo',
-    image_url: 'https://cdn-icons-png.flaticon.com/128/616/616408.png',
-    audio_url: ''
-  },
-  {
-    term: 'dog',
-    meaning: 'con chó',
-    image_url: 'https://cdn-icons-png.flaticon.com/128/616/616408.png',
-    audio_url: 'https://www.soundhelix.com/examples/mp3/SoundHelix-Song-2.mp3'
-  }
-]
+const { Title } = Typography
 
 const EditCollectionPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const [form] = Form.useForm()
   const navigate = useNavigate()
-  const [flashcards, setFlashcards] = useState(initialFlashcards)
-  const [search, setSearch] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [collection, setCollection] = useState<ICollection | null>(null)
 
-  // Mock collection metadata
-  const collectionMetadata = {
-    createdAt: '2024-03-15T00:00:00Z',
-    totalUsers: 156,
-    creator: {
-      name: 'Nguyễn Văn A',
-      avatar: 'https://example.com/avatar.jpg'
+  useEffect(() => {
+    fetchCollection()
+  }, [id])
+
+  const fetchCollection = async () => {
+    if (!id) return
+    try {
+      setLoading(true)
+      const response = await getCollectionById(parseInt(id))
+      if (response.status === 'success' && response.data) {
+        setCollection(response.data)
+        form.setFieldsValue({
+          name: response.data.name,
+          description: response.data.description,
+          is_private: response.data.is_private,
+          level: response.data.level,
+          source_language: response.data.source_language,
+          target_language: response.data.target_language
+        })
+      }
+    } catch (error) {
+      message.error('Không thể tải thông tin bộ sưu tập')
+      console.error('Error fetching collection:', error)
+    } finally {
+      setLoading(false)
     }
   }
 
-  useEffect(() => {
-    // TODO: Gọi API lấy dữ liệu collection theo id
-    if (id) {
-      // Mock data for now, will be replaced with actual API call
-      form.setFieldsValue(mockCollection)
-      console.log('Fetching collection with ID:', id)
+  const handleFinish = async (values: DictionaryFormValues) => {
+    if (!id) return
+    try {
+      setLoading(true)
+      const response = await updateCollection(parseInt(id), values)
+      if (response.status === 'success') {
+        message.success('Cập nhật bộ sưu tập thành công!')
+        navigate('/dashboard/dictionary')
+      }
+    } catch (error) {
+      message.error('Không thể cập nhật bộ sưu tập')
+      console.error('Error updating collection:', error)
+    } finally {
+      setLoading(false)
     }
-  }, [form, id])
-
-  const handleFinish = () => {
-    message.success('Cập nhật bộ sưu tập thành công!')
-    navigate('/dashboard/dictionary')
   }
 
   const handleCancel = () => {
@@ -83,15 +69,12 @@ const EditCollectionPage: React.FC = () => {
     message.info('Chức năng chia sẻ đang được phát triển')
   }
 
-  const handleDelete = (idx: number) => {
-    setFlashcards(flashcards.filter((_, i) => i !== idx))
-    message.success('Đã xóa flashcard!')
+  if (loading) {
+    return <div>Loading...</div>
   }
 
-  const handleEditFlashcard = (idx: number) => {
-    const fc = flashcards[idx]
-    form.setFieldsValue({ name: fc.term, description: fc.meaning })
-    message.info('Đã điền dữ liệu flashcard lên form (mock)')
+  if (!collection) {
+    return <div>Không tìm thấy bộ sưu tập</div>
   }
 
   return (
@@ -150,20 +133,18 @@ const EditCollectionPage: React.FC = () => {
             <span style={{ fontWeight: 500, color: '#555' }}>
               Ngày tạo{' '}
               <span style={{ color: '#222', fontWeight: 400, marginLeft: 4 }}>
-                {new Date(collectionMetadata.createdAt).toLocaleDateString('vi-VN')}
+                {new Date(collection.created_at).toLocaleDateString('vi-VN')}
               </span>
             </span>
             <span style={{ color: '#e0e0e0', fontSize: 18 }}>|</span>
             <span style={{ fontWeight: 500, color: '#555' }}>
-              Số người sử dụng{' '}
-              <span style={{ color: '#222', fontWeight: 400, marginLeft: 4 }}>
-                {collectionMetadata.totalUsers} người
-              </span>
+              Số thẻ{' '}
+              <span style={{ color: '#222', fontWeight: 400, marginLeft: 4 }}>{collection.total_flashcards} thẻ</span>
             </span>
             <span style={{ color: '#e0e0e0', fontSize: 18 }}>|</span>
             <span style={{ fontWeight: 500, color: '#555' }}>
               Người tạo{' '}
-              <span style={{ color: '#222', fontWeight: 400, marginLeft: 4 }}>{collectionMetadata.creator.name}</span>
+              <span style={{ color: '#222', fontWeight: 400, marginLeft: 4 }}>{collection.owner.fullName}</span>
             </span>
           </div>
         </div>
@@ -186,124 +167,19 @@ const EditCollectionPage: React.FC = () => {
               boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
             }}
           >
-            <DictionaryForm mode='edit' initialData={mockCollection} onSubmit={handleFinish} onCancel={handleCancel} />
-          </Card>
-
-          <Card
-            style={{
-              borderRadius: '12px',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.08)'
-            }}
-          >
-            <div style={{ display: 'flex', alignItems: 'center', marginBottom: 16 }}>
-              <Title level={4} style={{ margin: 0, flex: 1 }}>
-                Danh sách flashcard
-              </Title>
-              <Input.Search
-                placeholder='Tìm kiếm từ hoặc nghĩa...'
-                allowClear
-                style={{ width: 260, marginLeft: 16 }}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                size='large'
-              />
-            </div>
-            <Row gutter={[16, 16]}>
-              {flashcards.filter(
-                (item) =>
-                  item.term.toLowerCase().includes(search.toLowerCase()) ||
-                  item.meaning.toLowerCase().includes(search.toLowerCase())
-              ).length === 0 && (
-                <Col span={24} style={{ textAlign: 'center', color: '#888', padding: '32px' }}>
-                  Chưa có flashcard nào.
-                </Col>
-              )}
-              {flashcards
-                .filter(
-                  (item) =>
-                    item.term.toLowerCase().includes(search.toLowerCase()) ||
-                    item.meaning.toLowerCase().includes(search.toLowerCase())
-                )
-                .map((item, idx) => (
-                  <Col xs={24} sm={12} md={8} key={idx}>
-                    <Card
-                      hoverable
-                      style={{
-                        borderRadius: 12,
-                        boxShadow: '0 2px 8px rgba(0,0,0,0.08)',
-                        height: '100%',
-                        display: 'flex',
-                        flexDirection: 'column',
-                        justifyContent: 'space-between',
-                        transition: 'all 0.3s ease'
-                      }}
-                      bodyStyle={{ padding: 16, display: 'flex', flexDirection: 'column', height: '100%' }}
-                      cover={
-                        item.image_url ? (
-                          <img
-                            alt='img'
-                            src={item.image_url}
-                            style={{
-                              maxHeight: 120,
-                              objectFit: 'contain',
-                              borderTopLeftRadius: 12,
-                              borderTopRightRadius: 12,
-                              padding: '8px'
-                            }}
-                          />
-                        ) : null
-                      }
-                      actions={[
-                        <Button
-                          icon={<EditOutlined />}
-                          size='small'
-                          onClick={() => handleEditFlashcard(idx)}
-                          key='edit'
-                          type='text'
-                        >
-                          Sửa
-                        </Button>,
-                        <Popconfirm
-                          title='Xóa flashcard này?'
-                          onConfirm={() => handleDelete(idx)}
-                          okText='Xóa'
-                          cancelText='Hủy'
-                        >
-                          <Button icon={<DeleteOutlined />} size='small' danger key='delete' type='text'>
-                            Xóa
-                          </Button>
-                        </Popconfirm>
-                      ]}
-                    >
-                      <div
-                        style={{
-                          flex: 1,
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        <Text strong style={{ fontSize: 18, marginBottom: 8 }}>
-                          {item.term}
-                        </Text>
-                        <Text style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>{item.meaning}</Text>
-                        {item.audio_url && (
-                          <audio
-                            controls
-                            src={item.audio_url}
-                            style={{
-                              marginTop: 16,
-                              width: '100%',
-                              borderRadius: '8px'
-                            }}
-                          />
-                        )}
-                      </div>
-                    </Card>
-                  </Col>
-                ))}
-            </Row>
+            <DictionaryForm
+              mode='edit'
+              initialData={{
+                name: collection.name,
+                description: collection.description,
+                is_private: collection.is_private,
+                level: collection.level,
+                source_language: collection.source_language,
+                target_language: collection.target_language
+              }}
+              onSubmit={handleFinish}
+              onCancel={handleCancel}
+            />
           </Card>
         </Space>
       </div>

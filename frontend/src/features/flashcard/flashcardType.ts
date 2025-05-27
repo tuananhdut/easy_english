@@ -17,8 +17,8 @@ export interface ICreateFlashcardRequest {
   collection_id: number
   front_text: string
   back_text: string
-  image_url?: string
-  audio_url?: string
+  image?: File
+  audio?: File
 }
 
 export interface ICreateFlashcardResponse {
@@ -38,10 +38,5 @@ export interface IUpdateFlashcardRequest {
 export interface IUpdateFlashcardResponse {
   success: boolean
   data: IFlashcard
-  message: string
-}
-
-export interface IDeleteFlashcardResponse {
-  success: boolean
   message: string
 }

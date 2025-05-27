@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, Card, Typography, message } from 'antd'
+import { Button, Card, Typography, notification } from 'antd'
 import { useNavigate } from 'react-router-dom'
 import DictionaryForm, { DictionaryFormValues } from '../components/collection/CollectionForm'
 import { createCollection } from '../features/collecion/collectionApi'
@@ -8,6 +8,7 @@ import { ArrowLeftOutlined } from '@ant-design/icons'
 const { Title } = Typography
 
 const CreateDictionaryPage: React.FC = () => {
+  const [api, contextHolder] = notification.useNotification()
   const navigate = useNavigate()
 
   const handleFinish = async (values: DictionaryFormValues) => {
@@ -20,13 +21,22 @@ const CreateDictionaryPage: React.FC = () => {
       })
 
       if (response && response.data.id) {
-        message.success(`Tạo bộ từ điển "${values.name}" thành công!`)
+        api.success({
+          message: `Tạo bộ từ điển "${values.name}" thành công!`,
+          description: 'Bộ từ điển đã được tạo thành công'
+        })
         navigate(`/create-flashcard/${response.data.id}`)
       } else {
-        message.error('Có lỗi xảy ra khi tạo bộ từ điển')
+        api.error({
+          message: 'Tạo bộ từ điển thất bại',
+          description: response.message || 'Có lỗi xảy ra khi tạo bộ từ điển'
+        })
       }
     } catch (error) {
-      message.error('Có lỗi xảy ra khi tạo bộ từ điển')
+      api.error({
+        message: 'Tạo bộ từ điển thất bại',
+        description: JSON.stringify(error) || 'Có lỗi xảy ra khi tạo bộ từ điển'
+      })
       console.error('Error creating collection:', error)
     }
   }
@@ -37,6 +47,7 @@ const CreateDictionaryPage: React.FC = () => {
 
   return (
     <>
+      {contextHolder}
       <div
         style={{
           padding: '24px',
