@@ -162,7 +162,7 @@ export class FlashCardService {
     return flashcard
   }
 
-  async getRandomFlashCards(collectionId: number, limit: number, user: User): Promise<Flashcard[]> {
+  async getRandomFlashCards(collectionId: number, user: User, includeId?: number): Promise<Flashcard[]> {
     const collection = await this.collectionRepository.findOneWithOptions({
       where: { id: collectionId },
       relations: {
@@ -186,7 +186,20 @@ export class FlashCardService {
       }
     }
 
-    return this.flashCardRepository.findRandomFlashcards(collection, limit)
+    // Get total count of flashcards
+    const totalFlashcards = await this.flashCardRepository.findByCollection(collection)
+
+    if (totalFlashcards.length === 0) {
+      return []
+    }
+
+    // If total flashcards is less than 4, return all flashcards
+    if (totalFlashcards.length <= 4) {
+      return totalFlashcards
+    }
+
+    // Get random flashcards including the specified ID
+    return this.flashCardRepository.findRandomFlashcards(collection, includeId)
   }
 
   async getSuggestFlashCards(query: string, source: string, target: string): Promise<IFlashCardResponse[]> {

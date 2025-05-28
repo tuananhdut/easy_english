@@ -163,8 +163,9 @@ export class FlashCardController {
       }
 
       const { collectionId } = req.params
-      const { limit = 10 } = req.query
-      const flashCards = await this.flashCardService.getRandomFlashCards(Number(collectionId), Number(limit), user)
+      const includeId = req.query.includeId ? Number(req.query.includeId) : undefined
+
+      const flashCards = await this.flashCardService.getRandomFlashCards(Number(collectionId), user, includeId)
       new ApiSuccess(flashCards, 'Lấy danh sách flashcard ngẫu nhiên thành công').send(res)
     } catch (err) {
       next(err)

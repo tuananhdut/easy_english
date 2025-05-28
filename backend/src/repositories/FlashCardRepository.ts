@@ -23,13 +23,48 @@ export class FlashCardRepository extends BaseRepository<Flashcard> {
     return this.repository.save(flashcard as Flashcard)
   }
 
-  async findRandomFlashcards(collection: Collection, limit: number): Promise<Flashcard[]> {
-    return this.repository
+  async findRandomFlashcards(collection: Collection, includeId?: number): Promise<Flashcard[]> {
+    // First get all flashcard IDs for the collection, excluding the includeId
+    const flashcardIds = await this.repository
       .createQueryBuilder('flashcard')
+      .select('flashcard.id')
       .where('flashcard.collection = :collectionId', { collectionId: collection.id })
-      .orderBy('RANDOM()')
-      .limit(limit)
+      .andWhere(includeId ? 'flashcard.id != :includeId' : '1=1', { includeId })
       .getMany()
+
+    if (flashcardIds.length === 0) {
+      // If no other flashcards exist, just return the includeId flashcard if provided
+      if (includeId) {
+        return this.repository.findBy({ id: includeId })
+      }
+      return []
+    }
+
+    // Get 3 random flashcards
+    const randomFlashcards = await this.repository
+      .createQueryBuilder('flashcard')
+      .where('flashcard.id IN (:...ids)', {
+        ids: flashcardIds
+          .map((value) => ({ value, sort: Math.random() }))
+          .sort((a, b) => a.sort - b.sort)
+          .map(({ value }) => value.id)
+          .slice(0, 4)
+      })
+      .getMany()
+
+    // If includeId is provided, get that flashcard and add it to the result
+    if (includeId) {
+      const includeFlashcard = await this.repository.findOneBy({ id: includeId })
+      if (includeFlashcard) {
+        randomFlashcards.push(includeFlashcard)
+      }
+    }
+
+    // Shuffle the final array
+    return randomFlashcards
+      .map((value) => ({ value, sort: Math.random() }))
+      .sort((a, b) => a.sort - b.sort)
+      .map(({ value }) => value)
   }
 
   async findSuggestFlashcards(query: string, source: string, target: string): Promise<IFlashCardResponse[]> {
