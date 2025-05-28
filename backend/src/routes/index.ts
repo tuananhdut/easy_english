@@ -7,6 +7,7 @@ import sharedCollectionRouter from './sharedCollectionRouter'
 import flashCardRouter from './flashCardRouter'
 import translateRouter from './translateRouter'
 import studySessionRouter from './studySessionRoutes'
+import statisticsRoutes from './statisticsRoutes'
 
 const routes = Router()
 
@@ -18,5 +19,6 @@ routes.use('/shared-collections', sharedCollectionRouter)
 routes.use('/flashcards', flashCardRouter)
 routes.use('/translate', translateRouter)
 routes.use('/study-sessions', studySessionRouter)
+routes.use('/statistics', statisticsRoutes)
 
 export default routes
