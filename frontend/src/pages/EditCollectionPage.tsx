@@ -1,32 +1,18 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import {
-  Form,
-  Button,
-  Card,
-  Typography,
-  message,
-  Space,
-  notification,
-  Modal,
-  Input,
-  List,
-  Avatar,
-  Switch,
-  Tag
-} from 'antd'
+import { Form, Button, Card, Typography, message, Space, Modal, Input, List, Avatar, Switch, Tag } from 'antd'
 import { ArrowLeftOutlined, ShareAltOutlined, UserOutlined, LinkOutlined } from '@ant-design/icons'
 import DictionaryForm from '../components/collection/CollectionForm'
 import { getCollectionById, updateCollection } from '../features/collecion/collectionApi'
 import { ICollection } from '../features/collecion/collectionType'
 import { DictionaryFormValues } from '../components/collection/CollectionForm'
 import FlashcardList from '../components/flashcard/FlashcardList'
-import { deleteFlashcard, getFlashcardsByCollection, updateFlashcard } from '../features/flashcard/flashcardApi'
+import { getFlashcardsByCollection } from '../features/flashcard/flashcardApi'
 import { IFlashcard } from '../features/flashcard/flashcardType'
 
 const { Title } = Typography
 
-const FILE_URL = import.meta.env.VITE_FILE_URL || 'http://localhost:8089/uploads/'
+const FILE_URL = import.meta.env.VITE_FILE_URL || 'http://localhost:8080/uploads/'
 
 interface ISharedUser {
   id: number
@@ -43,7 +29,6 @@ const EditCollectionPage: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [collection, setCollection] = useState<ICollection | null>(null)
   const [flashcards, setFlashcards] = useState<IFlashcard[]>([])
-  const [api, contextHolder] = notification.useNotification()
   const [isShareModalVisible, setIsShareModalVisible] = useState(false)
   const [shareEmail, setShareEmail] = useState('')
   const [sharedUsers, setSharedUsers] = useState<ISharedUser[]>([
@@ -72,40 +57,6 @@ const EditCollectionPage: React.FC = () => {
     fetchCollection()
     fetchFlashcards()
   }, [id])
-
-  const handleDelete = async (idx: number) => {
-    try {
-      const flashcard = flashcards[idx]
-      if (!flashcard.id) {
-        api.error({
-          message: 'Lỗi xóa flashcard',
-          description: 'Không thể xóa flashcard chưa được lưu!'
-        })
-        return
-      }
-
-      const response = await deleteFlashcard(flashcard.id)
-
-      if (response.status === 'success') {
-        fetchFlashcards()
-        api.success({
-          message: 'Xóa flashcard thành công',
-          description: 'Flashcard đã được xóa khỏi hệ thống'
-        })
-      } else {
-        api.error({
-          message: 'Xóa flashcard thất bại',
-          description: response.message || 'Có lỗi xảy ra khi xóa flashcard'
-        })
-      }
-    } catch (error) {
-      console.error('Error deleting flashcard:', error)
-      api.error({
-        message: 'Lỗi hệ thống',
-        description: 'Có lỗi xảy ra khi xóa flashcard'
-      })
-    }
-  }
 
   const fetchCollection = async () => {
     if (!id) return
@@ -196,40 +147,6 @@ const EditCollectionPage: React.FC = () => {
     message.success('Đã cập nhật quyền!')
   }
 
-  const handleEditFlashcard = async (index: number, values: Partial<IFlashcard>) => {
-    try {
-      const flashcard = flashcards[index]
-      if (!flashcard.id) {
-        api.error({
-          message: 'Lỗi cập nhật flashcard',
-          description: 'Không thể cập nhật flashcard chưa được lưu!'
-        })
-        return
-      }
-
-      // TODO: Call API to update flashcard
-      const response = await updateFlashcard(flashcard.id, values)
-      if (response.status === 'success') {
-        fetchFlashcards()
-        api.success({
-          message: 'Cập nhật flashcard thành công',
-          description: 'Flashcard đã được cập nhật'
-        })
-      } else {
-        api.error({
-          message: 'Cập nhật flashcard thất bại',
-          description: response.message || 'Có lỗi xảy ra khi cập nhật flashcard'
-        })
-      }
-    } catch (error) {
-      console.error('Error updating flashcard:', error)
-      api.error({
-        message: 'Lỗi hệ thống',
-        description: 'Có lỗi xảy ra khi cập nhật flashcard'
-      })
-    }
-  }
-
   const renderUserStatus = (status: ISharedUser['status']) => {
     switch (status) {
       case 'pending':
@@ -253,7 +170,6 @@ const EditCollectionPage: React.FC = () => {
 
   return (
     <>
-      {contextHolder}
       <div
         style={{
           padding: '24px',
@@ -355,7 +271,7 @@ const EditCollectionPage: React.FC = () => {
               onCancel={handleCancel}
             />
             <Title level={5}>Danh sách flashcard</Title>
-            <FlashcardList flashcards={flashcards} onEdit={handleEditFlashcard} onDelete={handleDelete} />
+            <FlashcardList flashcards={flashcards} onFlashcardChange={fetchFlashcards} />
           </Card>
         </Space>
       </div>

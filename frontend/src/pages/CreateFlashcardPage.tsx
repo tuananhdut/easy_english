@@ -1,26 +1,26 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Card, Typography, Form, Input, Button, Upload, Row, Col, message, notification } from 'antd'
-import { UploadOutlined, AudioOutlined, ArrowLeftOutlined } from '@ant-design/icons'
-import { createFlashcard, deleteFlashcard, getFlashcardsByCollection } from '../features/flashcard/flashcardApi'
+import { Card, Typography, Row, Col, message, notification, Button } from 'antd'
+import { ArrowLeftOutlined } from '@ant-design/icons'
+import { createFlashcard, getFlashcardsByCollection } from '../features/flashcard/flashcardApi'
 import { ICreateFlashcardRequest, IFlashcard } from '../features/flashcard/flashcardType'
 import FlashcardList from '../components/flashcard/FlashcardList'
+import FlashcardForm from '../components/flashcard/FlashcardForm'
 
-const { Title, Text } = Typography
-const FILE_URL = import.meta.env.VITE_FILE_URL || 'http://localhost:8089/uploads/'
+const { Title } = Typography
+const FILE_URL = import.meta.env.VITE_FILE_URL || 'http://localhost:8080/uploads/'
 
-interface FormValues {
+interface FlashcardFormValues {
   front_text: string
   back_text: string
+  pronunciation?: string
 }
 
 const CreateFlashcardPage: React.FC = () => {
   const [api, contextHolder] = notification.useNotification()
   const { id: collectionId } = useParams<{ id: string }>()
-  const [form] = Form.useForm<FormValues>()
   const [flashcards, setFlashcards] = useState<IFlashcard[]>([])
-  const [imageFile, setImageFile] = useState<File | null>(null)
-  const [audioFile, setAudioFile] = useState<File | null>(null)
+  const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
   const fetchFlashcards = async () => {
@@ -44,8 +44,9 @@ const CreateFlashcardPage: React.FC = () => {
     fetchFlashcards()
   }, [collectionId])
 
-  const handleAdd = async (values: FormValues) => {
+  const handleAdd = async (values: FlashcardFormValues, imageFile: File | null, audioFile: File | null) => {
     try {
+      setLoading(true)
       const flashcardData: ICreateFlashcardRequest = {
         collection_id: parseInt(collectionId || '0'),
         front_text: values.front_text,
@@ -57,9 +58,6 @@ const CreateFlashcardPage: React.FC = () => {
       const response = await createFlashcard(flashcardData)
 
       if (response.status === 'success') {
-        form.resetFields()
-        setImageFile(null)
-        setAudioFile(null)
         message.success('Thêm flashcard thành công!')
         fetchFlashcards()
         api.success({
@@ -67,69 +65,20 @@ const CreateFlashcardPage: React.FC = () => {
           description: 'Flashcard đã được thêm vào hệ thống'
         })
       }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
+      console.error('Error adding flashcard:', error)
       api.error({
         message: 'Thêm flashcard thất bại',
-        description: JSON.stringify('Có lỗi xảy ra khi thêm flashcard')
+        description: 'Có lỗi xảy ra khi thêm flashcard'
       })
-    }
-  }
-
-  const handleEdit = (idx: number) => {
-    const fc = flashcards[idx]
-    form.setFieldsValue({ front_text: fc.front_text, back_text: fc.back_text })
-    setImageFile(null)
-    setAudioFile(null)
-    message.info('Đã điền dữ liệu flashcard lên form để sửa')
-  }
-
-  const handleDelete = async (idx: number) => {
-    try {
-      const flashcard = flashcards[idx]
-      if (!flashcard.id) {
-        api.error({
-          message: 'Lỗi xóa flashcard',
-          description: 'Không thể xóa flashcard chưa được lưu!'
-        })
-        return
-      }
-
-      const response = await deleteFlashcard(flashcard.id)
-
-      if (response.status === 'success') {
-        fetchFlashcards()
-        api.success({
-          message: 'Xóa flashcard thành công',
-          description: 'Flashcard đã được xóa khỏi hệ thống'
-        })
-      } else {
-        api.error({
-          message: 'Xóa flashcard thất bại',
-          description: response.message || 'Có lỗi xảy ra khi xóa flashcard'
-        })
-      }
-    } catch (error) {
-      console.error('Error deleting flashcard:', error)
-      api.error({
-        message: 'Lỗi hệ thống',
-        description: 'Có lỗi xảy ra khi xóa flashcard'
-      })
+      throw error // Re-throw để FlashcardForm có thể xử lý
+    } finally {
+      setLoading(false)
     }
   }
 
   const handleBack = () => {
     navigate('/dashboard/dictionary')
-  }
-
-  const beforeImageUpload = (file: File) => {
-    setImageFile(file)
-    return false
-  }
-
-  const beforeAudioUpload = (file: File) => {
-    setAudioFile(file)
-    return false
   }
 
   return (
@@ -162,68 +111,26 @@ const CreateFlashcardPage: React.FC = () => {
         </div>
       </div>
 
-      <div style={{ maxWidth: 1200, margin: '32px auto', background: '#f0f2f5', minHeight: '100vh', borderRadius: 12 }}>
-        <div style={{ padding: '32px 24px' }}>
-          <Card style={{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
-            <Text strong>Bộ từ điển ID: {collectionId}</Text>
-            <Form form={form} layout='vertical' onFinish={handleAdd} style={{ marginTop: 24 }}>
-              <Row gutter={24}>
-                <Col xs={24} md={12}>
-                  <Form.Item
-                    label='Từ mới'
-                    name='front_text'
-                    rules={[{ required: true, message: 'Vui lòng nhập mặt trước!' }]}
-                  >
-                    <Input placeholder='Nhập từ hoặc cụm từ' />
-                  </Form.Item>
-                  <Form.Item
-                    label='Nghĩa'
-                    name='back_text'
-                    rules={[{ required: true, message: 'Vui lòng nhập nghĩa!' }]}
-                  >
-                    <Input placeholder='Nhập nghĩa' />
-                  </Form.Item>
-                </Col>
-                <Col xs={24} md={12}>
-                  <Form.Item label='Ảnh minh họa'>
-                    <Upload beforeUpload={beforeImageUpload} showUploadList={!!imageFile} accept='image/*' maxCount={1}>
-                      <Button icon={<UploadOutlined />}>Chọn ảnh</Button>
-                    </Upload>
-                    {imageFile && (
-                      <div style={{ marginTop: 8 }}>
-                        <img
-                          src={URL.createObjectURL(imageFile)}
-                          alt='preview'
-                          style={{ maxWidth: 120, maxHeight: 80, borderRadius: 4 }}
-                        />
-                      </div>
-                    )}
-                  </Form.Item>
-                  <Form.Item label='Âm thanh'>
-                    <Upload beforeUpload={beforeAudioUpload} showUploadList={!!audioFile} accept='audio/*' maxCount={1}>
-                      <Button icon={<AudioOutlined />}>Chọn file âm thanh</Button>
-                    </Upload>
-                    {audioFile && (
-                      <div style={{ marginTop: 8 }}>
-                        <audio controls src={URL.createObjectURL(audioFile)} />
-                      </div>
-                    )}
-                  </Form.Item>
-                </Col>
-              </Row>
-              <Form.Item>
-                <Button type='primary' htmlType='submit' size='large' style={{ minWidth: 140 }}>
-                  Thêm flashcard
-                </Button>
-              </Form.Item>
-            </Form>
+      <div style={{ maxWidth: 1200, margin: '32px auto', padding: '0 24px' }}>
+        <Row gutter={[24, 24]}>
+          <Col xs={24} lg={12}>
+            <Card style={{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+              <Title level={4} style={{ marginBottom: 24 }}>
+                Thêm Flashcard Mới
+              </Title>
+              <FlashcardForm onSubmit={handleAdd} onCancel={() => {}} loading={loading} />
+            </Card>
+          </Col>
 
-            <div style={{ margin: '32px 0' }}>
-              <Title level={5}>Danh sách flashcard đã thêm</Title>
-              <FlashcardList flashcards={flashcards} onEdit={handleEdit} onDelete={handleDelete} />
-            </div>
-          </Card>
-        </div>
+          <Col xs={24} lg={12}>
+            <Card style={{ borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.08)' }}>
+              <Title level={4} style={{ marginBottom: 24 }}>
+                Danh sách flashcard đã thêm
+              </Title>
+              <FlashcardList flashcards={flashcards} onFlashcardChange={fetchFlashcards} />
+            </Card>
+          </Col>
+        </Row>
       </div>
     </>
   )

@@ -1,40 +1,106 @@
 import React, { useState } from 'react'
-import { Card, Typography, Button, Row, Col, Modal } from 'antd'
+import { Card, Typography, Button, Row, Col, Modal, message, notification } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
-import { IFlashcard } from '../../features/flashcard/flashcardType'
+import { IFlashcard, IUpdateFlashcardRequest } from '../../features/flashcard/flashcardType'
 import FlashcardForm from './FlashcardForm'
+import { deleteFlashcard, updateFlashcard } from '../../features/flashcard/flashcardApi'
 
 const { Text } = Typography
 
-interface FlashcardListProps {
-  flashcards: IFlashcard[]
-  onEdit: (index: number, values: Partial<IFlashcard>) => void
-  onDelete: (index: number) => void
+interface FormValues {
+  front_text: string
+  back_text: string
+  pronunciation?: string
 }
 
-const FlashcardList: React.FC<FlashcardListProps> = ({ flashcards, onEdit, onDelete }) => {
+interface FlashcardListProps {
+  flashcards: IFlashcard[]
+  onFlashcardChange: () => void // Callback để refresh danh sách
+}
+
+const FlashcardList: React.FC<FlashcardListProps> = ({ flashcards, onFlashcardChange }) => {
+  const [api, contextHolder] = notification.useNotification()
   const [editingIndex, setEditingIndex] = useState<number | null>(null)
   const [isModalVisible, setIsModalVisible] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handleEdit = (index: number) => {
     setEditingIndex(index)
     setIsModalVisible(true)
   }
-  //test
+
   const handleModalClose = () => {
     setEditingIndex(null)
     setIsModalVisible(false)
   }
 
-  const handleFormSubmit = (values: Partial<IFlashcard>) => {
-    if (editingIndex !== null) {
-      onEdit(editingIndex, values)
-      handleModalClose()
+  const handleFormSubmit = async (values: FormValues) => {
+    if (editingIndex === null) return
+
+    try {
+      setLoading(true)
+      const flashcard = flashcards[editingIndex]
+      if (!flashcard.id) {
+        message.error('Không thể chỉnh sửa flashcard chưa được lưu!')
+        return
+      }
+
+      const updateData: IUpdateFlashcardRequest = {
+        front_text: values.front_text,
+        back_text: values.back_text,
+        pronunciation: values.pronunciation
+      }
+
+      const response = await updateFlashcard(flashcard.id, updateData)
+
+      if (response.status === 'success') {
+        api.success({
+          message: 'Cập nhật flashcard thành công',
+          description: 'Flashcard đã được cập nhật trong hệ thống'
+        })
+        onFlashcardChange()
+        handleModalClose()
+      } else {
+        message.error(response.message || 'Cập nhật flashcard thất bại!')
+      }
+    } catch (error) {
+      console.error('Error updating flashcard:', error)
+      message.error('Có lỗi xảy ra khi cập nhật flashcard!')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleDelete = async (index: number) => {
+    const flashcard = flashcards[index]
+    if (!flashcard.id) {
+      message.error('Không thể xóa flashcard chưa được lưu!')
+      return
+    }
+
+    try {
+      setLoading(true)
+      const response = await deleteFlashcard(flashcard.id)
+      if (response.status === 'success') {
+        api.success({
+          message: 'Xóa flashcard thành công',
+          description: 'Flashcard đã được xóa khỏi hệ thống'
+        })
+        onFlashcardChange()
+      } else {
+        message.error(response.message || 'Xóa flashcard thất bại!')
+      }
+    } catch (error) {
+      console.error('Error deleting flashcard:', error)
+      message.error('Có lỗi xảy ra khi xóa flashcard!')
+    } finally {
+      setLoading(false)
     }
   }
 
   return (
     <>
+      {contextHolder}
       <Row gutter={[16, 16]}>
         {flashcards.length === 0 && (
           <Col span={24} style={{ textAlign: 'center', color: '#888', padding: '32px' }}>
@@ -81,7 +147,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ flashcards, onEdit, onDel
                 <Button icon={<UploadOutlined />} size='small' onClick={() => handleEdit(idx)} key='edit' type='text'>
                   Sửa
                 </Button>,
-                <Button danger size='small' onClick={() => onDelete(idx)} key='delete' type='text'>
+                <Button danger size='small' onClick={() => handleDelete(idx)} key='delete' type='text'>
                   Xóa
                 </Button>
               ]}
@@ -122,6 +188,7 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ flashcards, onEdit, onDel
             initialValues={flashcards[editingIndex]}
             onSubmit={handleFormSubmit}
             onCancel={handleModalClose}
+            loading={loading}
           />
         )}
       </Modal>

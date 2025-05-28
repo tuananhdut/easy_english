@@ -6,7 +6,8 @@ import {
   BookOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
-  EditOutlined
+  EditOutlined,
+  PlusOutlined
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { ICollection } from '../../features/collecion/collectionType'
@@ -19,6 +20,7 @@ export interface CollectionCardProps {
   onStudy?: (collectionId: number) => void
   onReview?: (collectionId: number) => void
   onCardClick?: () => void
+  onAddFlashcard?: (collectionId: number) => void
 }
 
 const CollectionCard: React.FC<CollectionCardProps> = ({
@@ -27,7 +29,8 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
   onEdit,
   onStudy,
   onReview,
-  onCardClick
+  onCardClick,
+  onAddFlashcard
 }) => {
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('vi-VN', {
@@ -62,6 +65,15 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
     }
   }
 
+  const handleAddFlashcard = (e: React.MouseEvent) => {
+    e.stopPropagation()
+    if (onAddFlashcard) {
+      onAddFlashcard(collection.id)
+    } else {
+      navigate(`/create-flashcard/${collection.id}`)
+    }
+  }
+
   const handleCardClick = () => {
     if (onCardClick) {
       onCardClick()
@@ -74,12 +86,27 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
       onClick={handleCardClick}
       style={{
         height: '100%',
+        position: 'relative',
         ...(window.innerWidth >= 768 && {
           minWidth: 500,
           maxWidth: 500
         })
       }}
     >
+      {type !== 'sharedView' && (
+        <Button
+          type='primary'
+          shape='circle'
+          icon={<PlusOutlined />}
+          onClick={handleAddFlashcard}
+          style={{
+            position: 'absolute',
+            top: 12,
+            right: 12,
+            zIndex: 1
+          }}
+        />
+      )}
       <Card.Meta
         avatar={<Avatar icon={<UserOutlined />} />}
         title={collection.name}
@@ -93,7 +120,10 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
                 <Space style={{ justifyContent: 'space-between', width: '100%' }}>
                   <Text strong>Tiến độ học tập</Text>
                 </Space>
-                <Progress percent={(collection.learnedWords / collection.total_flashcards) * 100} status='active' />
+                <Progress
+                  percent={Math.trunc((collection.learnedWords / collection.total_flashcards) * 100)}
+                  status='active'
+                />
               </Space>
             </div>
 
