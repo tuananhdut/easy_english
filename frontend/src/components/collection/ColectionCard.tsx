@@ -9,37 +9,15 @@ import {
   EditOutlined
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
-
+import { ICollection } from '../../features/collecion/collectionType'
 const { Text } = Typography
 
-export interface Collection {
-  id: string
-  name: string
-  description: string
-  level: string
-  totalWords: number
-  learnedWords: number
-  reviewWords: number
-  progress: number
-  createdAt: string
-  updatedAt: string
-  userId: string
-  isPublic: boolean
-  category: string
-  tags: string[]
-  coverImage?: string
-  owner: {
-    id: string
-    name: string
-  }
-}
-
 export interface CollectionCardProps {
-  collection: Collection
+  collection: ICollection
   type: 'owned' | 'sharedView' | 'sharedEdit'
-  onEdit?: (collectionId: string) => void
-  onStudy?: (collectionId: string) => void
-  onReview?: (collectionId: string) => void
+  onEdit?: (collectionId: number) => void
+  onStudy?: (collectionId: number) => void
+  onReview?: (collectionId: number) => void
   onCardClick?: () => void
 }
 
@@ -115,14 +93,14 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
                 <Space style={{ justifyContent: 'space-between', width: '100%' }}>
                   <Text strong>Tiến độ học tập</Text>
                 </Space>
-                <Progress percent={collection.progress} status='active' />
+                <Progress percent={(collection.learnedWords / collection.total_flashcards) * 100} status='active' />
               </Space>
             </div>
 
             {/* Word Count Section */}
             <Space wrap style={{ marginTop: 16 }}>
               <Tag color='blue'>
-                <BookOutlined /> Tổng số từ: {collection.totalWords}
+                <BookOutlined /> Tổng số từ: {collection.total_flashcards}
               </Tag>
               <Tag color='green'>
                 <CheckCircleOutlined /> Đã học: {collection.learnedWords}
@@ -137,17 +115,11 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
               <Tag color='purple'>
                 <GlobalOutlined /> {collection.level}
               </Tag>
-              <Tag color='cyan'>{collection.category}</Tag>
-              {collection.tags.map((tag, index) => (
-                <Tag key={index} color='magenta'>
-                  {tag}
-                </Tag>
-              ))}
             </Space>
 
             {/* Last Update */}
             <Text type='secondary' style={{ display: 'block', marginTop: 8 }}>
-              <ClockCircleOutlined /> Cập nhật: {formatDate(collection.updatedAt)}
+              <ClockCircleOutlined /> Cập nhật: {formatDate(collection.updated_at)}
             </Text>
           </Space>
         }

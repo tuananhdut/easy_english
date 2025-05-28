@@ -50,7 +50,6 @@ const EditCollectionPage: React.FC = () => {
     { id: 1, email: 'user1@example.com', name: 'User 1', canEdit: true, status: 'accepted' },
     { id: 2, email: 'user2@example.com', name: 'User 2', canEdit: false, status: 'pending' }
   ])
-  const [editingFlashcard, setEditingFlashcard] = useState<{ index: number; values: Partial<IFlashcard> } | null>(null)
 
   const fetchFlashcards = async () => {
     try {

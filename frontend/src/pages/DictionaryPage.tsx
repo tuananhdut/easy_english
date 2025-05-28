@@ -30,7 +30,6 @@ const DictionaryPage: React.FC = () => {
     try {
       setLoadingCollections(true)
       const response = await getOwnCollections()
-      console.log(response)
       if (response.status === 'success' && response.data?.collections) {
         setCollections(response.data.collections)
       } else {
@@ -86,7 +85,7 @@ const DictionaryPage: React.FC = () => {
     navigate(`/edit-collection/${collectionId}`)
   }
 
-  const handleStudy = (collectionId: string) => {
+  const handleStudy = (collectionId: number) => {
     try {
       navigate(`/study/${collectionId}`)
     } catch (error) {
@@ -95,7 +94,7 @@ const DictionaryPage: React.FC = () => {
     }
   }
 
-  const handleReview = (collectionId: string) => {
+  const handleReview = (collectionId: number) => {
     message.success(`Đánh giá bộ sưu tập ID: ${collectionId}`)
   }
 
@@ -208,23 +207,25 @@ const DictionaryPage: React.FC = () => {
                 <div style={{ cursor: 'pointer' }}>
                   <CollectionCard
                     collection={{
-                      id: collection.id.toString(),
+                      id: collection.id,
                       name: collection.name,
                       description: collection.description,
                       level: collection.level,
-                      totalWords: collection.total_flashcards,
-                      learnedWords: 0,
-                      reviewWords: 0,
-                      progress: 0,
-                      createdAt: collection.created_at,
-                      updatedAt: collection.updated_at,
-                      userId: collection.owner.id.toString(),
-                      isPublic: !collection.is_private,
+                      total_flashcards: collection.total_flashcards,
+                      learnedWords: collection.learnedWords,
+                      reviewWords: collection.reviewWords,
+                      created_at: collection.created_at,
+                      updated_at: collection.updated_at,
+                      is_private: collection.is_private,
                       category: 'Từ vựng',
-                      tags: [],
+                      source_language: collection.source_language,
+                      target_language: collection.target_language,
+                      sharedUsersCount: 0,
                       owner: {
-                        id: collection.owner.id.toString(),
-                        name: collection.owner.fullName || collection.owner.email || 'Unknown'
+                        id: collection.owner.id,
+                        fullName: collection.owner.fullName || collection.owner.email || 'Unknown',
+                        email: collection.owner.email,
+                        image: collection.owner.image
                       }
                     }}
                     type='owned'

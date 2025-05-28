@@ -22,6 +22,7 @@ export interface ICollection {
   target_language: string
   total_flashcards: number
   level: string
+  category?: string | 'Từ vựng'
   created_at: string
   updated_at: string
   owner: {
