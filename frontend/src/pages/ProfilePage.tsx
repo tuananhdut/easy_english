@@ -138,12 +138,11 @@ const ProfilePage: React.FC = () => {
                 name='avatar'
                 showUploadList={false}
                 onChange={handleAvatarUpload}
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                customRequest={({ file, onSuccess }) => {
-                  setTimeout(() => {
-                    onSuccess?.('ok')
-                  }, 0)
-                }}
+                // customRequest={({ file, onSuccess }) => {
+                //   setTimeout(() => {
+                //     onSuccess?.('ok')
+                //   }, 0)
+                // }}
               >
                 <Button
                   icon={<UploadOutlined />}

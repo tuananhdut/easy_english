@@ -153,8 +153,8 @@ const MainPage: React.FC = () => {
           </Card>
 
           {/* Learning Stats */}
-          <Row gutter={24} style={{ marginBottom: '24px' }}>
-            <Col span={12}>
+          <Row gutter={[24, 24]} style={{ marginBottom: '24px' }}>
+            <Col xs={24} md={12}>
               <Card>
                 <Space direction='vertical' style={{ width: '100%' }}>
                   <Space align='center'>
@@ -195,7 +195,7 @@ const MainPage: React.FC = () => {
                 </Space>
               </Card>
             </Col>
-            <Col span={12}>
+            <Col xs={24} md={12}>
               <Card>
                 <Space direction='vertical' style={{ width: '100%' }}>
                   <Space align='center'>
@@ -229,7 +229,7 @@ const MainPage: React.FC = () => {
           {/* Recent Activity */}
           <Card title='Hoạt động gần đây'>
             <Row gutter={[24, 24]}>
-              <Col span={12}>
+              <Col xs={24} md={12}>
                 <Card size='small' title='Từ vựng mới'>
                   <Space direction='vertical' style={{ width: '100%' }}>
                     <Text>Bạn đã học {userStats.todayProgress} từ mới hôm nay</Text>
@@ -237,7 +237,7 @@ const MainPage: React.FC = () => {
                   </Space>
                 </Card>
               </Col>
-              <Col span={12}>
+              <Col xs={24} md={12}>
                 <Card size='small' title='Luyện tập'>
                   <Space direction='vertical' style={{ width: '100%' }}>
                     <Text>Hoàn thành 3 bài luyện tập</Text>
@@ -259,7 +259,13 @@ const MainPage: React.FC = () => {
               </Radio.Group>
             }
           >
-            <div style={{ width: '100%', height: 300 }}>
+            <div
+              style={{
+                width: '100%',
+                height: window.innerWidth < 768 ? 200 : 300,
+                overflowX: 'auto'
+              }}
+            >
               <canvas ref={chartRef} />
             </div>
           </Card>
