@@ -60,8 +60,8 @@ export class StudySessionRepository extends BaseRepository<StudySession> {
   ): Promise<StudySession> {
     await this.repository.update(id, data)
     const session = await this.repository.findOneOrFail({
-      where: { id },
-      relations: ['user', 'collection']
+      where: { id }
+      //relations: ['user', 'collection'],
     })
 
     // Parse flashcards từ JSON string nếu cần

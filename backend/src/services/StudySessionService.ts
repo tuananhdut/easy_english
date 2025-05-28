@@ -100,8 +100,8 @@ export class StudySessionService {
     }
 
     const flashcards = await this.flashCardRepository.findFirstFlashcards(collection, 4)
-    if (flashcards.length < 4) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'Bộ thẻ không đủ 4 thẻ để bắt đầu học')
+    if (flashcards.length == 0) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Không có thẻ nào để học')
     }
 
     const session = await this.studySessionRepository.createSession(user, collection)
