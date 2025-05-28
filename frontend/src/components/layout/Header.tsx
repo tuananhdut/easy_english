@@ -14,6 +14,7 @@ import {
   ProfileOutlined
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
+import { useAppSelector } from '../../app/hooks'
 
 // Define prop types
 interface HeaderProps {
@@ -26,6 +27,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
   const location = useLocation()
   const [isMobile, setIsMobile] = useState(false)
   const [drawerVisible, setDrawerVisible] = useState(false)
+  const { user } = useAppSelector((state) => state.auth)
 
   useEffect(() => {
     const checkMobile = () => {
@@ -37,12 +39,6 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
 
     return () => window.removeEventListener('resize', checkMobile)
   }, [])
-
-  // Mock user data (replace with real user data from auth context or API)
-  const user = {
-    name: 'John Doe',
-    email: 'john.doe@example.com'
-  }
 
   // Define menu items for navigation
   const menuItems = useMemo(
@@ -86,10 +82,10 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
       <Menu.Item key='0' disabled style={{ cursor: 'default', height: 'auto' }}>
         <Space direction='vertical' size={0} style={{ width: '100%' }}>
           <Typography.Text strong style={{ fontSize: '16px', display: 'block' }}>
-            {user.name}
+            {user?.fullName}
           </Typography.Text>
           <Typography.Text type='secondary' style={{ fontSize: '14px' }}>
-            {user.email}
+            {user?.email}
           </Typography.Text>
         </Space>
       </Menu.Item>
@@ -97,7 +93,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
       <Menu.Item
         key='1'
         icon={<ProfileOutlined />}
-        onClick={() => navigate('/dashboard/profile')}
+        onClick={() => navigate('/profile')}
         style={{ padding: '8px 16px' }}
       >
         Thông tin cá nhân

@@ -17,6 +17,7 @@ import CreateDictionaryPage from '../pages/CreateCollectionPage'
 import CreateFlashcardPage from '../pages/CreateFlashcardPage'
 import EditCollectionPage from '../pages/EditCollectionPage'
 import StudyPage from '../pages/StudyPage'
+import ProfilePage from '../pages/ProfilePage'
 
 const useAuthCheck = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -131,6 +132,10 @@ const router = createBrowserRouter([
   {
     path: '/study/:id',
     element: <StudyPage />
+  },
+  {
+    path: 'profile',
+    element: <ProfilePage />
   }
 ])
 

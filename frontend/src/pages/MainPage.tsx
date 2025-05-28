@@ -126,7 +126,7 @@ const MainPage: React.FC = () => {
           <Card style={{ marginBottom: '24px' }}>
             <Row align='middle' gutter={24}>
               <Col>
-                <Avatar size={64} src={user?.avatar} icon={!user?.avatar && <UserOutlined />} />
+                <Avatar size={64} src={user?.image} icon={!user?.image && <UserOutlined />} />
               </Col>
               <Col flex='auto'>
                 <Title level={4} style={{ margin: 0 }}>
