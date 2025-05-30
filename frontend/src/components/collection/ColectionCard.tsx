@@ -7,7 +7,8 @@ import {
   ClockCircleOutlined,
   CheckCircleOutlined,
   EditOutlined,
-  PlusOutlined
+  PlusOutlined,
+  ShareAltOutlined
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
 import { ICollection } from '../../features/collecion/collectionType'
@@ -55,6 +56,8 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
     e.stopPropagation()
     if (onStudy) {
       onStudy(collection.id)
+    } else {
+      navigate(`/study/${collection.id}`)
     }
   }
 
@@ -77,6 +80,31 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
   const handleCardClick = () => {
     if (onCardClick) {
       onCardClick()
+    }
+  }
+
+  const getTypeTag = () => {
+    switch (type) {
+      case 'owned':
+        return (
+          <Tag color='blue' icon={<UserOutlined />}>
+            Của tôi
+          </Tag>
+        )
+      case 'sharedView':
+        return (
+          <Tag color='green' icon={<ShareAltOutlined />}>
+            Được chia sẻ (Xem)
+          </Tag>
+        )
+      case 'sharedEdit':
+        return (
+          <Tag color='orange' icon={<ShareAltOutlined />}>
+            Được chia sẻ (Sửa)
+          </Tag>
+        )
+      default:
+        return null
     }
   }
 
@@ -105,7 +133,12 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
       )}
       <Card.Meta
         avatar={<Avatar icon={<UserOutlined />} />}
-        title={collection.name}
+        title={
+          <Space>
+            {collection.name}
+            {getTypeTag()}
+          </Space>
+        }
         description={
           <Space direction='vertical' style={{ width: '100%' }}>
             <Text>{collection.description}</Text>

@@ -7,9 +7,10 @@ import { Spin } from 'antd'
 
 interface DictionaryResultProps {
   searchText: string
+  type: number
 }
 
-const DictionaryResult: React.FC<DictionaryResultProps> = ({ searchText }) => {
+const DictionaryResult: React.FC<DictionaryResultProps> = ({ searchText, type }) => {
   useEffect(() => {
     const fetchData = async () => {
       const handlePlaySound = async (type: string) => {
@@ -24,7 +25,7 @@ const DictionaryResult: React.FC<DictionaryResultProps> = ({ searchText }) => {
       try {
         const result = await axios.get('https://dict.laban.vn/ajax/find', {
           params: {
-            type: 1,
+            type: type,
             query: searchText
           }
         })

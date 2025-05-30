@@ -1,5 +1,19 @@
 import React, { useState, useEffect } from 'react'
-import { AutoComplete, Card, Typography, Space, List, message, Layout, Drawer, Row, Col, Input, Tabs } from 'antd'
+import {
+  AutoComplete,
+  Card,
+  Typography,
+  Space,
+  List,
+  message,
+  Layout,
+  Drawer,
+  Row,
+  Col,
+  Input,
+  Tabs,
+  Select
+} from 'antd'
 import { SearchOutlined, BookOutlined, ShareAltOutlined } from '@ant-design/icons'
 import { searchDictionaryApi } from '../features/dictionary/dictionaryApi'
 import { DictionaryApiResponse, SearchDataDictionary, SearchParams } from '../features/dictionary/dictionarytypes'
@@ -11,6 +25,7 @@ import { ICollection } from '../features/collecion/collectionType'
 
 const { Text, Title } = Typography
 const { TabPane } = Tabs
+const { Option } = Select
 
 const DictionaryPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
@@ -25,6 +40,7 @@ const DictionaryPage: React.FC = () => {
   const navigate = useNavigate()
   const [collectionSearchTerm, setCollectionSearchTerm] = useState('')
   const [sharedCollectionSearchTerm, setSharedCollectionSearchTerm] = useState('')
+  const [selectedLanguagePair, setSelectedLanguagePair] = useState('1')
 
   useEffect(() => {
     fetchCollections()
@@ -86,7 +102,7 @@ const DictionaryPage: React.FC = () => {
       setLoading(true)
       const params: SearchParams = {
         query: value,
-        type: 1,
+        type: Number(selectedLanguagePair),
         site: 'dictionary'
       }
 
@@ -327,7 +343,7 @@ const DictionaryPage: React.FC = () => {
                                 image: collection.owner.image
                               }
                             }}
-                            type='owned'
+                            type='sharedView'
                             onStudy={handleStudy}
                             onReview={handleReview}
                             onCardClick={() => setOpenedCollection(collection)}
@@ -347,11 +363,11 @@ const DictionaryPage: React.FC = () => {
               <Title level={4} style={{ marginBottom: '16px' }}>
                 <SearchOutlined /> Tra Từ Điển
               </Title>
-              <Space direction='vertical' style={{ width: '100%' }}>
+              <Input.Group compact>
                 <AutoComplete
-                  style={{ width: '100%' }}
+                  style={{ width: 'calc(100% - 120px)' }}
                   value={searchTerm}
-                  onChange={(value) => handleSearch(value)}
+                  onChange={(value) => setSearchTerm(value)}
                   onSearch={handleSearch}
                   onSelect={(value) => test(value)}
                   placeholder='Nhập từ cần tra cứu...'
@@ -359,8 +375,19 @@ const DictionaryPage: React.FC = () => {
                   notFoundContent={searchRecommend && !loading ? <Text>Không có gợi ý từ.</Text> : null}
                   defaultActiveFirstOption={true}
                 />
-              </Space>
-              {content && <DictionaryResult searchText={searchTerm} />}
+                <Select
+                  value={selectedLanguagePair}
+                  style={{ width: 120 }}
+                  onChange={(value) => setSelectedLanguagePair(value)}
+                >
+                  <Option value='1'>Anh - Việt</Option>
+                  <Option value='2'>Việt - Anh</Option>
+                  <Option value='3'>Anh - Anh</Option>
+                </Select>
+              </Input.Group>
+              {content && (
+                <DictionaryResult searchText={encodeURIComponent(searchTerm)} type={Number(selectedLanguagePair)} />
+              )}
             </Card>
           </Col>
         </Row>
