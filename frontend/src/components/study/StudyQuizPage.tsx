@@ -83,7 +83,6 @@ const StudyQuizPage: React.FC<StudyQuizPagePropt> = ({ flashcard, collectionId, 
     return (
       <div
         style={{
-          maxWidth: 1200,
           margin: '0 auto',
           padding: '24px',
           background: '#f0f2f5',
@@ -96,6 +95,7 @@ const StudyQuizPage: React.FC<StudyQuizPagePropt> = ({ flashcard, collectionId, 
         <Card
           style={{
             width: '100%',
+            maxWidth: 1200,
             borderRadius: '16px',
             boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
             background: 'white'

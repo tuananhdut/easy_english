@@ -19,16 +19,15 @@ const StudyTypingPage: React.FC<TestTypingPageProps> = ({ flashcard, onNext }) =
   const handleCheckAnswer = () => {
     if (!typingAnswer) return
 
-    const isAnswerCorrect = typingAnswer.toLowerCase().trim() === flashcard.back_text.toLowerCase().trim()
+    const isAnswerCorrect = typingAnswer.toLowerCase().trim() === flashcard.front_text.toLowerCase().trim()
     setIsCorrect(isAnswerCorrect)
     setShowResult(true)
 
-    // Auto move to next question after a short delay
     setTimeout(() => {
       setTypingAnswer('')
       setShowResult(false)
       onNext(typingAnswer)
-    }, 1500) // 1.5 seconds delay to show the result
+    }, 1000) // 1.5 seconds delay to show the result
   }
 
   const handleKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
@@ -64,7 +63,7 @@ const StudyTypingPage: React.FC<TestTypingPageProps> = ({ flashcard, onNext }) =
           <Col xs={24} md={14} style={{ padding: '32px' }}>
             <div style={{ marginBottom: '24px' }}>
               <Title level={3} style={{ margin: 0, color: '#262626' }}>
-                {flashcard.front_text}
+                {flashcard.back_text}
               </Title>
             </div>
 
