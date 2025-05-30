@@ -136,7 +136,6 @@ const EditCollectionPage: React.FC = () => {
   }
 
   const handleRemoveUser = (userId: number) => {
-    // TODO: Call API to remove user
     setSharedUsers(sharedUsers.filter((user) => user.id !== userId))
     message.success('Đã xóa người dùng!')
   }
@@ -169,7 +168,7 @@ const EditCollectionPage: React.FC = () => {
   }
 
   return (
-    <>
+    <div style={{ background: '#f0f2f5' }}>
       <div
         style={{
           padding: '24px',
@@ -346,7 +345,7 @@ const EditCollectionPage: React.FC = () => {
           </div>
         </Space>
       </Modal>
-    </>
+    </div>
   )
 }
 

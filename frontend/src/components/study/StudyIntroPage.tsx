@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import { Card, Typography, Button, Space, Row, Col } from 'antd'
 import { SoundOutlined, TranslationOutlined } from '@ant-design/icons'
 import { IStudyFlashcard } from '../../features/study/studyType'
@@ -12,112 +12,160 @@ interface StudyIntroPageProps {
 }
 
 const StudyIntroPage: React.FC<StudyIntroPageProps> = ({ flashcard, onNext }) => {
+  useEffect(() => {
+    if (flashcard.audio_url) {
+      const audio = new Audio(FILE_URL + flashcard.audio_url)
+      audio.play().catch((error) => {
+        console.error('Error playing audio:', error)
+      })
+    }
+  }, [flashcard.audio_url])
+
   return (
     <div
       style={{
         margin: '0 auto',
         padding: '24px',
-        background: '#f0f2f5',
+        background: '#2e3b55',
         minHeight: '100vh',
         display: 'flex',
+        flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center'
+        justifyContent: 'flex-start'
       }}
     >
       <Card
         style={{
           width: '100%',
-          maxWidth: 1200,
+          maxWidth: 1000,
           borderRadius: '16px',
-          boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-          background: 'white',
-          overflow: 'hidden'
+          boxShadow: '0 4px 12px rgba(0,0,0,0.3)',
+          background: '#3a4760',
+          color: 'white',
+          overflow: 'hidden',
+          position: 'relative'
         }}
-        bodyStyle={{ padding: 0 }}
+        bodyStyle={{ padding: '32px' }}
       >
-        <Row gutter={0}>
-          {/* Left side - Question and Info */}
-          <Col xs={24} md={14} style={{ padding: '32px' }}>
-            <div style={{ marginBottom: '32px' }}>
-              <Title level={3} style={{ margin: 0, color: '#262626', fontSize: '28px' }}>
+        {flashcard.audio_url && (
+          <div
+            className='speaker-button'
+            style={{
+              position: 'absolute',
+              top: '16px',
+              right: '16px',
+              background: 'rgba(255, 255, 255, 0.9)',
+              borderRadius: '50%',
+              width: '40px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+              zIndex: 10
+            }}
+            onClick={() => {
+              const audio = new Audio(FILE_URL + flashcard.audio_url)
+              audio.play()
+            }}
+          >
+            <SoundOutlined
+              style={{
+                fontSize: '24px',
+                color: '#1890ff'
+              }}
+            />
+          </div>
+        )}
+
+        <Row gutter={32}>
+          <Col xs={24} md={12}>
+            {flashcard.image_url ? (
+              <div
+                style={{
+                  width: '100%',
+                  borderRadius: '8px',
+                  overflow: 'hidden',
+                  boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  minHeight: '200px',
+                  background: '#f0f0f0',
+                  minWidth: '350px'
+                }}
+              >
+                <img
+                  src={FILE_URL + flashcard.image_url}
+                  alt='flashcard'
+                  style={{
+                    maxWidth: '100%',
+                    maxHeight: '300px',
+                    objectFit: 'contain'
+                  }}
+                />
+              </div>
+            ) : (
+              <div
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '16px',
+                  minHeight: '200px',
+                  background: '#4a5670',
+                  borderRadius: '8px'
+                }}
+              >
+                <Text style={{ fontSize: '18px', color: '#b0b0b0' }}>No image available</Text>
+              </div>
+            )}
+          </Col>
+
+          <Col xs={24} md={12}>
+            <div style={{ marginBottom: '14px' }}>
+              <Text style={{ fontSize: '18px', color: '#b0b0b0', marginBottom: '8px', display: 'block' }}>
+                Thuật ngữ
+              </Text>
+              <Title level={2} style={{ margin: 0, color: 'white' }}>
                 {flashcard.front_text}
               </Title>
             </div>
 
-            {/* Meaning and Pronunciation */}
             <div style={{ marginBottom: '32px' }}>
               <div
                 style={{
-                  background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
-                  padding: '24px',
-                  borderRadius: '12px',
-                  color: 'white',
-                  marginBottom: '24px',
-                  boxShadow: '0 4px 12px rgba(24,144,255,0.2)',
-                  transition: 'transform 0.3s ease',
-                  cursor: 'pointer'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)'
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)'
+                  padding: '12px 0px',
+                  marginBottom: '16px'
                 }}
               >
-                <Space align='center' style={{ marginBottom: '16px' }}>
-                  <TranslationOutlined style={{ fontSize: '24px' }} />
-                  <Title level={4} style={{ margin: 0, color: 'white' }}>
-                    Nghĩa
-                  </Title>
-                </Space>
-                <Text
-                  style={{
-                    fontSize: '24px',
-                    color: 'white',
-                    display: 'block',
-                    lineHeight: '1.5',
-                    fontWeight: 500
-                  }}
-                >
-                  {flashcard.back_text}
-                </Text>
+                <TranslationOutlined style={{ fontSize: '20px', color: '#b0b0b0' }} />
+                <Title level={5} style={{ margin: 0, color: '#b0b0b0' }}>
+                  Định Nghĩa
+                </Title>
+                <Text style={{ fontSize: '18px', color: 'white', display: 'block' }}>{flashcard.back_text}</Text>
               </div>
 
               {flashcard.pronunciation && (
                 <div
                   style={{
-                    background: '#f6ffed',
-                    padding: '24px',
-                    borderRadius: '12px',
-                    border: '1px solid #b7eb8f',
-                    boxShadow: '0 4px 12px rgba(82,196,26,0.1)',
-                    transition: 'transform 0.3s ease',
-                    cursor: 'pointer'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.transform = 'translateY(-2px)'
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.transform = 'translateY(0)'
+                    padding: '16px',
+                    borderRadius: '8px',
+                    border: '1px solid #4a5670',
+                    background: '#4a5670'
                   }}
                 >
-                  <Space align='center' style={{ marginBottom: '16px' }}>
-                    <SoundOutlined style={{ fontSize: '24px', color: '#52c41a' }} />
-                    <Title level={4} style={{ margin: 0, color: '#262626' }}>
+                  <Space align='center' style={{ marginBottom: '8px' }}>
+                    <SoundOutlined style={{ fontSize: '20px', color: '#b0b0b0' }} />
+                    <Title level={5} style={{ margin: 0, color: '#b0b0b0' }}>
                       Phiên âm
                     </Title>
                   </Space>
-                  <Text
-                    style={{
-                      fontSize: '24px',
-                      color: '#262626',
-                      display: 'block',
-                      lineHeight: '1.5',
-                      fontWeight: 500
-                    }}
-                  >
-                    {flashcard.pronunciation}
-                  </Text>
+                  <Text style={{ fontSize: '18px', color: 'white', display: 'block' }}>{flashcard.pronunciation}</Text>
                 </div>
               )}
             </div>
@@ -128,140 +176,19 @@ const StudyIntroPage: React.FC<StudyIntroPageProps> = ({ flashcard, onNext }) =>
                 size='large'
                 onClick={onNext}
                 style={{
-                  height: '48px',
-                  padding: '0 32px',
+                  height: 'auto',
+                  padding: '16px 32px',
                   fontSize: '16px',
                   borderRadius: '8px',
-                  background: 'linear-gradient(135deg, #1890ff 0%, #096dd9 100%)',
+                  background: '#1890ff',
                   border: 'none',
                   boxShadow: '0 4px 12px rgba(24,144,255,0.3)',
-                  transition: 'all 0.3s ease'
-                }}
-                onMouseOver={(e) => {
-                  e.currentTarget.style.transform = 'translateY(-2px)'
-                  e.currentTarget.style.boxShadow = '0 6px 16px rgba(24,144,255,0.4)'
-                }}
-                onMouseOut={(e) => {
-                  e.currentTarget.style.transform = 'translateY(0)'
-                  e.currentTarget.style.boxShadow = '0 4px 12px rgba(24,144,255,0.3)'
+                  color: 'white',
+                  fontWeight: 'bold'
                 }}
               >
                 Tiếp tục
               </Button>
-            </div>
-          </Col>
-
-          {/* Right side - Image */}
-          <Col
-            xs={24}
-            md={10}
-            style={{
-              background: '#f8f9fa',
-              padding: '32px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              minHeight: '400px'
-            }}
-          >
-            <div
-              style={{
-                width: '100%',
-                height: '100%',
-                position: 'relative',
-                borderRadius: '12px',
-                overflow: 'hidden',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                background: '#f0f0f0',
-                transition: 'transform 0.3s ease'
-              }}
-              onMouseOver={(e) => {
-                e.currentTarget.style.transform = 'scale(1.02)'
-              }}
-              onMouseOut={(e) => {
-                e.currentTarget.style.transform = 'scale(1)'
-              }}
-            >
-              {flashcard.image_url ? (
-                <img
-                  src={FILE_URL + flashcard.image_url}
-                  alt='flashcard'
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    objectFit: 'cover',
-                    transition: 'transform 0.3s ease'
-                  }}
-                />
-              ) : (
-                <div
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '16px'
-                  }}
-                >
-                  <SoundOutlined
-                    style={{
-                      fontSize: '64px',
-                      color: '#1890ff',
-                      opacity: 0.8
-                    }}
-                  />
-                  <Text
-                    style={{
-                      fontSize: '16px',
-                      color: '#1890ff',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    Click to listen
-                  </Text>
-                </div>
-              )}
-              {/* Speaker overlay */}
-              {flashcard.audio_url && (
-                <div
-                  style={{
-                    position: 'absolute',
-                    bottom: '16px',
-                    right: '16px',
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    borderRadius: '50%',
-                    width: '48px',
-                    height: '48px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-                    transition: 'all 0.3s ease'
-                  }}
-                  onMouseOver={(e) => {
-                    e.currentTarget.style.transform = 'scale(1.1)'
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 1)'
-                  }}
-                  onMouseOut={(e) => {
-                    e.currentTarget.style.transform = 'scale(1)'
-                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.9)'
-                  }}
-                  onClick={() => {
-                    const audio = new Audio(FILE_URL + flashcard.audio_url)
-                    audio.play()
-                  }}
-                >
-                  <SoundOutlined
-                    style={{
-                      fontSize: '24px',
-                      color: '#1890ff'
-                    }}
-                  />
-                </div>
-              )}
             </div>
           </Col>
         </Row>

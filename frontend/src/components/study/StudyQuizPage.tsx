@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Card, Typography, Radio, Space, Row, Col } from 'antd'
+import { Card, Typography, Row, Col, Button } from 'antd'
 import { SoundOutlined } from '@ant-design/icons'
 import { IFlashcard } from '../../features/flashcard/flashcardType'
 import '../../styles/TestQuizPage.css'
@@ -28,6 +28,17 @@ const StudyQuizPage: React.FC<StudyQuizPagePropt> = ({ flashcard, collectionId, 
     fetchFlashcards()
   }, [flashcard, collectionId]) // Add dependencies
 
+  useEffect(() => {
+    // Auto play audio when the current flashcard or its audio URL changes
+    if (flashcards.length > 0 && flashcards[currentIndex]?.audio_url) {
+      const audio = new Audio(FILE_URL + flashcards[currentIndex].audio_url)
+      audio.play().catch((error) => {
+        console.error('Error playing audio on Quiz Page:', error)
+        // Handle potential errors like user gesture requirements for autoplay
+      })
+    }
+  }, [flashcards, currentIndex, FILE_URL]) // Re-run effect when flashcards, currentIndex, or FILE_URL changes
+
   // lấy
   const fetchFlashcards = async () => {
     try {
@@ -52,7 +63,6 @@ const StudyQuizPage: React.FC<StudyQuizPagePropt> = ({ flashcard, collectionId, 
   }
 
   const generateOptions = (currentFlashcard: IFlashcard, allFlashcards: IFlashcard[]) => {
-    // Get 3 random flashcards excluding the current one
     const otherFlashcards = allFlashcards.filter((f) => f.id !== currentFlashcard.id)
     const randomOptions = otherFlashcards.map((f) => f.front_text)
 
@@ -80,175 +90,173 @@ const StudyQuizPage: React.FC<StudyQuizPagePropt> = ({ flashcard, collectionId, 
   }
 
   const renderQuizMode = () => {
+    const currentFlashcard = flashcards[currentIndex]
+    if (!currentFlashcard) return null // Handle case where flashcard is not loaded yet
+
     return (
       <div
         style={{
           margin: '0 auto',
           padding: '24px',
-          background: '#f0f2f5',
+          background: '#2e3b55', // Dark blue background from image
           minHeight: '100vh',
           display: 'flex',
+          flexDirection: 'column', // Stack children vertically
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: flashcards.length > 0 ? 'flex-start' : 'center' // Align items to top if flashcards are loaded
         }}
       >
-        <Card
-          style={{
-            width: '100%',
-            maxWidth: 1200,
-            borderRadius: '16px',
-            boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-            background: 'white'
-          }}
-          bodyStyle={{ padding: 0 }}
-        >
-          <Row gutter={0}>
-            {/* Left side - Question and Options */}
-            <Col xs={24} md={14} style={{ padding: '32px' }}>
-              <div style={{ marginBottom: '24px' }}>
-                <Title level={3} style={{ margin: 0, color: '#262626' }}>
-                  {flashcard.back_text}
-                </Title>
-              </div>
-
-              {showResult ? (
-                <div
-                  style={{
-                    textAlign: 'center',
-                    marginBottom: 24,
-                    padding: '16px',
-                    borderRadius: '8px',
-                    background: isCorrect ? '#f6ffed' : '#fff2f0',
-                    border: `1px solid ${isCorrect ? '#b7eb8f' : '#ffccc7'}`
-                  }}
-                >
-                  <Text
-                    style={{
-                      fontSize: 18,
-                      color: isCorrect ? '#52c41a' : '#ff4d4f',
-                      fontWeight: 'bold'
-                    }}
-                  >
-                    {isCorrect ? 'Chính xác!' : `Sai rồi. Đáp án đúng là: ${correctAnswer}`}
-                  </Text>
-                </div>
-              ) : (
-                <Radio.Group
-                  value={selectedAnswer}
-                  onChange={(e) => handleOptionSelect(e.target.value)}
-                  style={{ width: '100%' }}
-                >
-                  <Space direction='vertical' style={{ width: '100%' }}>
-                    {options.map((option, index) => (
-                      <Radio.Button
-                        key={index}
-                        value={option}
-                        className={`quiz-option ${selectedAnswer === option ? 'selected' : ''} ${
-                          showResult && option === correctAnswer ? 'correct' : ''
-                        } ${showResult && selectedAnswer === option && option !== correctAnswer ? 'incorrect' : ''}`}
-                      >
-                        {option}
-                      </Radio.Button>
-                    ))}
-                  </Space>
-                </Radio.Group>
-              )}
-            </Col>
-
-            {/* Right side - Image */}
-            <Col
-              xs={24}
-              md={10}
+        {flashcards.length > 0 && (
+          <Card
+            style={{
+              width: '100%',
+              maxWidth: 1000, // Adjusted max-width for the content area
+              borderRadius: '16px',
+              boxShadow: '0 4px 12px rgba(0,0,0,0.3)', // Darker shadow
+              background: '#3a4760', // Slightly lighter blue for card background
+              color: 'white',
+              position: 'relative' // Add relative positioning to the card
+            }}
+            bodyStyle={{ padding: '32px' }}
+          >
+            {/* Speaker overlay - positioned absolutely within the card */}
+            <div
+              className='speaker-button'
               style={{
-                background: '#f8f9fa',
-                padding: '32px',
+                position: 'absolute',
+                top: '16px', // Position from top
+                right: '16px', // Position from right
+                background: 'rgba(255, 255, 255, 0.9)',
+                borderRadius: '50%',
+                width: '40px', // Slightly smaller size
+                height: '40px', // Slightly smaller size
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                minHeight: '400px'
+                cursor: 'pointer',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
+                zIndex: 1 // Ensure it's above other content
               }}
             >
-              <div
+              <SoundOutlined
                 style={{
-                  width: '100%',
-                  height: '100%',
-                  position: 'relative',
-                  borderRadius: '12px',
-                  overflow: 'hidden',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                  background: '#f0f0f0'
+                  fontSize: '24px', // Make icon larger
+                  color: '#1890ff'
                 }}
-              >
-                {flashcard.image_url ? (
-                  <img
-                    src={FILE_URL + flashcard.image_url}
-                    alt='flashcard'
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      transition: 'transform 0.3s ease'
-                    }}
-                  />
-                ) : (
+              />
+            </div>
+
+            <Row gutter={32}>
+              {' '}
+              {/* Use Row and Col for layout */}
+              {/* Left Col: Image */}
+              <Col xs={24} md={12}>
+                {' '}
+                {/* Adjust column width */}
+                {currentFlashcard.image_url && (
                   <div
                     style={{
                       width: '100%',
-                      height: '100%',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
                       display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
                       justifyContent: 'center',
-                      gap: '16px'
+                      alignItems: 'center',
+                      minHeight: '200px', // Ensure a minimum height for the image container
+                      background: '#f0f0f0',
+                      minWidth: '350px' // Set minimum width to be more than 1.5 * minHeight
                     }}
                   >
-                    <SoundOutlined
+                    <img
+                      src={FILE_URL + currentFlashcard.image_url}
+                      alt='flashcard'
                       style={{
-                        fontSize: '64px',
-                        color: '#1890ff',
-                        opacity: 0.8
+                        maxWidth: '100%', // Ensure image fits container
+                        maxHeight: '300px', // Limit image height
+                        objectFit: 'contain' // Use contain to show full image
                       }}
                     />
-                    <Text
-                      style={{
-                        fontSize: '16px',
-                        color: '#1890ff',
-                        fontWeight: 'bold'
-                      }}
-                    >
-                      Click to listen
-                    </Text>
                   </div>
                 )}
-                {/* Speaker overlay */}
-                <div
-                  className='speaker-button'
-                  style={{
-                    position: 'absolute',
-                    bottom: '16px',
-                    right: '16px',
-                    background: 'rgba(255, 255, 255, 0.9)',
-                    borderRadius: '50%',
-                    width: '48px',
-                    height: '48px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    cursor: 'pointer',
-                    boxShadow: '0 2px 8px rgba(0,0,0,0.15)'
-                  }}
-                >
-                  <SoundOutlined
-                    style={{
-                      fontSize: '24px',
-                      color: '#1890ff'
-                    }}
-                  />
+              </Col>
+              {/* Right Col: Definition and Options */}
+              <Col xs={24} md={12}>
+                {' '}
+                {/* Adjust column width */}
+                <div style={{ marginBottom: '32px' }}>
+                  <Text style={{ fontSize: '18px', color: '#b0b0b0', marginBottom: '8px', display: 'block' }}>
+                    Định nghĩa
+                  </Text>
+                  <Title level={2} style={{ margin: 0, color: 'white' }}>
+                    {currentFlashcard.back_text} {/* Use back_text for the definition */}
+                  </Title>
                 </div>
-              </div>
-            </Col>
-          </Row>
-        </Card>
+                <div>
+                  <Text style={{ fontSize: '18px', color: '#b0b0b0', marginBottom: '16px', display: 'block' }}>
+                    Chọn thuật ngữ đúng
+                  </Text>
+
+                  {showResult ? (
+                    <div
+                      style={{
+                        textAlign: 'center',
+                        marginBottom: 24,
+                        padding: '16px',
+                        borderRadius: '8px',
+                        background: isCorrect ? '#f6ffed' : '#fff2f0',
+                        border: `1px solid ${isCorrect ? '#b7eb8f' : '#ffccc7'}`
+                      }}
+                    >
+                      <Text
+                        style={{
+                          fontSize: 18,
+                          color: isCorrect ? '#52c41a' : '#ff4d4f',
+                          fontWeight: 'bold'
+                        }}
+                      >
+                        {isCorrect ? 'Chính xác!' : `Sai rồi. Đáp án đúng là: ${correctAnswer}`}
+                      </Text>
+                    </div>
+                  ) : (
+                    <div className='quiz-options-grid'>
+                      {' '}
+                      {/* Use a div for the grid layout */}
+                      {options.map((option, index) => (
+                        <Button
+                          type='primary'
+                          key={index}
+                          className={`quiz-option-button ${selectedAnswer === option ? 'selected' : ''}`}
+                          onClick={() => handleOptionSelect(option)}
+                          style={{
+                            width: '100%',
+                            padding: '16px', // Add padding
+                            textAlign: 'left', // Align text to the left
+                            whiteSpace: 'normal', // Allow text wrapping
+                            height: 'auto', // Adjust height based on content
+                            marginBottom: '8px' // Add space between buttons
+                          }}
+                        >
+                          <span style={{ marginRight: '8px', fontWeight: 'bold' }}>{index + 1}</span>
+                          {option}
+                        </Button>
+                      ))}
+                    </div>
+                  )}
+
+                  {/* "Bạn không biết?" link */}
+                  {!showResult && (
+                    <div style={{ textAlign: 'right', marginTop: '16px' }}>
+                      <Button type='link' style={{ color: '#b0b0b0' }}>
+                        Bạn không biết?
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </Col>
+            </Row>
+          </Card>
+        )}
       </div>
     )
   }
