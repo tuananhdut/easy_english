@@ -72,11 +72,11 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ initialValues, onSubmit, 
 
   return (
     <Form form={form} layout='vertical' initialValues={initialValues} onFinish={handleSubmit}>
-      <Form.Item name='front_text' label='Từ mới' rules={[{ required: true, message: 'Vui lòng nhập từ mới' }]}>
+      <Form.Item name='front_text' label='Thuật ngữ' rules={[{ required: true, message: 'Vui lòng nhập từ mới' }]}>
         <Input placeholder='Nhập từ mới' size='large' />
       </Form.Item>
 
-      <Form.Item name='back_text' label='Nghĩa' rules={[{ required: true, message: 'Vui lòng nhập nghĩa' }]}>
+      <Form.Item name='back_text' label='Định nghĩa' rules={[{ required: true, message: 'Vui lòng nhập nghĩa' }]}>
         <Input placeholder='Nhập nghĩa của từ' size='large' />
       </Form.Item>
 

@@ -1,29 +1,34 @@
 import React, { useState, useEffect } from 'react'
-import { AutoComplete, Card, Tabs, Typography, Space, List, message, Layout, Drawer } from 'antd'
-import { SearchOutlined, BookOutlined } from '@ant-design/icons'
+import { AutoComplete, Card, Typography, Space, List, message, Layout, Drawer, Row, Col, Input, Tabs } from 'antd'
+import { SearchOutlined, BookOutlined, ShareAltOutlined } from '@ant-design/icons'
 import { searchDictionaryApi } from '../features/dictionary/dictionaryApi'
 import { DictionaryApiResponse, SearchDataDictionary, SearchParams } from '../features/dictionary/dictionarytypes'
 import DictionaryResult from '../components/DictionaryResult'
 import CollectionCard from '../components/collection/ColectionCard'
 import { useNavigate } from 'react-router-dom'
-import { getOwnCollections } from '../features/collecion/collectionApi'
+import { getOwnCollections, getSharedCollections } from '../features/collecion/collectionApi'
 import { ICollection } from '../features/collecion/collectionType'
 
 const { Text, Title } = Typography
+const { TabPane } = Tabs
 
 const DictionaryPage: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('')
-  const [activeTab, setActiveTab] = useState('1')
   const [loading, setLoading] = useState(false)
   const [searchRecommend, setSearchRecommend] = useState<DictionaryApiResponse | null>(null)
   const [content, setContent] = useState(false)
   const [openedCollection, setOpenedCollection] = useState<ICollection | null>(null)
   const [collections, setCollections] = useState<ICollection[]>([])
+  const [sharedCollections, setSharedCollections] = useState<ICollection[]>([])
   const [loadingCollections, setLoadingCollections] = useState(false)
+  const [loadingSharedCollections, setLoadingSharedCollections] = useState(false)
   const navigate = useNavigate()
+  const [collectionSearchTerm, setCollectionSearchTerm] = useState('')
+  const [sharedCollectionSearchTerm, setSharedCollectionSearchTerm] = useState('')
 
   useEffect(() => {
     fetchCollections()
+    fetchSharedCollections()
   }, [])
 
   const fetchCollections = async () => {
@@ -42,6 +47,25 @@ const DictionaryPage: React.FC = () => {
       console.error('Error fetching collections:', error)
     } finally {
       setLoadingCollections(false)
+    }
+  }
+
+  const fetchSharedCollections = async () => {
+    try {
+      setLoadingSharedCollections(true)
+      const response = await getSharedCollections()
+      if (response.status === 'success' && response.data?.collections) {
+        setSharedCollections(response.data.collections)
+      } else {
+        setSharedCollections([])
+        message.error('Không thể lấy danh sách bộ sưu tập được chia sẻ')
+      }
+    } catch (error) {
+      setSharedCollections([])
+      message.error('Có lỗi xảy ra khi lấy danh sách bộ sưu tập được chia sẻ')
+      console.error('Error fetching shared collections:', error)
+    } finally {
+      setLoadingSharedCollections(false)
     }
   }
 
@@ -159,94 +183,187 @@ const DictionaryPage: React.FC = () => {
     </div>
   )
 
-  const items = [
-    {
-      key: '1',
-      label: (
-        <span>
-          <SearchOutlined />
-          Tra Từ Điển
-        </span>
-      ),
-      children: (
-        <Card style={{ marginBottom: '24px' }}>
-          <Space direction='vertical' style={{ width: '100%' }}>
-            <AutoComplete
-              style={{ width: '100%' }}
-              value={searchTerm}
-              onChange={(value) => handleSearch(value)}
-              onSearch={handleSearch}
-              onSelect={(value) => test(value)}
-              placeholder='Nhập từ cần tra cứu...'
-              options={searchRecommend?.suggestions?.map((suggestion) => renderOption(suggestion)) || []}
-              notFoundContent={searchRecommend && !loading ? <Text>Không có gợi ý từ.</Text> : null}
-              defaultActiveFirstOption={true}
-            />
-          </Space>
-          {content && <DictionaryResult searchText={searchTerm} />}
-        </Card>
-      )
-    },
-    {
-      key: '2',
-      label: (
-        <span>
-          <BookOutlined />
-          Bộ sưu tập của tôi
-        </span>
-      ),
-      children: (
-        <Space direction='vertical' style={{ width: '100%' }}>
-          <Title level={4}>Bộ sưu tập của tôi</Title>
-          <List
-            grid={{ gutter: 16, xs: 1, sm: 2, md: 3 }}
-            dataSource={collections || []}
-            loading={loadingCollections}
-            renderItem={(collection) => (
-              <List.Item>
-                <div style={{ cursor: 'pointer' }}>
-                  <CollectionCard
-                    collection={{
-                      id: collection.id,
-                      name: collection.name,
-                      description: collection.description,
-                      level: collection.level,
-                      total_flashcards: collection.total_flashcards,
-                      learnedWords: collection.learnedWords,
-                      reviewWords: collection.reviewWords,
-                      created_at: collection.created_at,
-                      updated_at: collection.updated_at,
-                      is_private: collection.is_private,
-                      category: 'Từ vựng',
-                      source_language: collection.source_language,
-                      target_language: collection.target_language,
-                      sharedUsersCount: 0,
-                      owner: {
-                        id: collection.owner.id,
-                        fullName: collection.owner.fullName || collection.owner.email || 'Unknown',
-                        email: collection.owner.email,
-                        image: collection.owner.image
-                      }
-                    }}
-                    type='owned'
-                    onEdit={() => handleEdit(collection.id.toString())}
-                    onStudy={handleStudy}
-                    onReview={handleReview}
-                    onCardClick={() => setOpenedCollection(collection)}
-                  />
-                </div>
-              </List.Item>
-            )}
-          />
-        </Space>
-      )
-    }
-  ]
+  // Filter collections based on search term
+  const filteredCollections = collections.filter((collection) =>
+    collection.name.toLowerCase().includes(collectionSearchTerm.toLowerCase())
+  )
+
+  const filteredSharedCollections = sharedCollections.filter((collection) =>
+    collection.name.toLowerCase().includes(sharedCollectionSearchTerm.toLowerCase())
+  )
 
   return (
     <Layout style={{ background: 'transparent' }}>
-      <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto', width: '100%' }}>
-        <Tabs activeKey={activeTab} onChange={setActiveTab} items={items} />
+      <div style={{ padding: '18px', margin: '0 auto', width: '100%' }}>
+        <Row gutter={24}>
+          {/* Collections Section (Left Col - 2/3)*/}
+          <Col xs={24} md={16}>
+            <Card>
+              <Tabs defaultActiveKey='1'>
+                <TabPane
+                  tab={
+                    <Space>
+                      <BookOutlined />
+                      Flashcard của tôi
+                    </Space>
+                  }
+                  key='1'
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '16px'
+                    }}
+                  >
+                    <Title level={4} style={{ margin: 0 }}>
+                      Flashcard của tôi
+                    </Title>
+                    <Input.Search
+                      placeholder='Tìm kiếm bộ sưu tập'
+                      allowClear
+                      onSearch={setCollectionSearchTerm}
+                      onChange={(e) => setCollectionSearchTerm(e.target.value)}
+                      style={{ width: 200 }}
+                    />
+                  </div>
+                  <List
+                    grid={{ gutter: 16, xs: 1, sm: 2, md: 3 }}
+                    dataSource={filteredCollections}
+                    loading={loadingCollections}
+                    renderItem={(collection) => (
+                      <List.Item>
+                        <div style={{ cursor: 'pointer' }}>
+                          <CollectionCard
+                            collection={{
+                              id: collection.id,
+                              name: collection.name,
+                              description: collection.description,
+                              level: collection.level,
+                              total_flashcards: collection.total_flashcards,
+                              learnedWords: collection.learnedWords,
+                              reviewWords: collection.reviewWords,
+                              created_at: collection.created_at,
+                              updated_at: collection.updated_at,
+                              is_private: collection.is_private,
+                              category: 'Từ vựng',
+                              source_language: collection.source_language,
+                              target_language: collection.target_language,
+                              sharedUsersCount: 0,
+                              owner: {
+                                id: collection.owner.id,
+                                fullName: collection.owner.fullName || collection.owner.email || 'Unknown',
+                                email: collection.owner.email,
+                                image: collection.owner.image
+                              }
+                            }}
+                            type='owned'
+                            onEdit={() => handleEdit(collection.id.toString())}
+                            onStudy={handleStudy}
+                            onReview={handleReview}
+                            onCardClick={() => setOpenedCollection(collection)}
+                          />
+                        </div>
+                      </List.Item>
+                    )}
+                  />
+                </TabPane>
+                <TabPane
+                  tab={
+                    <Space>
+                      <ShareAltOutlined />
+                      Flashcard được chia sẻ
+                    </Space>
+                  }
+                  key='2'
+                >
+                  <div
+                    style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      marginBottom: '16px'
+                    }}
+                  >
+                    <Title level={4} style={{ margin: 0 }}>
+                      Flashcard được chia sẻ
+                    </Title>
+                    <Input.Search
+                      placeholder='Tìm kiếm bộ sưu tập'
+                      allowClear
+                      onSearch={setSharedCollectionSearchTerm}
+                      onChange={(e) => setSharedCollectionSearchTerm(e.target.value)}
+                      style={{ width: 200 }}
+                    />
+                  </div>
+                  <List
+                    grid={{ gutter: 16, xs: 1, sm: 2, md: 3 }}
+                    dataSource={filteredSharedCollections}
+                    loading={loadingSharedCollections}
+                    renderItem={(collection) => (
+                      <List.Item>
+                        <div style={{ cursor: 'pointer' }}>
+                          <CollectionCard
+                            collection={{
+                              id: collection.id,
+                              name: collection.name,
+                              description: collection.description,
+                              level: collection.level,
+                              total_flashcards: collection.total_flashcards,
+                              learnedWords: collection.learnedWords,
+                              reviewWords: collection.reviewWords,
+                              created_at: collection.created_at,
+                              updated_at: collection.updated_at,
+                              is_private: collection.is_private,
+                              category: 'Từ vựng',
+                              source_language: collection.source_language,
+                              target_language: collection.target_language,
+                              sharedUsersCount: 0,
+                              owner: {
+                                id: collection.owner.id,
+                                fullName: collection.owner.fullName || collection.owner.email || 'Unknown',
+                                email: collection.owner.email,
+                                image: collection.owner.image
+                              }
+                            }}
+                            type='owned'
+                            onStudy={handleStudy}
+                            onReview={handleReview}
+                            onCardClick={() => setOpenedCollection(collection)}
+                          />
+                        </div>
+                      </List.Item>
+                    )}
+                  />
+                </TabPane>
+              </Tabs>
+            </Card>
+          </Col>
+
+          {/* Tra Từ Điển Section (Right Col - 1/3)*/}
+          <Col xs={24} md={8}>
+            <Card style={{ marginBottom: '24px' }}>
+              <Title level={4} style={{ marginBottom: '16px' }}>
+                <SearchOutlined /> Tra Từ Điển
+              </Title>
+              <Space direction='vertical' style={{ width: '100%' }}>
+                <AutoComplete
+                  style={{ width: '100%' }}
+                  value={searchTerm}
+                  onChange={(value) => handleSearch(value)}
+                  onSearch={handleSearch}
+                  onSelect={(value) => test(value)}
+                  placeholder='Nhập từ cần tra cứu...'
+                  options={searchRecommend?.suggestions?.map((suggestion) => renderOption(suggestion)) || []}
+                  notFoundContent={searchRecommend && !loading ? <Text>Không có gợi ý từ.</Text> : null}
+                  defaultActiveFirstOption={true}
+                />
+              </Space>
+              {content && <DictionaryResult searchText={searchTerm} />}
+            </Card>
+          </Col>
+        </Row>
       </div>
       <Drawer
         title='Chi tiết bộ sưu tập'

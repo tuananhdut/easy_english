@@ -86,11 +86,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
       onClick={handleCardClick}
       style={{
         height: '100%',
-        position: 'relative',
-        ...(window.innerWidth >= 768 && {
-          minWidth: 500,
-          maxWidth: 500
-        })
+        position: 'relative'
       }}
     >
       {type !== 'sharedView' && (

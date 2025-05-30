@@ -64,9 +64,7 @@ const StudyTypingPage: React.FC<TestTypingPageProps> = ({ flashcard, onNext }) =
     <div
       style={{
         margin: '0 auto',
-        padding: '24px',
         background: '#2e3b55', // Dark blue background
-        minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column', // Stack children vertically
         alignItems: 'center',
@@ -76,7 +74,7 @@ const StudyTypingPage: React.FC<TestTypingPageProps> = ({ flashcard, onNext }) =
       <Card
         style={{
           width: '100%',
-          maxWidth: 1000, // Match maxWidth of QuizPage card
+          maxWidth: 1100, // Match maxWidth of QuizPage card
           borderRadius: '16px',
           boxShadow: '0 4px 12px rgba(0,0,0,0.3)', // Match boxShadow of QuizPage card
           background: '#3a4760', // Match background of QuizPage card

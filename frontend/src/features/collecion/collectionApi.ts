@@ -53,3 +53,9 @@ export const getMyCollections = async (): Promise<IApiResponse<ICollection[]>> =
   const response = await apiClient.get('/collections/my')
   return response.data
 }
+
+// Get shared collections
+export const getSharedCollections = async (): Promise<IApiResponse<ICollectionsResponse>> => {
+  const response = await apiClient.get('/collections/user/shared')
+  return response.data
+}

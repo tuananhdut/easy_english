@@ -25,9 +25,7 @@ const StudyIntroPage: React.FC<StudyIntroPageProps> = ({ flashcard, onNext }) =>
     <div
       style={{
         margin: '0 auto',
-        padding: '24px',
         background: '#2e3b55',
-        minHeight: '100vh',
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',

@@ -97,9 +97,7 @@ const StudyQuizPage: React.FC<StudyQuizPagePropt> = ({ flashcard, collectionId, 
       <div
         style={{
           margin: '0 auto',
-          padding: '24px',
           background: '#2e3b55', // Dark blue background from image
-          minHeight: '100vh',
           display: 'flex',
           flexDirection: 'column', // Stack children vertically
           alignItems: 'center',
