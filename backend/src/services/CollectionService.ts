@@ -117,11 +117,19 @@ export class CollectionService {
       throw new ApiError(StatusCodes.FORBIDDEN, 'You do not have permission to update this collection')
     }
 
-    const updatedCollection = await this.collectionRepository.update(id, data)
+    const mergedData = {
+      ...collection,
+      ...data,
+      name: data.name || collection.name,
+      description: data.description || collection.description,
+      googleId: data.is_private || collection.is_private,
+      provider: data.level || collection.level
+    }
+
+    const updatedCollection = await this.collectionRepository.update(id, mergedData)
     if (!updatedCollection) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Collection not found')
     }
-
     const studyProgress = await this.getCollectionStudyProgress(updatedCollection, user)
     return this.transformCollectionToResponse(updatedCollection, studyProgress)
   }

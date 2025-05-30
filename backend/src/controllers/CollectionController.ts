@@ -21,10 +21,10 @@ export class CollectionController {
     this.getUserSharedCollections = this.getUserSharedCollections.bind(this)
   }
 
-  private validateCollectionRequest(req: Request): ICollectionRequest {
+  private validateCollectionRequest(req: Request, is_update: boolean = false): ICollectionRequest {
     const { name, description, is_private, source_language, target_language, level } = req.body
 
-    if (!name) {
+    if (is_update != true && !name) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Tên collection là bắt buộc')
     }
 
@@ -72,7 +72,14 @@ export class CollectionController {
         throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
       }
 
-      const updateData = this.validateCollectionRequest(req)
+      const updateData = this.validateCollectionRequest(req, true)
+      if (updateData.source_language !== undefined) {
+        delete updateData.source_language
+      }
+      if (updateData.target_language !== undefined) {
+        delete updateData.target_language
+      }
+
       const collection = await this.collectionService.updateCollection(Number(id), updateData, user)
       new ApiSuccess(collection, 'Cập nhật collection thành công').send(res)
     } catch (err) {
