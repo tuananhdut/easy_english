@@ -1,10 +1,8 @@
 import apiClient from '../../utils/apiClient'
 import { IApiResponse } from '../type/resposeType'
-import { IStartStudySessionRequest, IStartStudySessionResponse, ICheckAnswerResponse } from './studyType'
+import { IStartStudySessionRequest, ICheckAnswerResponse, IStudySession } from './studyType'
 
-export const startStudySession = async (
-  data: IStartStudySessionRequest
-): Promise<IApiResponse<IStartStudySessionResponse>> => {
+export const startStudySession = async (data: IStartStudySessionRequest): Promise<IApiResponse<IStudySession>> => {
   const response = await apiClient.post('/study-sessions/start', data)
   return response.data
 }

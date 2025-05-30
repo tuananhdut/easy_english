@@ -38,3 +38,13 @@ export const getFlashcardsByCollection = async (collectionId: number): Promise<I
   const response = await apiClient.get(`/flashcards/collection/${collectionId}`)
   return response.data
 }
+
+export const getRandomFlashcards = async (
+  collectionId: number,
+  excludeId?: number
+): Promise<IApiResponse<IFlashcard[]>> => {
+  const response = await apiClient.get(
+    `/flashcards/collection/${collectionId}/random${excludeId ? `?excludeId=${excludeId}` : ''}`
+  )
+  return response.data
+}
