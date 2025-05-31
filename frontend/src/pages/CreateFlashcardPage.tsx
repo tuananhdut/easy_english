@@ -82,7 +82,7 @@ const CreateFlashcardPage: React.FC = () => {
   }
 
   return (
-    <>
+    <div style={{ background: '#f0f2f5' }}>
       {contextHolder}
       <div
         style={{
@@ -132,7 +132,7 @@ const CreateFlashcardPage: React.FC = () => {
           </Col>
         </Row>
       </div>
-    </>
+    </div>
   )
 }
 

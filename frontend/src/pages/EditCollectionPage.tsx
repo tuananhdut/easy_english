@@ -1,6 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { Form, Button, Card, Typography, message, Space, Modal, Input, List, Avatar, Switch, Tag } from 'antd'
+import {
+  Form,
+  Button,
+  Card,
+  Typography,
+  message,
+  Space,
+  Modal,
+  Input,
+  List,
+  Avatar,
+  Switch,
+  Tag,
+  notification
+} from 'antd'
 import { ArrowLeftOutlined, ShareAltOutlined, UserOutlined, LinkOutlined } from '@ant-design/icons'
 import DictionaryForm from '../components/collection/CollectionForm'
 import { getCollectionById, updateCollection } from '../features/collecion/collectionApi'
@@ -31,6 +45,7 @@ const EditCollectionPage: React.FC = () => {
   const [flashcards, setFlashcards] = useState<IFlashcard[]>([])
   const [isShareModalVisible, setIsShareModalVisible] = useState(false)
   const [shareEmail, setShareEmail] = useState('')
+  const [api, contextHolder] = notification.useNotification()
   const [sharedUsers, setSharedUsers] = useState<ISharedUser[]>([
     { id: 1, email: 'user1@example.com', name: 'User 1', canEdit: true, status: 'accepted' },
     { id: 2, email: 'user2@example.com', name: 'User 2', canEdit: false, status: 'pending' }
@@ -86,17 +101,23 @@ const EditCollectionPage: React.FC = () => {
   const handleFinish = async (values: DictionaryFormValues) => {
     if (!id) return
     try {
-      setLoading(true)
+      //setLoading(true)
       const response = await updateCollection(parseInt(id), values)
       if (response.status === 'success') {
-        message.success('Cập nhật bộ sưu tập thành công!')
-        navigate('/dashboard/dictionary')
+        api.success({
+          message: 'Cập nhật bộ sưu tập thành công',
+          description: response.message
+        })
       }
     } catch (error) {
+      api.error({
+        message: 'Đăng nhập thất bại',
+        description: JSON.stringify('lỗi sửa bộ sưu tập' + error) || 'Lỗi khi sửa'
+      })
       message.error('Không thể cập nhật bộ sưu tập')
       console.error('Error updating collection:', error)
     } finally {
-      setLoading(false)
+      //setLoading(false)
     }
   }
 
@@ -169,6 +190,7 @@ const EditCollectionPage: React.FC = () => {
 
   return (
     <div style={{ background: '#f0f2f5' }}>
+      {contextHolder}
       <div
         style={{
           padding: '24px',

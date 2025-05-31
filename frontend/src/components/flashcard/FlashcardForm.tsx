@@ -80,8 +80,8 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ initialValues, onSubmit, 
         <Input placeholder='Nhập nghĩa của từ' size='large' />
       </Form.Item>
 
-      <Form.Item name='pronunciation' label='Phát âm'>
-        <Input placeholder='Nhập phát âm (nếu có)' size='large' />
+      <Form.Item name='pronunciation' label='Phiên âm'>
+        <Input placeholder='Nhập phiên âm (nếu có)' size='large' />
       </Form.Item>
 
       <Form.Item label='Hình ảnh'>
