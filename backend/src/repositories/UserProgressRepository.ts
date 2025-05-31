@@ -25,10 +25,15 @@ export class UserProgressRepository extends BaseRepository<UserProgress> {
   }
 
   async createUserProgress(data: IUserProgressRequest, user: User, flashcard: Flashcard): Promise<UserProgress> {
+    const now = new Date()
+    const next_review = new Date(now)
+    next_review.setDate(now.getDate() + 1)
+
     const progress = this.repository.create({
       ...data,
       user,
-      flashcard
+      flashcard,
+      next_review
     } as DeepPartial<UserProgress>)
     return this.repository.save(progress as UserProgress)
   }

@@ -16,7 +16,7 @@ export class UserProgress extends BaseEntity implements IUserProgress {
   @ManyToOne(() => Flashcard, (flashcard) => flashcard.id, { nullable: false, onDelete: 'CASCADE' })
   flashcard!: Flashcard
 
-  @Column({ type: 'int', default: 0 })
+  @Column({ type: 'int', default: 1 })
   study_count!: number // Số lần đã ôn tập flashcard này
 
   @Column({ type: 'float', default: 2.5 })

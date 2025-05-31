@@ -94,17 +94,19 @@ export class StudySessionService {
       throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền truy cập vào bộ thẻ này')
     }
 
-    const activeSession = await this.studySessionRepository.findActiveSession(user, collection)
-    if (activeSession) {
+    let activeSession = await this.studySessionRepository.findActiveSession(user, collection)
+    if (activeSession && activeSession.flashcards.length != 0) {
       return this.transformToResponse(activeSession)
     }
 
     const flashcards = await this.flashCardRepository.findFirstFlashcards(collection, 4)
-    if (flashcards.length == 0) {
-      throw new ApiError(StatusCodes.BAD_REQUEST, 'Không có thẻ nào để học')
+    if (flashcards.length < 4) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Không có đủ thẻ để học')
     }
 
-    const session = await this.studySessionRepository.createSession(user, collection)
+    if (!activeSession) {
+      activeSession = await this.studySessionRepository.createSession(user, collection)
+    }
     const mappedFlashcards = flashcards.map(
       (card: Flashcard): IFlashcardStudy => ({
         id: card.id,
@@ -124,10 +126,12 @@ export class StudySessionService {
         typing: false
       })
     )
-    session.flashcards = mappedFlashcards
-    await this.studySessionRepository.save(session)
+    activeSession.flashcards = mappedFlashcards
+    activeSession.currentIndex = 0
+    activeSession.status = Phase.INTRO
+    await this.studySessionRepository.save(activeSession)
 
-    return this.transformToResponse(session)
+    return this.transformToResponse(activeSession)
   }
 
   async nextPhase(sessionId: number, user: User): Promise<IStudySession> {

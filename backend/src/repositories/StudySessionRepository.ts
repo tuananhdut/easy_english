@@ -27,8 +27,7 @@ export class StudySessionRepository extends BaseRepository<StudySession> {
     return this.repository.findOne({
       where: {
         user: { id: user.id },
-        collection: { id: collection.id },
-        status: Phase.INTRO
+        collection: { id: collection.id }
       },
       relations: ['user', 'collection']
     })
