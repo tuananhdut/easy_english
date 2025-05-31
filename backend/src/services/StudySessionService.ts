@@ -30,6 +30,7 @@ export class StudySessionService {
       flashcards: session.flashcards,
       currentIndex: session.currentIndex,
       status: session.status,
+      score: session.score,
       startTime: session.startTime,
       endTime: session.endTime
     }
@@ -123,7 +124,8 @@ export class StudySessionService {
         updated_at: card.updated_at,
         intro: false,
         quiz: false,
-        typing: false
+        typing: false,
+        score: 30
       })
     )
     activeSession.flashcards = mappedFlashcards
@@ -218,6 +220,8 @@ export class StudySessionService {
               user,
               flashcard
             )
+            session.score += session.flashcards[session.currentIndex].score
+            console.log(' check kkkk ', session.score)
             session.flashcards = session.flashcards.filter(
               (card) => card.id !== session.flashcards[session.currentIndex].id
             )
@@ -233,6 +237,9 @@ export class StudySessionService {
       }
     } else {
       if (currentCard) {
+        if (session.flashcards[session.currentIndex].score > 0) {
+          session.flashcards[session.currentIndex].score -= 5
+        }
         const updatedCard = {
           ...currentCard,
           intro: false
@@ -246,7 +253,8 @@ export class StudySessionService {
     // Cập nhật session với trạng thái mới
     const updatedSession = await this.studySessionRepository.updateSessionProgress(sessionId, {
       currentIndex: newCurrentIndex,
-      status: session.status
+      status: session.status,
+      score: session.score
     })
 
     // Cập nhật flashcards trong session

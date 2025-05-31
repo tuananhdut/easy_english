@@ -46,6 +46,9 @@ export class StudySession extends BaseEntity implements IStudySession {
   @Column('int', { default: 0 })
   currentIndex!: number
 
+  @Column('int', { default: 0 })
+  score!: number
+
   @Column({
     type: 'enum',
     enum: Phase,
