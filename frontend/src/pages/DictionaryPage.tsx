@@ -209,7 +209,7 @@ const DictionaryPage: React.FC = () => {
   )
 
   return (
-    <Layout style={{ background: 'transparent' }}>
+    <Layout style={{ background: 'linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%)' }}>
       <div style={{ padding: '18px', margin: '0 auto', width: '100%' }}>
         <Row gutter={24}>
           {/* Collections Section (Left Col - 2/3)*/}

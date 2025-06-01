@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect } from 'react'
-import { Menu, Button, Avatar, Dropdown, Drawer, Space, Typography } from 'antd'
+import { Menu, Button, Avatar, Dropdown, Drawer, Space, Typography, Spin } from 'antd'
 import {
   MenuUnfoldOutlined,
   MenuFoldOutlined,
@@ -11,10 +11,13 @@ import {
   MenuOutlined,
   TranslationOutlined,
   SettingOutlined,
-  ProfileOutlined
+  ProfileOutlined,
+  FireOutlined
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 import { useAppSelector } from '../../app/hooks'
+import { statisticsConsecutiveDays } from '../../features/statistics/statisticsApi'
+import { message } from 'antd'
 
 // Define prop types
 interface HeaderProps {
@@ -27,6 +30,8 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
   const location = useLocation()
   const [isMobile, setIsMobile] = useState(false)
   const [drawerVisible, setDrawerVisible] = useState(false)
+  const [consecutiveDays, setConsecutiveDays] = useState(0)
+  const [loadingStats, setLoadingStats] = useState(false)
   const { user } = useAppSelector((state) => state.auth)
 
   useEffect(() => {
@@ -38,6 +43,28 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
     window.addEventListener('resize', checkMobile)
 
     return () => window.removeEventListener('resize', checkMobile)
+  }, [])
+
+  useEffect(() => {
+    const fetchConsecutiveDays = async () => {
+      try {
+        setLoadingStats(true)
+        const response = await statisticsConsecutiveDays()
+        if (response.status === 'success') {
+          setConsecutiveDays(response.data.consecutiveDays)
+        } else {
+          setConsecutiveDays(0)
+        }
+      } catch (error) {
+        console.error('Error fetching consecutive days:', error)
+        message.error('Không thể tải dữ liệu chuỗi ngày học')
+        setConsecutiveDays(0)
+      } finally {
+        setLoadingStats(false)
+      }
+    }
+
+    fetchConsecutiveDays()
   }, [])
 
   // Define menu items for navigation
@@ -229,6 +256,14 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
           height: '64px'
         }}
       >
+        {loadingStats ? (
+          <Spin size='small' style={{ marginRight: '16px' }} />
+        ) : (
+          <Space style={{ marginRight: isMobile ? '8px' : '16px', color: 'white' }}>
+            <FireOutlined style={{ color: '#faad14' }} />
+            <Typography.Text style={{ color: 'white' }}>{consecutiveDays} ngày</Typography.Text>
+          </Space>
+        )}
         <Dropdown overlay={userMenu} trigger={['click']}>
           <Avatar
             style={{

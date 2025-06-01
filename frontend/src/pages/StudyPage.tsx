@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
-import { message, Layout, Row, Col, Card, Typography, Space, Avatar, List, Radio, Spin, Button } from 'antd'
+import { message, Layout, Row, Col, Card, Typography, Space, Avatar, List, Spin, Button } from 'antd'
 import { TrophyOutlined, LeftOutlined } from '@ant-design/icons'
 import { startStudySession, checkAnswer } from '../features/study/studyApi'
 import { IStudySession, IStudyFlashcard } from '../features/study/studyType'
@@ -18,36 +18,14 @@ const StudyPage: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [status, setStatus] = useState('introduction')
   const [collectionid, setCollectionid] = useState(0)
-  const [leaderboardTimeRange, setLeaderboardTimeRange] = useState<'week' | 'month' | 'all'>('week')
 
-  const mockLeaderboardData = {
-    week: [
-      { id: 1, name: 'Người chơi A', score: 500 },
-      { id: 2, name: 'Người chơi B', score: 450 },
-      { id: 3, name: 'Người chơi C', score: 400 },
-      { id: 4, name: 'Người chơi D', score: 350 },
-      { id: 5, name: 'Người chơi E', score: 300 }
-    ],
-    month: [
-      { id: 1, name: 'Người chơi X', score: 2000 },
-      { id: 2, name: 'Người chơi Y', score: 1800 },
-      { id: 3, name: 'Người chơi Z', score: 1600 },
-      { id: 4, name: 'Người chơi W', score: 1400 },
-      { id: 5, name: 'Người chơi V', score: 1200 }
-    ],
-    all: [
-      { id: 1, name: 'Người chơi Alpha', score: 10000 },
-      { id: 2, name: 'Người chơi Beta', score: 9000 },
-      { id: 3, name: 'Người chơi Gamma', score: 8000 },
-      { id: 4, name: 'Người chơi Delta', score: 7000 },
-      { id: 5, name: 'Người chơi Epsilon', score: 6000 },
-      { id: 6, name: 'Người chơi Zeta', score: 5000 },
-      { id: 7, name: 'Người chơi Eta', score: 4000 },
-      { id: 8, name: 'Người chơi Theta', score: 3000 },
-      { id: 9, name: 'Người chơi Iota', score: 2000 },
-      { id: 10, name: 'Người chơi Kappa', score: 1000 }
-    ]
-  }
+  const leaderboardData = [
+    { id: 1, name: 'Người chơi A', score: 500 },
+    { id: 2, name: 'Người chơi B', score: 450 },
+    { id: 3, name: 'Người chơi C', score: 400 },
+    { id: 4, name: 'Người chơi D', score: 350 },
+    { id: 5, name: 'Người chơi E', score: 300 }
+  ]
 
   useEffect(() => {
     startSession()
@@ -148,8 +126,6 @@ const StudyPage: React.FC = () => {
     )
   }
 
-  const currentLeaderboardData = mockLeaderboardData[leaderboardTimeRange]
-
   return (
     <Layout style={{ minHeight: '100vh', background: '#2e3b55' }}>
       <div
@@ -186,20 +162,9 @@ const StudyPage: React.FC = () => {
                 <Space align='center'>
                   <TrophyOutlined style={{ fontSize: '20px' }} />
                   <Title level={4} style={{ margin: 0 }}>
-                    RANK
+                    BẢNG XẾP HẠNG
                   </Title>
                 </Space>
-              }
-              extra={
-                <Radio.Group
-                  size='small'
-                  value={leaderboardTimeRange}
-                  onChange={(e) => setLeaderboardTimeRange(e.target.value as 'week' | 'month' | 'all')}
-                >
-                  <Radio.Button value='week'>Tuần</Radio.Button>
-                  <Radio.Button value='month'>Tháng</Radio.Button>
-                  <Radio.Button value='all'>Tất cả</Radio.Button>
-                </Radio.Group>
               }
               style={{
                 background: '#3a4760',
@@ -212,11 +177,11 @@ const StudyPage: React.FC = () => {
             >
               <List
                 itemLayout='horizontal'
-                dataSource={currentLeaderboardData}
+                dataSource={leaderboardData}
                 renderItem={(item, index) => (
                   <List.Item
                     style={{
-                      borderBottom: index === currentLeaderboardData.length - 1 ? 'none' : '1px solid #4a5670',
+                      borderBottom: index === leaderboardData.length - 1 ? 'none' : '1px solid #4a5670',
                       padding: '10px 0'
                     }}
                   >
