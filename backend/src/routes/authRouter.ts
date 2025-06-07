@@ -14,6 +14,7 @@ router.get('/google-login', passport.authenticate('google', { scope: ['profile',
 router.get('/google/callback', passport.authenticate('google', { session: false }), authController.googleCallback)
 router.get('/me', authMiddleware, authController.getProfile)
 router.post('/logout', authMiddleware, authController.logout)
+router.get('/search', authMiddleware, authController.searchUsers)
 // router.patch('/change-password', authMiddleware, authController.changePassword)
 // router.put('/profile', authMiddleware, authController.updateProfile)
 

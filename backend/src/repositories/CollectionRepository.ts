@@ -171,4 +171,40 @@ export class CollectionRepository extends BaseRepository<Collection> {
 
     return { collections, total }
   }
+
+  async getSharedUsers(
+    collectionId: number
+  ): Promise<
+    { id: number; fullName: string | null; email: string | null; image: string | null; permission: string }[]
+  > {
+    const collection = await this.repository.findOne({
+      where: { id: collectionId },
+      relations: ['sharedCollections', 'sharedCollections.shared_with'],
+      select: {
+        id: true,
+        sharedCollections: {
+          id: true,
+          permission: true,
+          shared_with: {
+            id: true,
+            fullName: true,
+            email: true,
+            image: true
+          }
+        }
+      }
+    })
+
+    if (!collection) {
+      return []
+    }
+
+    return collection.sharedCollections.map((share) => ({
+      id: share.shared_with.id,
+      fullName: share.shared_with.fullName || null,
+      email: share.shared_with.email || null,
+      image: share.shared_with.image || null,
+      permission: share.permission.toString()
+    }))
+  }
 }

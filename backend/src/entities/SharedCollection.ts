@@ -9,6 +9,11 @@ export enum SharePermission {
   EDIT = 'edit'
 }
 
+export enum ShareStatus {
+  PENDING = 'pending',
+  ACCEPTED = 'accepted'
+}
+
 @Entity({ name: 'shared_collections' })
 export class SharedCollection extends BaseEntity implements ISharedCollection {
   @PrimaryGeneratedColumn()
@@ -29,4 +34,11 @@ export class SharedCollection extends BaseEntity implements ISharedCollection {
     default: SharePermission.VIEW
   })
   permission!: SharePermission
+
+  @Column({
+    type: 'enum',
+    enum: ShareStatus,
+    default: ShareStatus.PENDING
+  })
+  status!: ShareStatus
 }

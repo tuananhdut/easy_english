@@ -145,4 +145,19 @@ export class AuthService {
     }
     return this.generateToken(userResponse)
   }
+
+  async searchUsers(query: string): Promise<IUserResponse[]> {
+    if (!query || query.trim().length === 0) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Email tìm kiếm không được để trống')
+    }
+
+    const users = await this.userRepository.searchUsers(query)
+    return users.map((user) => ({
+      id: user.id,
+      email: user.email || null,
+      fullName: user.fullName || null,
+      image: user.image || null,
+      role: user.role
+    }))
+  }
 }

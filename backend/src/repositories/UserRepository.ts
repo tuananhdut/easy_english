@@ -46,4 +46,12 @@ export class UserRepository extends BaseRepository<User> {
     }
     return this.repository.save(mergedData)
   }
+
+  async searchUsers(query: string): Promise<User[]> {
+    return this.repository
+      .createQueryBuilder('user')
+      .where('LOWER(user.email) LIKE LOWER(:query)', { query: `%${query}%` })
+      .take(5)
+      .getMany()
+  }
 }

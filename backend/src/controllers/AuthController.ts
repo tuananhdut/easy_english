@@ -18,6 +18,7 @@ export class AuthController {
     this.login = this.login.bind(this)
     this.getProfile = this.getProfile.bind(this)
     this.logout = this.logout.bind(this)
+    this.searchUsers = this.searchUsers.bind(this)
   }
 
   private validateRegisterRequest(req: Request): IRegisterRequest {
@@ -113,6 +114,20 @@ export class AuthController {
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (err) {
       res.redirect(`${process.env.CLIENT_URL}/login`)
+    }
+  }
+
+  public async searchUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { query } = req.query
+      if (!query || typeof query !== 'string') {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Email tìm kiếm không hợp lệ')
+      }
+
+      const users = await this.authService.searchUsers(query)
+      new ApiSuccess({ users }, 'Tìm kiếm người dùng theo email thành công').send(res)
+    } catch (err) {
+      next(err)
     }
   }
 }

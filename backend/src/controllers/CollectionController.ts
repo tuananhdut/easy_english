@@ -19,6 +19,7 @@ export class CollectionController {
     this.getPublicCollections = this.getPublicCollections.bind(this)
     this.getUserOwnCollections = this.getUserOwnCollections.bind(this)
     this.getUserSharedCollections = this.getUserSharedCollections.bind(this)
+    this.getSharedUsers = this.getSharedUsers.bind(this)
   }
 
   private validateCollectionRequest(req: Request, is_update: boolean = false): ICollectionRequest {
@@ -140,6 +141,21 @@ export class CollectionController {
 
       const result = await this.collectionService.getUserSharedCollections(user, page, limit)
       new ApiSuccess(result, 'Lấy danh sách collections được chia sẻ thành công').send(res)
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  public async getSharedUsers(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const { id } = req.params
+      const user = req.user as User
+      if (!user) {
+        throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
+      }
+
+      const sharedUsers = await this.collectionService.getSharedUsers(Number(id), user)
+      new ApiSuccess({ users: sharedUsers }, 'Lấy danh sách người dùng được chia sẻ thành công').send(res)
     } catch (err) {
       next(err)
     }

@@ -1,6 +1,6 @@
 import { Collection } from '../entities/Collection'
 import { User } from '../entities/User'
-import { SharePermission } from '../entities/SharedCollection'
+import { SharePermission, ShareStatus } from '../entities/SharedCollection'
 
 export interface ISharedCollection {
   id: number
@@ -10,6 +10,7 @@ export interface ISharedCollection {
   permission: SharePermission
   created_at: Date
   updated_at: Date
+  status: ShareStatus
 }
 
 export interface ISharedCollectionRequest {

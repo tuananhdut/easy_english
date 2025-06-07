@@ -210,4 +210,19 @@ export class CollectionService {
     const studyProgress = await this.getCollectionStudyProgress(collection, collection.owner)
     return this.transformCollectionToResponse(collection, studyProgress)
   }
+
+  async getSharedUsers(
+    collectionId: number,
+    user: User
+  ): Promise<
+    { id: number; fullName: string | null; email: string | null; image: string | null; permission: string }[]
+  > {
+    const collection = await this.getCollectionById(collectionId, user)
+
+    if (collection.owner.id !== user.id) {
+      throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền xem danh sách người dùng được chia sẻ')
+    }
+
+    return this.collectionRepository.getSharedUsers(collectionId)
+  }
 }
