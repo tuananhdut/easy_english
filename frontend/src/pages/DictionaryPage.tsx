@@ -1,19 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import {
-  AutoComplete,
-  Card,
-  Typography,
-  Space,
-  List,
-  message,
-  Layout,
-  Drawer,
-  Row,
-  Col,
-  Input,
-  Tabs,
-  Select
-} from 'antd'
+import { AutoComplete, Card, Typography, Space, List, message, Layout, Row, Col, Input, Tabs, Select } from 'antd'
 import { SearchOutlined, BookOutlined, ShareAltOutlined } from '@ant-design/icons'
 import { searchDictionaryApi } from '../features/dictionary/dictionaryApi'
 import { DictionaryApiResponse, SearchDataDictionary, SearchParams } from '../features/dictionary/dictionarytypes'
@@ -22,6 +8,7 @@ import CollectionCard from '../components/collection/ColectionCard'
 import { useNavigate } from 'react-router-dom'
 import { getOwnCollections, getSharedCollections } from '../features/collecion/collectionApi'
 import { ICollection } from '../features/collecion/collectionType'
+import CollectionDetailDrawer from '../components/collection/CollectionDetailDrawer'
 
 const { Text, Title } = Typography
 const { TabPane } = Tabs
@@ -168,36 +155,6 @@ const DictionaryPage: React.FC = () => {
       </div>
     )
   })
-
-  // CollectionDetail component
-  const CollectionDetail = ({ collection }: { collection: ICollection }) => (
-    <div style={{ padding: 24 }}>
-      <Title level={4}>Chi tiết bộ sưu tập</Title>
-      <Text>
-        <b>Tên:</b> {collection.name}
-      </Text>
-      <br />
-      <Text>
-        <b>Mô tả:</b> {collection.description}
-      </Text>
-      <br />
-      <Text>
-        <b>Ngày tạo:</b> {new Date(collection.created_at).toLocaleDateString()}
-      </Text>
-      <br />
-      <Text>
-        <b>Ngôn ngữ:</b> {collection.source_language} - {collection.target_language}
-      </Text>
-      <br />
-      <Text>
-        <b>Cấp độ:</b> {collection.level}
-      </Text>
-      <br />
-      <Text>
-        <b>Số thẻ:</b> {collection.total_flashcards}
-      </Text>
-    </div>
-  )
 
   // Filter collections based on search term
   const filteredCollections = collections.filter((collection) =>
@@ -392,16 +349,11 @@ const DictionaryPage: React.FC = () => {
           </Col>
         </Row>
       </div>
-      <Drawer
-        title='Chi tiết bộ sưu tập'
-        placement='right'
-        width={400}
+      <CollectionDetailDrawer
+        collection={openedCollection}
         open={!!openedCollection}
         onClose={() => setOpenedCollection(null)}
-        destroyOnClose
-      >
-        {openedCollection && <CollectionDetail collection={openedCollection} />}
-      </Drawer>
+      />
     </Layout>
   )
 }

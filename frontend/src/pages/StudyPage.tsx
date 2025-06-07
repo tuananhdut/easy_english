@@ -7,6 +7,7 @@ import { IStudySession, IStudyFlashcard } from '../features/study/studyType'
 import StudyIntroPage from '../components/study/StudyIntroPage'
 import StudyQuizPage from '../components/study/StudyQuizPage'
 import TestTypingPage from '../components/study/StudyTypingPage'
+import StudyCompletePage from '../components/study/StudyCompletePage'
 
 const { Title, Text } = Typography
 
@@ -97,11 +98,11 @@ const StudyPage: React.FC = () => {
   const renderQuizMode = (flashcard: IStudyFlashcard, collection_id: number) => (
     <StudyQuizPage flashcard={flashcard} collectionId={collection_id} onNext={handleNext} />
   )
-  const rendercompleted = () => (
-    <>
-      <h1>bạn đã hoàn thành bài kiểm tra </h1>
-    </>
-  )
+  const rendercompleted = () => {
+    if (session?.score != null) {
+      return <StudyCompletePage score={session?.score} />
+    }
+  }
 
   const renderTypingMode = (flashcard: IStudyFlashcard) => <TestTypingPage flashcard={flashcard} onNext={handleNext} />
 

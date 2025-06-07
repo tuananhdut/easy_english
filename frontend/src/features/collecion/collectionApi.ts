@@ -1,5 +1,5 @@
 import apiClient from '../../utils/apiClient'
-import { ICreateCollectionRequest } from './collectionType'
+import { ICreateCollectionRequest, ISharedUsersResponse } from './collectionType'
 import { IApiResponse } from '../type/resposeType'
 import { ICollection, ICollectionsResponse } from './collectionType'
 
@@ -57,5 +57,11 @@ export const getMyCollections = async (): Promise<IApiResponse<ICollection[]>> =
 // Get shared collections
 export const getSharedCollections = async (): Promise<IApiResponse<ICollectionsResponse>> => {
   const response = await apiClient.get('/collections/user/shared')
+  return response.data
+}
+
+// Get shared users of a collection
+export const getSharedUsers = async (collectionId: number): Promise<IApiResponse<ISharedUsersResponse>> => {
+  const response = await apiClient.get(`/collections/${collectionId}/shared-users`)
   return response.data
 }

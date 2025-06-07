@@ -1,5 +1,5 @@
 import apiClient from '../../utils/apiClient'
-import { LoginCredentials, IAuthData, IUserRegister } from './authTypes'
+import { LoginCredentials, IAuthData, IUserRegister, ISearchUsersResponse } from './authTypes'
 import { IUser } from '../user/userType'
 import { IApiResponse } from '../type/resposeType'
 
@@ -25,4 +25,9 @@ export const registerApi = async (userRegister: IUserRegister): Promise<IApiResp
 
 export const initiateGoogleLogin = () => {
   window.location.href = `${import.meta.env.VITE_API_URL}/auth/google-login`
+}
+
+export const searchUsers = async (query: string): Promise<IApiResponse<ISearchUsersResponse>> => {
+  const response = await apiClient.get(`/auth/search?query=${encodeURIComponent(query)}`)
+  return response.data
 }

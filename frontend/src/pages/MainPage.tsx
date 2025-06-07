@@ -44,30 +44,28 @@ const MainPage: React.FC = () => {
     }
     fetchRecentCollections()
   }, [])
+  const fetchStatistics = async () => {
+    try {
+      setLoadingStats(true)
+      const response = timeRange === 'week' ? await statisticsLearning() : await statisticsMonthlyLearning()
 
+      if (response.status === 'success') {
+        setStatistics(response.data)
+      } else {
+        setStatistics([])
+      }
+    } catch (error) {
+      console.error('Error fetching statistics:', error)
+      message.error('Không thể tải dữ liệu thống kê')
+      setStatistics([])
+    } finally {
+      setLoadingStats(false)
+    }
+  }
   // Effect to fetch statistics data
   useEffect(() => {
-    const fetchStatistics = async () => {
-      try {
-        setLoadingStats(true)
-        const response = timeRange === 'week' ? await statisticsLearning() : await statisticsMonthlyLearning()
-
-        if (response.status === 'success') {
-          setStatistics(response.data)
-        } else {
-          setStatistics([])
-        }
-      } catch (error) {
-        console.error('Error fetching statistics:', error)
-        message.error('Không thể tải dữ liệu thống kê')
-        setStatistics([])
-      } finally {
-        setLoadingStats(false)
-      }
-    }
-
     fetchStatistics()
-  }, [timeRange])
+  }, [])
 
   // Effect to render chart
   useEffect(() => {
@@ -173,7 +171,7 @@ const MainPage: React.FC = () => {
     }
   }, [statistics, timeRange])
 
-  if (authLoading || loadingCollections || loadingStats) {
+  if (authLoading || loadingCollections) {
     // Update loading check
     return (
       <Layout style={{ minHeight: '100vh' }}>

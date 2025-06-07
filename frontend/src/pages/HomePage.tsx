@@ -39,7 +39,7 @@ const HomePage: React.FC = () => {
         <Space align='center'>
           <TranslationOutlined style={{ fontSize: '24px', color: '#1890ff' }} />
           <Title level={3} style={{ margin: 0, color: '#2c3e50' }}>
-            Từ Điển Pro
+            Easy English
           </Title>
         </Space>
         <Button

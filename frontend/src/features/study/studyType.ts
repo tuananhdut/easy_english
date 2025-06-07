@@ -17,6 +17,7 @@ export interface IStudyFlashcard {
   intro: boolean
   quiz: boolean
   typing: boolean
+  score: number
 }
 //test
 
@@ -28,6 +29,7 @@ export interface IStudySession {
   currentIndex: number
   status: 'introduction' | 'quiz' | 'typing' | 'completed'
   startTime: string
+  score: number
   endTime: string | null
 }
 

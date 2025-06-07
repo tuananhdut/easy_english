@@ -49,3 +49,15 @@ export interface ICreateCollectionRequest {
   source_language?: string
   target_language?: string
 }
+
+export interface ISharedUser {
+  id: number
+  fullName: string | null
+  email: string | null
+  image: string | null
+  permission: string
+}
+
+export interface ISharedUsersResponse {
+  users: ISharedUser[]
+}

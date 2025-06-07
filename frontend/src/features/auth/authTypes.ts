@@ -29,3 +29,7 @@ export interface IUserRegister {
   fullName: string
   password: string
 }
+
+export interface ISearchUsersResponse {
+  users: IUser[]
+}
