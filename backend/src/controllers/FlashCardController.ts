@@ -30,25 +30,17 @@ export class FlashCardController {
   }
 
   private validateFlashCardRequest(req: Request): IFlashCardRequest {
-    const {
-      collection_id,
-      front_text,
-      back_text,
-      image_url,
-      audio_url,
-      pronunciation,
-      source_language,
-      target_language
-    } = req.body
+    const { collection_id, term, definition, image_url, audio_url, pronunciation, source_language, target_language } =
+      req.body
 
-    if (!collection_id || !front_text || !back_text) {
+    if (!collection_id || !term || !definition) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Collection ID, front text và back text là bắt buộc')
     }
 
     return {
       collection_id,
-      front_text,
-      back_text,
+      term,
+      definition,
       image_url,
       audio_url,
       pronunciation,
@@ -58,12 +50,12 @@ export class FlashCardController {
   }
 
   private validateUpdateFlashCardRequest(req: Request): Partial<IFlashCardRequest> {
-    const { front_text, back_text, image_url, audio_url, pronunciation } = req.body
+    const { term, definition, image_url, audio_url, pronunciation } = req.body
 
     const updateData: Partial<IFlashCardRequest> = {}
 
-    if (front_text !== undefined) updateData.front_text = front_text
-    if (back_text !== undefined) updateData.back_text = back_text
+    if (term !== undefined) updateData.term = term
+    if (definition !== undefined) updateData.definition = definition
     if (image_url !== undefined) updateData.image_url = image_url
     if (audio_url !== undefined) updateData.audio_url = audio_url
     if (pronunciation !== undefined) updateData.pronunciation = pronunciation

@@ -73,7 +73,7 @@ export class FlashCardRepository extends BaseRepository<Flashcard> {
       .where('flashcard.source_language = :source', { source })
       .andWhere('flashcard.target_language = :target', { target })
       .andWhere('flashcard.is_private = :isPrivate', { isPrivate: false })
-      .andWhere('flashcard.front_text LIKE :query', { query: `%${query}%` })
+      .andWhere('flashcard.term LIKE :query', { query: `%${query}%` })
       .limit(10)
       .getMany()
   }

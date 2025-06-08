@@ -112,8 +112,8 @@ export class StudySessionService {
       (card: Flashcard): IFlashcardStudy => ({
         id: card.id,
         collection: card.collection,
-        front_text: card.front_text,
-        back_text: card.back_text,
+        term: card.term,
+        definition: card.definition,
         image_url: card.image_url,
         audio_url: card.audio_url,
         pronunciation: card.pronunciation,
@@ -195,7 +195,7 @@ export class StudySessionService {
     }
 
     const currentCard = session.flashcards[session.currentIndex]
-    const isCorrect = answer.toLowerCase() === currentCard.front_text.toLowerCase()
+    const isCorrect = answer.toLowerCase() === currentCard.term.toLowerCase()
 
     // Cập nhật trạng thái
     let newCurrentIndex = session.currentIndex
@@ -265,7 +265,7 @@ export class StudySessionService {
 
     return {
       isCorrect,
-      correctAnswer: currentCard.front_text,
+      correctAnswer: currentCard.term,
       nextPhase: updatedSession
     }
   }

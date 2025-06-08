@@ -14,10 +14,10 @@ export class Flashcard extends BaseEntity implements IFlashCard {
   collection!: Collection
 
   @Column({ type: 'text', nullable: false })
-  front_text!: string
+  term!: string
 
   @Column({ type: 'text', nullable: false })
-  back_text!: string
+  definition!: string
 
   @Column({ type: 'varchar', nullable: true })
   image_url?: string

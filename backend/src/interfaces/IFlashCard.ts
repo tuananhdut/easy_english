@@ -3,8 +3,8 @@ import { Collection } from '../entities/Collection'
 export interface IFlashCard {
   id: number
   collection: Collection
-  front_text: string
-  back_text: string
+  term: string
+  definition: string
   image_url?: string
   audio_url?: string
   created_at: Date
@@ -17,8 +17,8 @@ export interface IFlashCard {
 
 export interface IFlashCardRequest {
   collection_id: number
-  front_text: string
-  back_text: string
+  term: string
+  definition: string
   pronunciation?: string
   image_url?: string
   audio_url?: string
@@ -29,8 +29,8 @@ export interface IFlashCardRequest {
 
 export interface IFlashCardResponse {
   id: number
-  front_text: string
-  back_text: string
+  term: string
+  definition: string
   image_url?: string
   audio_url?: string
   pronunciation?: string
