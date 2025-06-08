@@ -7,11 +7,25 @@ class EmailService {
   private transporter: nodemailer.Transporter
 
   constructor() {
+    if (!process.env.EMAIL_USER || !process.env.EMAIL_PASS) {
+      console.error('Email configuration is missing. Please check your .env file')
+      throw new Error('Email configuration is missing')
+    }
+
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASSWORD
+        pass: process.env.EMAIL_PASS
+      }
+    })
+
+    // Verify transporter configuration
+    this.transporter.verify((error, success) => {
+      if (error) {
+        console.error('Email service configuration error:', error)
+      } else {
+        console.log('Email service is ready to send messages')
       }
     })
   }
@@ -23,7 +37,11 @@ class EmailService {
     collectionId: number,
     token: string
   ) {
-    const confirmUrl = `${process.env.FRONTEND_URL}/confirm-share?token=${token}&collectionId=${collectionId}`
+    if (!process.env.CLIENT_URL) {
+      throw new Error('FRONTEND_URL is not configured')
+    }
+    console.log(token)
+    const confirmUrl = `${process.env.CLIENT_URL}/confirm-share?token=${token}&collectionId=${collectionId}`
 
     const mailOptions = {
       from: `"Flashcard App" <${process.env.EMAIL_USER}>`,
@@ -51,11 +69,12 @@ class EmailService {
     }
 
     try {
-      await this.transporter.sendMail(mailOptions)
+      const info = await this.transporter.sendMail(mailOptions)
+      console.log('Email sent successfully:', info.messageId)
       return true
     } catch (error) {
       console.error('Error sending email:', error)
-      return false
+      throw new Error('Failed to send email notification')
     }
   }
 }

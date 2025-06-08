@@ -79,7 +79,8 @@ export class CollectionService {
       owner: this.transformOwnerData(collection.owner),
       learnedWords: studyProgress.learnedWords,
       reviewWords: studyProgress.reviewWords,
-      sharedUsersCount: collection.sharedCollections?.length || 0
+      sharedUsersCount: collection.sharedCollections?.length || 0,
+      permission: collection.sharedCollections?.[0]?.permission
     }
   }
 

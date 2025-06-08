@@ -1,6 +1,7 @@
 import { User } from '../entities/User'
 import { CollectionLevel } from '../entities/Collection'
 import { Collection } from '../entities/Collection'
+import { SharePermission } from '../entities/SharedCollection'
 
 export interface ICollection extends Collection {
   id: number
@@ -47,4 +48,5 @@ export interface ICollectionResponse {
   learnedWords: number
   reviewWords: number
   sharedUsersCount: number
+  permission?: SharePermission
 }

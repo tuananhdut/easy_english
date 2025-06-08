@@ -1,11 +1,13 @@
 import { SharedCollectionRepository } from '../repositories/SharedCollectionRepository'
 import { CollectionRepository } from '../repositories/CollectionRepository'
 import { UserRepository } from '../repositories/UserRepository'
-import { SharedCollection, SharePermission } from '../entities/SharedCollection'
+import { SharedCollection, SharePermission, ShareStatus } from '../entities/SharedCollection'
 import { ISharedCollectionRequest } from '../interfaces/ISharedCollection'
 import { User } from '../entities/User'
 import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
+import { emailService } from './emailService'
+import { signToken, verifyToken } from '~/utils/jwt'
 
 export class SharedCollectionService {
   private sharedCollectionRepository: SharedCollectionRepository
@@ -19,17 +21,21 @@ export class SharedCollectionService {
   }
 
   async shareCollection(data: ISharedCollectionRequest, owner: User): Promise<SharedCollection> {
-    const collection = await this.collectionRepository.findOne(data.collection_id)
+    const collection = await this.collectionRepository.findOneWithOptions({
+      where: { id: data.collection_id },
+      relations: {
+        owner: true
+      }
+    })
+
     if (!collection) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Collection không tồn tại')
     }
 
-    // Check if user is the owner
     if (collection.owner.id !== owner.id) {
       throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền chia sẻ collection này')
     }
 
-    // Check if trying to share with owner
     if (data.shared_with_id === owner.id) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Không thể chia sẻ với chính mình')
     }
@@ -39,7 +45,6 @@ export class SharedCollectionService {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Người dùng không tồn tại')
     }
 
-    // Check if already shared
     const existingShare = await this.sharedCollectionRepository.findOneWithOptions({
       where: {
         collection: { id: data.collection_id },
@@ -51,7 +56,69 @@ export class SharedCollectionService {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Collection đã được chia sẻ với người dùng này')
     }
 
-    return this.sharedCollectionRepository.createSharedCollection(data, collection, sharedWith)
+    // Create shared collection with PENDING status
+    const sharedCollection = await this.sharedCollectionRepository.createSharedCollection(data, collection, sharedWith)
+
+    // Generate token for email confirmation
+    const token = signToken({
+      sharedCollectionId: sharedCollection.id,
+      collectionId: collection.id,
+      sharedWithId: sharedWith.id
+    })
+
+    // Send email notification
+    await emailService.sendShareNotification(
+      sharedWith.email!,
+      collection.name,
+      owner.fullName || owner.username || 'Người dùng',
+      collection.id,
+      token
+    )
+
+    return sharedCollection
+  }
+
+  async confirmShare(token: string): Promise<SharedCollection> {
+    try {
+      const decoded = verifyToken(token)
+
+      const sharedCollection = await this.sharedCollectionRepository.findOneWithOptions({
+        where: {
+          id: decoded.sharedCollectionId,
+          collection: { id: decoded.collectionId },
+          shared_with: { id: decoded.sharedWithId }
+        },
+        relations: {
+          collection: true,
+          shared_with: true
+        }
+      })
+
+      if (!sharedCollection) {
+        throw new ApiError(StatusCodes.NOT_FOUND, 'Chia sẻ không tồn tại')
+      }
+
+      if (sharedCollection.status === ShareStatus.ACCEPTED) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Chia sẻ đã được xác nhận trước đó')
+      }
+
+      // Update status to ACCEPTED
+      const updatedShare = await this.sharedCollectionRepository.updateStatus(sharedCollection.id, ShareStatus.ACCEPTED)
+
+      if (!updatedShare) {
+        throw new ApiError(StatusCodes.INTERNAL_SERVER_ERROR, 'Không thể cập nhật trạng thái chia sẻ')
+      }
+
+      return updatedShare
+    } catch (error) {
+      if (error instanceof ApiError) {
+        throw error
+      }
+      if (error instanceof Error) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, error.message)
+      }
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Token không hợp lệ')
+    }
   }
 
   async updatePermission(id: number, permission: SharePermission, user: User): Promise<SharedCollection> {
@@ -79,16 +146,17 @@ export class SharedCollectionService {
     return updatedShare
   }
 
-  async removeShare(id: number, user: User): Promise<void> {
+  async removeShare(collectionId: number, userId: number, user: User): Promise<void> {
     const sharedCollection = await this.sharedCollectionRepository.findOneWithOptions({
       where: {
-        id,
-        collection: { owner: { id: user.id } }
+        collection: { id: collectionId, owner: { id: user.id } },
+        shared_with: { id: userId }
       },
       relations: {
         collection: {
           owner: true
-        }
+        },
+        shared_with: true
       }
     })
 
@@ -96,7 +164,7 @@ export class SharedCollectionService {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Chia sẻ không tồn tại')
     }
 
-    await this.sharedCollectionRepository.delete(id)
+    await this.sharedCollectionRepository.delete(sharedCollection.id)
   }
 
   async getSharedUsers(collectionId: number, user: User): Promise<SharedCollection[]> {

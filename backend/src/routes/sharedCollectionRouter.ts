@@ -6,19 +6,14 @@ const sharedCollectionController = new SharedCollectionController()
 
 const router = Router()
 
-// All routes require authentication
+// Public route for confirming share - no auth required
+router.get('/confirm', sharedCollectionController.confirmShare)
+
+// Protected routes
 router.use(authMiddleware)
-
-// Share collection with a user
 router.post('/', sharedCollectionController.shareCollection)
-
-// Update sharing permission
 router.put('/:id/permission', sharedCollectionController.updatePermission)
-
-// Remove sharing
-router.delete('/:id', sharedCollectionController.removeShare)
-
-// Get list of users that a collection is shared with
+router.delete('/', sharedCollectionController.removeShare)
 router.get('/collection/:collectionId/users', sharedCollectionController.getSharedUsers)
 
 export default router

@@ -16,6 +16,7 @@ export class SharedCollectionController {
     this.updatePermission = this.updatePermission.bind(this)
     this.removeShare = this.removeShare.bind(this)
     this.getSharedUsers = this.getSharedUsers.bind(this)
+    this.confirmShare = this.confirmShare.bind(this)
   }
 
   private validateShareRequest(req: Request): ISharedCollectionRequest {
@@ -79,8 +80,12 @@ export class SharedCollectionController {
         throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
       }
 
-      const { id } = req.params
-      await this.sharedCollectionService.removeShare(Number(id), user)
+      const { collectionId, userId } = req.body
+      if (!collectionId || !userId) {
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Collection ID và User ID là bắt buộc')
+      }
+
+      await this.sharedCollectionService.removeShare(Number(collectionId), Number(userId), user)
       new ApiSuccess(null, 'Xóa chia sẻ thành công').send(res)
     } catch (err) {
       next(err)
@@ -99,6 +104,29 @@ export class SharedCollectionController {
       new ApiSuccess(sharedUsers, 'Lấy danh sách người dùng được chia sẻ thành công').send(res)
     } catch (err) {
       next(err)
+    }
+  }
+
+  async confirmShare(req: Request, res: Response, next: NextFunction) {
+    try {
+      console.log('Confirm share request received')
+      console.log('Query params:', req.query)
+
+      const { token } = req.query
+
+      if (!token || typeof token !== 'string') {
+        console.log('Invalid token:', token)
+        throw new ApiError(StatusCodes.BAD_REQUEST, 'Token không hợp lệ')
+      }
+
+      console.log('Processing token:', token)
+      const sharedCollection = await this.sharedCollectionService.confirmShare(token)
+      console.log('Share confirmed successfully:', sharedCollection)
+
+      new ApiSuccess(sharedCollection, 'Xác nhận chia sẻ thành công').send(res)
+    } catch (error) {
+      console.error('Error in confirmShare:', error)
+      next(error)
     }
   }
 }

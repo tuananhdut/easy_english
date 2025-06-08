@@ -4,6 +4,7 @@ import { BaseRepository } from './BaseRepository'
 import { ICollectionRequest } from '../interfaces/ICollection'
 import { User } from '../entities/User'
 import { IUser } from '~/interfaces/IUser'
+import { ShareStatus } from '../entities/SharedCollection'
 
 interface CollectionSelectOptions {
   id: boolean
@@ -110,7 +111,8 @@ export class CollectionRepository extends BaseRepository<Collection> {
       ...this.getBaseCollectionOptions(['owner', 'sharedCollections', 'sharedCollections.shared_with']),
       where: {
         sharedCollections: {
-          shared_with: user
+          shared_with: user,
+          status: ShareStatus.ACCEPTED
         }
       },
       select: {
@@ -118,6 +120,7 @@ export class CollectionRepository extends BaseRepository<Collection> {
         sharedCollections: {
           id: true,
           permission: true,
+          status: true,
           total_points: true,
           created_at: true,
           updated_at: true
@@ -172,10 +175,15 @@ export class CollectionRepository extends BaseRepository<Collection> {
     return { collections, total }
   }
 
-  async getSharedUsers(
-    collectionId: number
-  ): Promise<
-    { id: number; fullName: string | null; email: string | null; image: string | null; permission: string }[]
+  async getSharedUsers(collectionId: number): Promise<
+    {
+      id: number
+      fullName: string | null
+      email: string | null
+      image: string | null
+      permission: string
+      status: string
+    }[]
   > {
     const collection = await this.repository.findOne({
       where: { id: collectionId },
@@ -185,6 +193,7 @@ export class CollectionRepository extends BaseRepository<Collection> {
         sharedCollections: {
           id: true,
           permission: true,
+          status: true,
           shared_with: {
             id: true,
             fullName: true,
@@ -204,7 +213,8 @@ export class CollectionRepository extends BaseRepository<Collection> {
       fullName: share.shared_with.fullName || null,
       email: share.shared_with.email || null,
       image: share.shared_with.image || null,
-      permission: share.permission.toString()
+      permission: share.permission.toString(),
+      status: share.status.toString()
     }))
   }
 }

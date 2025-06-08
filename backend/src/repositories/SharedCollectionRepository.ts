@@ -1,5 +1,5 @@
 import { DeepPartial } from 'typeorm'
-import { SharedCollection, SharePermission } from '../entities/SharedCollection'
+import { SharedCollection, SharePermission, ShareStatus } from '../entities/SharedCollection'
 import { BaseRepository } from './BaseRepository'
 import { ISharedCollectionRequest } from '../interfaces/ISharedCollection'
 import { User } from '../entities/User'
@@ -49,6 +49,13 @@ export class SharedCollectionRepository extends BaseRepository<SharedCollection>
   async updatePoints(id: number, points: number): Promise<SharedCollection | null> {
     await this.repository.update(id, {
       total_points: points
+    })
+    return this.findOne(id)
+  }
+
+  async updateStatus(id: number, status: ShareStatus): Promise<SharedCollection | null> {
+    await this.repository.update(id, {
+      status
     })
     return this.findOne(id)
   }
