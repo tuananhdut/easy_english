@@ -13,6 +13,7 @@ from jiwer import cer
 import tempfile
 import os
 from contextlib import asynccontextmanager
+import editdistance
 from dotenv import load_dotenv
 
 # Load environment variables
@@ -20,7 +21,7 @@ load_dotenv()
 
 # Constants from environment variables
 MODEL_DIR = os.getenv("MODEL_DIR")
-ALLOWED_AUDIO_TYPES = os.getenv("ALLOWED_AUDIO_TYPES", "audio/wav,audio/mpeg,audio/mp3").split(",")
+ALLOWED_AUDIO_TYPES = os.getenv("ALLOWED_AUDIO_TYPES", "audio/wav,audio/wave,audio/mpeg,audio/mp3").split(",")
 MAX_FILE_SIZE = int(os.getenv("MAX_FILE_SIZE", "10")) * 1024 * 1024  # Convert MB to bytes
 HOST = os.getenv("HOST", "0.0.0.0")
 PORT = int(os.getenv("PORT", "8000"))
@@ -38,6 +39,7 @@ def initialize_model():
         model = Wav2Vec2ForCTC.from_pretrained(MODEL_DIR)
         model.eval()
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        print("bạn đnag chạy trên :",device)
         model.to(device)
         return True
     except Exception as e:
@@ -57,6 +59,7 @@ def process_audio(input_path: str):
     try:
         # Load audio file using librosa
         audio_data, sample_rate = librosa.load(input_path, sr=16000)
+        audio_data, _ = librosa.effects.trim(audio_data, top_db=60)
         return audio_data, sample_rate
     except Exception as e:
         print(f"Error processing audio: {e}")
@@ -94,31 +97,24 @@ app = FastAPI(
 )
 
 def sentence_to_phonemes(sentence):
-    """
-    Convert a sentence to phonemes using pronouncing library
-    
-    Args:
-        sentence (str): Input sentence
-        
-    Returns:
-        str: Phoneme sequence
-    """
     words = sentence.lower().split()
-    phoneme_sequence = ""
+    phoneme_sequence = []
 
     for word in words:
         phones = pronouncing.phones_for_word(word)
         if phones:
-            # Get first pronunciation and split into phonemes
             phonemes = phones[0].split()
-            # Remove stress numbers (0, 1, 2)
-            cleaned_phonemes = [re.sub(r'\d', '', p) for p in phonemes]
-            phoneme_sequence += "".join(cleaned_phonemes)
+            cleaned_phonemes = [re.sub(r'\d', '', p).lower() for p in phonemes]
+            phoneme_sequence.extend(cleaned_phonemes)
         else:
-            # If phonemes not found
-            phoneme_sequence += f"[UNK:{word}]"
+            phoneme_sequence.append(f"[unk:{word}]")  
 
-    return phoneme_sequence.lower()
+    return phoneme_sequence
+
+def compute_per(pred_phonemes, ref_phonemes):
+    distance = editdistance.eval(pred_phonemes, ref_phonemes)
+    per = distance / len(ref_phonemes) if ref_phonemes else 0.0
+    return 1-per
 
 @app.get("/")
 async def root():
@@ -188,14 +184,17 @@ async def recognize_word(
         
         # Clean predicted text
         predicted_text = predicted_text.replace("h#", "")
-        predicted_text = predicted_text.replace("[PAD]", "")
-        predicted_text = predicted_text.replace(" ", "")
+        predicted_text = predicted_text.replace(" ", "[PAD]")
+        predicted_list = [item for item in predicted_text.split("[PAD]") if item != '' and 'h#' not in item]
+
 
         # Calculate accuracy if expected word is provided
         accuracy = 0
         if expected_word:
             expected_phonemes = sentence_to_phonemes(expected_word)
-            accuracy = 1 - cer(expected_phonemes, predicted_text)
+            print(expected_phonemes)
+            print(predicted_list)
+            accuracy = compute_per(expected_phonemes,predicted_list)
 
         # Clean up temporary files
         os.unlink(temp_audio_path)
