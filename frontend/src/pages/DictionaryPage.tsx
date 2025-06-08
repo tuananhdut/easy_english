@@ -298,7 +298,8 @@ const DictionaryPage: React.FC = () => {
                                 fullName: collection.owner.fullName || collection.owner.email || 'Unknown',
                                 email: collection.owner.email,
                                 image: collection.owner.image
-                              }
+                              },
+                              permission: collection.permission
                             }}
                             type='sharedView'
                             onStudy={handleStudy}

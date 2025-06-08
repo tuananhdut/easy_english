@@ -65,3 +65,11 @@ export const getSharedUsers = async (collectionId: number): Promise<IApiResponse
   const response = await apiClient.get(`/collections/${collectionId}/shared-users`)
   return response.data
 }
+
+export const addSharedUser = async (
+  collectionId: number,
+  email: string
+): Promise<IApiResponse<{ id: number; status: string }>> => {
+  const response = await apiClient.post(`/collections/${collectionId}/share`, { email })
+  return response.data
+}

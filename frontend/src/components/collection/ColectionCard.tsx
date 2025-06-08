@@ -13,7 +13,9 @@ import {
   List,
   Switch,
   AutoComplete,
-  Popconfirm
+  Select,
+  message,
+  notification
 } from 'antd'
 import {
   GlobalOutlined,
@@ -23,14 +25,16 @@ import {
   CheckCircleOutlined,
   EditOutlined,
   PlusOutlined,
-  ShareAltOutlined
+  ShareAltOutlined,
+  EyeOutlined
   // LinkOutlined
 } from '@ant-design/icons'
 import { useNavigate } from 'react-router-dom'
-import { ICollection, ISharedUser } from '../../features/collecion/collectionType'
+import { ICollection, ISharedUser, SharePermission } from '../../features/collecion/collectionType'
 import { getSharedUsers } from '../../features/collecion/collectionApi'
 import { searchUsers } from '../../features/auth/authApi'
 import { IUser } from '../../features/user/userType'
+import { shareCollection, deleteShareCollection } from '../../features/shareCollection/shareCollectionApi'
 const { Text, Title } = Typography
 
 export interface CollectionCardProps {
@@ -68,7 +72,9 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
   const [searchResults, setSearchResults] = useState<IUser[]>([])
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchValue, setSearchValue] = useState('')
-  const [selectedUser, setSelectedUser] = useState<IUser | null>(null)
+  const [selectedPermission, setSelectedPermission] = useState<SharePermission>(SharePermission.VIEW)
+  const [addingUser, setAddingUser] = useState(false)
+  const [api, contextHolder] = notification.useNotification()
 
   useEffect(() => {
     if (isShareModalVisible && type === 'owned') {
@@ -163,46 +169,81 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
   }
 
   const handleSearchSelect = (value: string) => {
-    const gmailResults = searchResults.find((user) => user.email === value)?.email
-    setSearchValue(gmailResults || '')
+    const selectedUser = searchResults.find((user) => user.id.toString() === value)
+    if (selectedUser) {
+      setSearchValue(selectedUser.email || '')
+    }
   }
 
   const handleAddUser = async (email: string) => {
     if (!email) return
     try {
-      const response = await addSharedUser(collection.id, email)
+      setAddingUser(true)
+      const user = searchResults.find((user) => user.email === email)
+      if (!user) {
+        message.error('Không tìm thấy người dùng')
+        return
+      }
+
+      const response = await shareCollection({
+        collectionId: collection.id,
+        shared_with_id: user.id,
+        permission: selectedPermission
+      })
+
       if (response.status === 'success') {
         fetchSharedUsers()
         setSearchValue('')
         setSearchResults([])
+        setSelectedPermission(SharePermission.VIEW) // Reset permission after sharing
+        api.success({
+          message: 'Chia sẻ thành công',
+          description: JSON.stringify(response.message) || 'Lỗi khi đăng nhập'
+        })
       }
     } catch (error) {
       console.error('Error adding user:', error)
+      message.error('Có lỗi xảy ra khi chia sẻ collection')
+    } finally {
+      setAddingUser(false)
     }
   }
 
-  const handleRemoveUser = (userId: number) => {
-    console.log('Removing user id:', userId)
-    // TODO: Implement remove user API
-    setSharedUsers(sharedUsers.filter((user) => user.id !== userId))
+  const handleRemoveUser = async (userId: number) => {
+    try {
+      const response = await deleteShareCollection(collection.id, userId)
+      if (response.status === 'success') {
+        fetchSharedUsers() // Refresh the list after successful deletion
+        api.success({
+          message: 'Xóa người dùng thành công',
+          description: 'Người dùng đã được xóa khỏi danh sách chia sẻ'
+        })
+      }
+    } catch (error) {
+      console.error('Error removing user:', error)
+      api.error({
+        message: 'Lỗi khi xóa người dùng',
+        description: 'Có lỗi xảy ra khi xóa người dùng khỏi danh sách chia sẻ'
+      })
+    }
   }
 
   const handleToggleEdit = (userId: number) => {
     console.log('Toggling edit for user id:', userId)
   }
 
-  const getTypeTag = () => {
-    switch (type) {
-      case 'sharedView':
+  const getTypeTag = (permission: string) => {
+    switch (permission) {
+      case SharePermission.VIEW:
         return (
           <Tag color='green' icon={<ShareAltOutlined />}>
-            Được chia sẻ (Xem)
+            (Xem)
           </Tag>
         )
-      case 'sharedEdit':
+      case SharePermission.EDIT:
         return (
           <Tag color='orange' icon={<ShareAltOutlined />}>
-            Được chia sẻ (Sửa)
+            (Sửa)
           </Tag>
         )
       default:
@@ -212,6 +253,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
 
   return (
     <>
+      {contextHolder}
       <Card
         hoverable
         onClick={handleCardClick}
@@ -222,7 +264,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
       >
         <div style={{ position: 'absolute', top: 12, right: 12, zIndex: 1 }}>
           <Space size='small'>
-            {type === 'owned' && (
+            {(type === 'owned' || collection.permission === SharePermission.EDIT) && (
               <Tooltip title='Chỉnh sửa'>
                 <Button
                   type='text'
@@ -232,7 +274,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
                 />
               </Tooltip>
             )}
-            {type !== 'sharedView' && (
+            {(type !== 'sharedView' || collection.permission === SharePermission.EDIT) && (
               <Tooltip title='Thêm flashcard'>
                 <Button
                   type='text'
@@ -261,7 +303,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
           title={
             <Space>
               {collection.name}
-              {getTypeTag()}
+              {getTypeTag(collection.permission || '')}
             </Space>
           }
           description={
@@ -333,7 +375,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
                 onSearch={handleSearch}
                 onSelect={handleSearchSelect}
                 options={searchResults.map((user) => ({
-                  value: user.email || '',
+                  value: user.id.toString(),
                   label: (
                     <Space>
                       <Avatar size='small' src={user.image} icon={<UserOutlined />} />
@@ -346,31 +388,42 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
               >
                 <Input placeholder='Tìm kiếm người dùng theo email' prefix={<UserOutlined />} allowClear />
               </AutoComplete>
-              <Popconfirm
-                title='Xác nhận thêm người dùng'
-                description={
-                  <Space direction='vertical'>
-                    <p>Bạn có chắc chắn muốn thêm người dùng này vào danh sách chia sẻ?</p>
-                    {searchValue && (
+              <Select
+                value={selectedPermission}
+                onChange={setSelectedPermission}
+                style={{ width: 120 }}
+                options={[
+                  {
+                    value: SharePermission.VIEW,
+                    label: (
                       <Space>
-                        <Avatar icon={<UserOutlined />} />
-                        <div>
-                          <div style={{ color: '#999' }}>{searchValue}</div>
-                        </div>
+                        <EyeOutlined />
+                        Xem
                       </Space>
-                    )}
-                  </Space>
-                }
-                onConfirm={() => {
+                    )
+                  },
+                  {
+                    value: SharePermission.EDIT,
+                    label: (
+                      <Space>
+                        <EditOutlined />
+                        Sửa
+                      </Space>
+                    )
+                  }
+                ]}
+              />
+              <Button
+                type='primary'
+                onClick={() => {
                   if (searchValue) {
                     handleAddUser(searchValue)
                   }
                 }}
-                okText='Thêm'
-                cancelText='Hủy'
+                loading={addingUser}
               >
-                <Button type='primary'>Thêm</Button>
-              </Popconfirm>
+                Thêm
+              </Button>
             </Space.Compact>
           </div>
 
@@ -396,7 +449,14 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
                 >
                   <List.Item.Meta
                     avatar={<Avatar src={user.image} icon={<UserOutlined />} />}
-                    title={user.fullName || user.email || 'Không có tên'}
+                    title={
+                      <Space>
+                        {user.fullName || user.email || 'Không có tên'}
+                        <Tag color={user.status === 'accepted' ? 'success' : 'warning'}>
+                          {user.status === 'accepted' ? 'Đã chấp nhận' : 'Chờ xác nhận'}
+                        </Tag>
+                      </Space>
+                    }
                     description={user.email || 'Không có email'}
                   />
                 </List.Item>

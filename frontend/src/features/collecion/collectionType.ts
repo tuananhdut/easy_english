@@ -12,6 +12,14 @@ export enum CollectionLevel {
   MEDIUM = 'medium',
   HARD = 'hard'
 }
+export enum ShareStatus {
+  PENDING = 'pending',
+  ACCEPTED = 'accepted'
+}
+export enum SharePermission {
+  VIEW = 'view',
+  EDIT = 'edit'
+}
 
 export interface ICollection {
   id: number
@@ -34,6 +42,7 @@ export interface ICollection {
   learnedWords: number
   reviewWords: number
   sharedUsersCount: number
+  permission?: SharePermission
 }
 
 export interface ICollectionsResponse {
@@ -56,6 +65,7 @@ export interface ISharedUser {
   email: string | null
   image: string | null
   permission: string
+  status: ShareStatus
 }
 
 export interface ISharedUsersResponse {

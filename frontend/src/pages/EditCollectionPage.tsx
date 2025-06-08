@@ -257,6 +257,11 @@ const EditCollectionPage: React.FC = () => {
               Người tạo{' '}
               <span style={{ color: '#222', fontWeight: 400, marginLeft: 4 }}>{collection.owner.fullName}</span>
             </span>
+            <span style={{ color: '#e0e0e0', fontSize: 18 }}>|</span>
+            <span style={{ fontWeight: 500, color: '#555' }}>
+              Số người sử dụng{' '}
+              <span style={{ color: '#222', fontWeight: 400, marginLeft: 4 }}>{collection.sharedUsersCount}</span>
+            </span>
           </div>
         </div>
       </div>
