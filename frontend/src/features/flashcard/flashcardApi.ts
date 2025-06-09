@@ -5,8 +5,8 @@ import { IApiResponse } from '../type/resposeType'
 export const createFlashcard = async (data: ICreateFlashcardRequest): Promise<IApiResponse<IFlashcard>> => {
   const formData = new FormData()
   formData.append('collection_id', data.collection_id.toString())
-  formData.append('front_text', data.front_text)
-  formData.append('back_text', data.back_text)
+  formData.append('term', data.term)
+  formData.append('definition', data.definition)
 
   if (data.image) {
     formData.append('image', data.image)

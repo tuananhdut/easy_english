@@ -130,7 +130,7 @@ const StudyIntroPage: React.FC<StudyIntroPageProps> = ({ flashcard, onNext }) =>
                 Thuật ngữ
               </Text>
               <Title level={2} style={{ margin: 0, color: 'white' }}>
-                {flashcard.front_text}
+                {flashcard.term}
               </Title>
             </div>
 
@@ -145,7 +145,7 @@ const StudyIntroPage: React.FC<StudyIntroPageProps> = ({ flashcard, onNext }) =>
                 <Title level={5} style={{ margin: 0, color: '#b0b0b0' }}>
                   Định Nghĩa
                 </Title>
-                <Text style={{ fontSize: '18px', color: 'white', display: 'block' }}>{flashcard.back_text}</Text>
+                <Text style={{ fontSize: '18px', color: 'white', display: 'block' }}>{flashcard.definition}</Text>
               </div>
 
               {flashcard.pronunciation && (

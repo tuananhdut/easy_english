@@ -11,8 +11,8 @@ const { Title } = Typography
 const FILE_URL = import.meta.env.VITE_FILE_URL || 'http://localhost:8080/uploads/'
 
 interface FlashcardFormValues {
-  front_text: string
-  back_text: string
+  term: string
+  definition: string
   pronunciation?: string
 }
 
@@ -49,8 +49,8 @@ const CreateFlashcardPage: React.FC = () => {
       setLoading(true)
       const flashcardData: ICreateFlashcardRequest = {
         collection_id: parseInt(collectionId || '0'),
-        front_text: values.front_text,
-        back_text: values.back_text,
+        term: values.term,
+        definition: values.definition,
         image: imageFile || undefined,
         audio: audioFile || undefined
       }

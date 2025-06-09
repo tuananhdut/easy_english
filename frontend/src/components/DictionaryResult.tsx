@@ -61,7 +61,7 @@ const DictionaryResult: React.FC<DictionaryResultProps> = ({ searchText, type })
     }
 
     const response = await getSoundApi(soundParams)
-    return response.data
+    return response.data.data
   }
 
   return (

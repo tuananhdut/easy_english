@@ -31,7 +31,7 @@ const StudyTypingPage: React.FC<TestTypingPageProps> = ({ flashcard, onNext }) =
   const handleCheckAnswer = () => {
     if (!typingAnswer) return
 
-    const isAnswerCorrect = typingAnswer.toLowerCase().trim() === flashcard.front_text.toLowerCase().trim()
+    const isAnswerCorrect = typingAnswer.toLowerCase().trim() === flashcard.term.toLowerCase().trim()
     setIsCorrect(isAnswerCorrect)
     setShowResult(true)
 
@@ -178,7 +178,7 @@ const StudyTypingPage: React.FC<TestTypingPageProps> = ({ flashcard, onNext }) =
                 Định nghĩa
               </Text>
               <Title level={2} style={{ margin: 0, color: 'white' }}>
-                {flashcard.back_text} {/* Use back_text for the definition/question */}
+                {flashcard.definition} {/* Use definition for the definition/question */}
               </Title>
             </div>
             {showResult ? (
@@ -200,8 +200,8 @@ const StudyTypingPage: React.FC<TestTypingPageProps> = ({ flashcard, onNext }) =
                     fontWeight: 'bold'
                   }}
                 >
-                  {isCorrect ? 'Chính xác!' : `Sai rồi. Đáp án đúng là: ${flashcard.front_text}`}{' '}
-                  {/* Use front_text for the correct answer */}
+                  {isCorrect ? 'Chính xác!' : `Sai rồi. Đáp án đúng là: ${flashcard.term}`}{' '}
+                  {/* Use term for the correct answer */}
                 </Text>
               </div>
             ) : (

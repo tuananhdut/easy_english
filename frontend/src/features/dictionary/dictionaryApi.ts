@@ -1,5 +1,5 @@
 import apiClient from '../../utils/apiClient'
-import { DictionaryApiResponse, SearchParams, SoundParams } from './dictionarytypes'
+import { DictionaryApiResponse, SearchParams, SoundParams, SoundResponse } from './dictionarytypes'
 import { IApiResponse } from '../type/resposeType'
 
 //{{url}}/dictionary?type=1&site=dictionary&query=he&limit=1
@@ -8,7 +8,7 @@ export const searchDictionaryApi = async (params: SearchParams): Promise<IApiRes
   return response.data
 }
 
-export const getSoundApi = async (params: SoundParams): Promise<IApiResponse<string>> => {
+export const getSoundApi = async (params: SoundParams): Promise<IApiResponse<SoundResponse>> => {
   const response = await apiClient.get('/dictionary/sound', { params })
-  return response.data.data
+  return response.data
 }

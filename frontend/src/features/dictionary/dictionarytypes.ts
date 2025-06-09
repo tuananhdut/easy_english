@@ -9,7 +9,13 @@ export interface SoundParams {
   accent: string
   word: string
 }
-//
+
+export interface SoundResponse {
+  error: number
+  data: string
+  id: number
+}
+
 export interface SearchDataDictionary {
   select: string
   link: string
@@ -19,6 +25,7 @@ export interface SearchDataDictionary {
   pronunciation: string
   meaning: string
 }
+
 export interface DictionaryApiResponse {
   suggestions: SearchDataDictionary[] | null
 }

@@ -10,4 +10,5 @@ export interface IUser {
   fullName: string
   image?: string
   role: string
+  point: number
 }

@@ -1,8 +1,8 @@
 export interface IFlashcard {
   id: number
   collection_id: number
-  front_text: string
-  back_text: string
+  term: string
+  definition: string
   image_url?: string
   audio_url?: string
   pronunciation?: string
@@ -15,8 +15,8 @@ export interface IFlashcard {
 
 export interface ICreateFlashcardRequest {
   collection_id: number
-  front_text: string
-  back_text: string
+  term: string
+  definition: string
   image?: File
   audio?: File
 }
@@ -29,8 +29,8 @@ export interface ICreateFlashcardResponse {
 }
 
 export interface IUpdateFlashcardRequest {
-  front_text?: string
-  back_text?: string
+  term?: string
+  definition?: string
   image_url?: string
   audio_url?: string
   pronunciation?: string

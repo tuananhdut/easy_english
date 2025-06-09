@@ -64,20 +64,20 @@ const StudyQuizPage: React.FC<StudyQuizPagePropt> = ({ flashcard, collectionId, 
 
   const generateOptions = (currentFlashcard: IFlashcard, allFlashcards: IFlashcard[]) => {
     const otherFlashcards = allFlashcards.filter((f) => f.id !== currentFlashcard.id)
-    const randomOptions = otherFlashcards.map((f) => f.front_text)
+    const randomOptions = otherFlashcards.map((f) => f.term)
 
     // Add the correct answer and shuffle
-    const allOptions = [...randomOptions, currentFlashcard.front_text]
+    const allOptions = [...randomOptions, currentFlashcard.term]
     setOptions(allOptions.sort(() => Math.random() - 0.5))
   }
 
   const handleOptionSelect = (selectedValue: string) => {
     setSelectedAnswer(selectedValue)
     const currentFlashcard = flashcards[currentIndex]
-    const isAnswerCorrect = selectedValue === currentFlashcard.front_text
+    const isAnswerCorrect = selectedValue === currentFlashcard.term
 
     setIsCorrect(isAnswerCorrect)
-    setCorrectAnswer(currentFlashcard.front_text)
+    setCorrectAnswer(currentFlashcard.term)
     setShowResult(true)
 
     // Auto move to next question after a short delay
@@ -187,7 +187,7 @@ const StudyQuizPage: React.FC<StudyQuizPagePropt> = ({ flashcard, collectionId, 
                     Định nghĩa
                   </Text>
                   <Title level={2} style={{ margin: 0, color: 'white' }}>
-                    {currentFlashcard.back_text} {/* Use back_text for the definition */}
+                    {currentFlashcard.definition} {/* Use definition for the definition */}
                   </Title>
                 </div>
                 <div>

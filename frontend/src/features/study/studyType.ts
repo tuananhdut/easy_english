@@ -4,8 +4,8 @@ export interface IStartStudySessionRequest {
 
 export interface IStudyFlashcard {
   id: number
-  front_text: string
-  back_text: string
+  term: string
+  definition: string
   image_url?: string
   audio_url?: string
   pronunciation?: string

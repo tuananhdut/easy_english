@@ -10,7 +10,6 @@ export interface IConfirmShareCollectionResponse {
   id: number
   created_at: string
   updated_at: string
-  total_points: number
   permission: SharePermission
   status: 'accepted' | 'pending'
 }

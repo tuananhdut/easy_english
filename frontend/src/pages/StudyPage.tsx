@@ -57,7 +57,7 @@ const StudyPage: React.FC = () => {
     try {
       setLoading(true)
       if (status === 'introduction') {
-        const response = await checkAnswer(session.id, session.flashcards[currentIndex].front_text)
+        const response = await checkAnswer(session.id, session.flashcards[currentIndex].term)
         if (response.status === 'success' && response.data) {
           setSession(response.data.nextPhase)
           setStatus(response.data.nextPhase.status)

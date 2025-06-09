@@ -106,9 +106,9 @@ const CollectionDetailDrawer: React.FC<CollectionDetailDrawerProps> = ({ collect
                       <Space style={{ width: '100%', justifyContent: 'space-between' }}>
                         <Space>
                           <Text strong style={{ color: '#0056b3' }}>
-                            {item.front_text}:
+                            {item.term}:
                           </Text>
-                          <Text>{item.back_text}</Text>
+                          <Text>{item.definition}</Text>
                         </Space>
                         {item.audio_url && (
                           <SoundOutlined

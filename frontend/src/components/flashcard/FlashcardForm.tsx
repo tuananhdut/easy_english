@@ -2,10 +2,11 @@ import React, { useState } from 'react'
 import { Form, Input, Button, Space, Upload, message } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
 import { IFlashcard } from '../../features/flashcard/flashcardType'
+import { getSoundApi } from '../../features/dictionary/dictionaryApi'
 
 interface FormValues {
-  front_text: string
-  back_text: string
+  term: string
+  definition: string
   pronunciation?: string
 }
 
@@ -20,6 +21,61 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ initialValues, onSubmit, 
   const [form] = Form.useForm<FormValues>()
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [audioFile, setAudioFile] = useState<File | null>(null)
+  const [generatingAudio, setGeneratingAudio] = useState(false)
+
+  const handleGenerateAudio = async () => {
+    const term = form.getFieldValue('term')
+    if (!term) {
+      message.warning('Vui lòng nhập thuật ngữ trước')
+      return
+    }
+
+    try {
+      setGeneratingAudio(true)
+      const response = await getSoundApi({
+        word: term,
+        accent: 'us' // Sử dụng giọng Mỹ
+      })
+
+      console.log('API Response:', response) // Debug log
+
+      if (response.status === 'success' && response.data?.error === 0 && response.data?.data) {
+        try {
+          // Tải file audio từ URL
+          const audioResponse = await fetch(response.data.data)
+          if (!audioResponse.ok) {
+            throw new Error(`HTTP error! status: ${audioResponse.status}`)
+          }
+          const audioBlob = await audioResponse.blob()
+          console.log('Audio Blob:', audioBlob) // Debug log
+
+          // Tạo file audio từ blob
+          const audioFile = new File([audioBlob], `${term}.mp3`, {
+            type: 'audio/mpeg'
+          })
+
+          // Kiểm tra file trước khi upload
+          if (beforeAudioUpload(audioFile)) {
+            setAudioFile(audioFile)
+            message.success('Đã tạo âm thanh thành công')
+          } else {
+            message.error('File âm thanh không hợp lệ')
+          }
+        } catch (fetchError) {
+          console.error('Error fetching audio:', fetchError)
+          message.error('Không thể tải file âm thanh')
+        }
+      } else {
+        console.error('Invalid API response:', response) // Debug log
+        message.error('Không thể tạo âm thanh')
+      }
+    } catch (error) {
+      console.error('Error generating audio:', error)
+      message.error('Có lỗi xảy ra khi tạo âm thanh')
+    } finally {
+      setGeneratingAudio(false)
+    }
+  }
 
   const handleSubmit = async (values: FormValues) => {
     try {
@@ -72,11 +128,16 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ initialValues, onSubmit, 
 
   return (
     <Form form={form} layout='vertical' initialValues={initialValues} onFinish={handleSubmit}>
-      <Form.Item name='front_text' label='Thuật ngữ' rules={[{ required: true, message: 'Vui lòng nhập từ mới' }]}>
-        <Input placeholder='Nhập từ mới' size='large' />
+      <Form.Item name='term' label='Thuật ngữ' rules={[{ required: true, message: 'Vui lòng nhập từ mới' }]}>
+        <Space.Compact style={{ width: '100%' }}>
+          <Input placeholder='Nhập từ mới' size='large' />
+          <Button type='primary' size='large' loading={generatingAudio} onClick={handleGenerateAudio}>
+            Tạo âm thanh
+          </Button>
+        </Space.Compact>
       </Form.Item>
 
-      <Form.Item name='back_text' label='Định nghĩa' rules={[{ required: true, message: 'Vui lòng nhập nghĩa' }]}>
+      <Form.Item name='definition' label='Định nghĩa' rules={[{ required: true, message: 'Vui lòng nhập nghĩa' }]}>
         <Input placeholder='Nhập nghĩa của từ' size='large' />
       </Form.Item>
 

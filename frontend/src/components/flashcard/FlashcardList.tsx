@@ -8,8 +8,8 @@ import { deleteFlashcard, updateFlashcard } from '../../features/flashcard/flash
 const { Text } = Typography
 
 interface FormValues {
-  front_text: string
-  back_text: string
+  term: string
+  definition: string
   pronunciation?: string
 }
 
@@ -46,8 +46,8 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ flashcards, onFlashcardCh
       }
 
       const updateData: IUpdateFlashcardRequest = {
-        front_text: values.front_text,
-        back_text: values.back_text,
+        term: values.term,
+        definition: values.definition,
         pronunciation: values.pronunciation
       }
 
@@ -162,9 +162,9 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ flashcards, onFlashcardCh
                 }}
               >
                 <Text strong style={{ fontSize: 18, marginBottom: 8 }}>
-                  {item.front_text}
+                  {item.term}
                 </Text>
-                <Text style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>{item.back_text}</Text>
+                <Text style={{ color: '#888', fontSize: 15, textAlign: 'center' }}>{item.definition}</Text>
                 {item.audio_url && (
                   <audio
                     controls
