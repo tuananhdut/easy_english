@@ -4,7 +4,6 @@ import * as jwt from 'jsonwebtoken'
 import { ApiError } from '~/utils/ApiError'
 import { StatusCodes } from 'http-status-codes'
 import ClientRedis from '~/config/RedisClient'
-import { Leaderboard } from '~/entities/LeaderBoard'
 import { IRegisterRequest, IUserResponse, AuthResponse, UserLoginGoogle } from '~/interfaces/IUser'
 import { UserRepository } from '~/repositories/UserRepository'
 
@@ -41,11 +40,6 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(password, this.SALT_ROUNDS)
-    let leaderboard = undefined
-
-    if (!role || role === UserRole.STUDENT) {
-      leaderboard = new Leaderboard()
-    }
 
     const user = await this.userRepository.createUser({
       username,
@@ -53,8 +47,7 @@ export class AuthService {
       password: hashedPassword,
       fullName,
       role: role || UserRole.STUDENT,
-      provider: AuthProvider.LOCAL,
-      leaderboard: leaderboard ? leaderboard : undefined
+      provider: AuthProvider.LOCAL
     })
 
     const userResponse: IUserResponse = {
@@ -62,7 +55,8 @@ export class AuthService {
       email: user.email || null,
       fullName: user.fullName || null,
       image: user.image || null,
-      role: user.role
+      role: user.role,
+      point: user.point
     }
 
     const token = await this.generateToken(userResponse)
@@ -90,7 +84,8 @@ export class AuthService {
       email: user.email || null,
       fullName: user.fullName || null,
       image: user.image || null,
-      role: user.role
+      role: user.role,
+      point: user.point
     }
     const token = await this.generateToken(userResponse)
 
@@ -122,26 +117,26 @@ export class AuthService {
         email: updatedUser.email || null,
         fullName: updatedUser.fullName || null,
         image: updatedUser.image || null,
-        role: updatedUser.role
+        role: updatedUser.role,
+        point: updatedUser.point
       }
       return this.generateToken(userResponse)
     }
 
-    const leaderboard = new Leaderboard()
     const newUser = await this.userRepository.createUser({
       googleId,
       email,
       fullName: fullName ?? undefined,
       image: image ?? undefined,
-      provider: AuthProvider.GOOGLE,
-      leaderboard
+      provider: AuthProvider.GOOGLE
     })
     const userResponse: IUserResponse = {
       id: newUser.id,
       email: newUser.email || null,
       fullName: newUser.fullName || null,
       image: newUser.image || null,
-      role: newUser.role
+      role: newUser.role,
+      point: newUser.point
     }
     return this.generateToken(userResponse)
   }
@@ -157,7 +152,8 @@ export class AuthService {
       email: user.email || null,
       fullName: user.fullName || null,
       image: user.image || null,
-      role: user.role
+      role: user.role,
+      point: user.point
     }))
   }
 }

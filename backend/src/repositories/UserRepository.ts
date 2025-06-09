@@ -42,9 +42,18 @@ export class UserRepository extends BaseRepository<User> {
       fullName: newData.fullName || existingUser.fullName,
       image: newData.image || existingUser.image,
       googleId: newData.googleId || existingUser.googleId,
-      provider: newData.provider || existingUser.provider
+      provider: newData.provider || existingUser.provider,
+      point: newData.point || existingUser.point
     }
     return this.repository.save(mergedData)
+  }
+
+  async updatePoints(userId: number, points: number): Promise<User | null> {
+    const user = await this.findOneById(userId)
+    if (!user) return null
+
+    user.point = points
+    return this.repository.save(user)
   }
 
   async searchUsers(query: string): Promise<User[]> {

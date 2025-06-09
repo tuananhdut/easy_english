@@ -25,9 +25,6 @@ export class SharedCollection extends BaseEntity implements ISharedCollection {
   @ManyToOne(() => User, (user) => user.id, { nullable: false, onDelete: 'CASCADE' })
   shared_with!: User
 
-  @Column({ type: 'int', default: 0 })
-  total_points!: number
-
   @Column({
     type: 'enum',
     enum: SharePermission,

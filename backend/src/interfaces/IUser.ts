@@ -1,9 +1,7 @@
-import { Leaderboard } from '../entities/LeaderBoard'
 import { UserRole, AuthProvider } from '../entities/User'
 
 export interface IUser {
   id: number
-  leaderboard: Leaderboard
   email: string | null
   username?: string | null
   image?: string | null
@@ -11,6 +9,7 @@ export interface IUser {
   role: UserRole
   fullName?: string | null
   googleId?: string
+  point: number
   created_at: Date
   updated_at: Date
 }
@@ -24,7 +23,7 @@ export interface IUserRequest {
   role?: UserRole
   fullName?: string
   googleId?: string
-  leaderboard?: Leaderboard
+  point?: number
 }
 
 export interface IUserResponse {
@@ -33,6 +32,7 @@ export interface IUserResponse {
   fullName: string | null
   image: string | null
   role: UserRole
+  point: number
 }
 
 export interface IRegisterRequest {
@@ -41,6 +41,7 @@ export interface IRegisterRequest {
   email: string | null
   fullName?: string
   role?: UserRole
+  point?: number
 }
 
 export interface ILoginRequest {
@@ -55,6 +56,7 @@ export interface IUpdateUserRequest {
   fullName?: string
   image?: string
   role?: UserRole
+  point?: number
 }
 
 export interface IGoogleLoginRequest {

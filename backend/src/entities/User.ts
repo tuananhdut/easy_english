@@ -1,6 +1,5 @@
 import 'reflect-metadata'
-import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BeforeUpdate, OneToOne } from 'typeorm'
-import { Leaderboard } from './LeaderBoard'
+import { Entity, PrimaryGeneratedColumn, Column, BeforeInsert, BeforeUpdate } from 'typeorm'
 import { BaseEntity } from './BaseEntity'
 import { IUser } from '../interfaces/IUser'
 
@@ -19,9 +18,6 @@ export enum AuthProvider {
 export class User extends BaseEntity implements IUser {
   @PrimaryGeneratedColumn()
   id!: number
-
-  @OneToOne(() => Leaderboard, (Leaderboard) => Leaderboard.user, { cascade: true })
-  leaderboard!: Leaderboard
 
   @Column({ type: 'varchar', unique: true, nullable: true })
   email!: string | null
@@ -56,6 +52,9 @@ export class User extends BaseEntity implements IUser {
 
   @Column({ type: 'varchar', unique: true, nullable: true })
   googleId?: string
+
+  @Column({ type: 'int', default: 0 })
+  point!: number
 
   @BeforeInsert()
   @BeforeUpdate()

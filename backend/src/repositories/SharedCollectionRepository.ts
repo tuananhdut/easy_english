@@ -46,13 +46,6 @@ export class SharedCollectionRepository extends BaseRepository<SharedCollection>
     return this.findOne(id)
   }
 
-  async updatePoints(id: number, points: number): Promise<SharedCollection | null> {
-    await this.repository.update(id, {
-      total_points: points
-    })
-    return this.findOne(id)
-  }
-
   async updateStatus(id: number, status: ShareStatus): Promise<SharedCollection | null> {
     await this.repository.update(id, {
       status

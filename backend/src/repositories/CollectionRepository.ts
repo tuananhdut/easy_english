@@ -121,7 +121,6 @@ export class CollectionRepository extends BaseRepository<Collection> {
           id: true,
           permission: true,
           status: true,
-          total_points: true,
           created_at: true,
           updated_at: true
         }
