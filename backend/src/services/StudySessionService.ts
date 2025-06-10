@@ -195,7 +195,15 @@ export class StudySessionService {
     }
 
     const currentCard = session.flashcards[session.currentIndex]
-    const isCorrect = answer.toLowerCase() === currentCard.term.toLowerCase()
+    if (!currentCard || !currentCard.term) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Không tìm thấy thẻ flashcard hiện tại')
+    }
+
+    if (!answer) {
+      throw new ApiError(StatusCodes.BAD_REQUEST, 'Vui lòng nhập câu trả lời')
+    }
+
+    const isCorrect = answer.toLowerCase().trim() === currentCard.term.toLowerCase().trim()
 
     // Cập nhật trạng thái
     let newCurrentIndex = session.currentIndex
@@ -221,7 +229,6 @@ export class StudySessionService {
               flashcard
             )
             session.score += session.flashcards[session.currentIndex].score
-            console.log(' check kkkk ', session.score)
             session.flashcards = session.flashcards.filter(
               (card) => card.id !== session.flashcards[session.currentIndex].id
             )

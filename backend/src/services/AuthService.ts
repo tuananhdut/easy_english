@@ -6,6 +6,14 @@ import { StatusCodes } from 'http-status-codes'
 import ClientRedis from '~/config/RedisClient'
 import { IRegisterRequest, IUserResponse, AuthResponse, UserLoginGoogle } from '~/interfaces/IUser'
 import { UserRepository } from '~/repositories/UserRepository'
+import axios from 'axios'
+import path from 'path'
+import dotenv from 'dotenv'
+import fs from 'fs'
+dotenv.config()
+
+const UPLOAD_URL = process.env.UPLOAD_URL || '/uploads/'
+const uploadDir = path.join(process.cwd(), 'uploads')
 
 export class AuthService {
   private userRepository: UserRepository
@@ -123,13 +131,45 @@ export class AuthService {
       return this.generateToken(userResponse)
     }
 
+    let savedImageUrl: string | null = null
+    if (image) {
+      try {
+        const response = await axios.get(image, { responseType: 'arraybuffer' })
+        const contentType = response.headers['content-type']
+
+        if (contentType.startsWith('image/') && response.data.length < 5 * 1024 * 1024) {
+          const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9)
+          const ext = contentType.split('/')[1] // Lấy phần mở rộng từ content-type
+          const fileName = `avatar-${uniqueSuffix}.${ext}`
+          const avatarPath = path.join(uploadDir, fileName)
+
+          try {
+            await fs.promises.mkdir(uploadDir, { recursive: true })
+            await fs.promises.writeFile(avatarPath, response.data)
+            savedImageUrl = `${UPLOAD_URL}${fileName}`
+          } catch (error) {
+            try {
+              await fs.promises.unlink(avatarPath)
+            } catch (unlinkError) {
+              console.error('Error deleting failed image:', unlinkError)
+            }
+            throw error
+          }
+        }
+      } catch (error) {
+        console.error('Error saving Google profile image:', error)
+        savedImageUrl = null
+      }
+    }
+
     const newUser = await this.userRepository.createUser({
       googleId,
       email,
       fullName: fullName ?? undefined,
-      image: image ?? undefined,
+      image: savedImageUrl ?? undefined,
       provider: AuthProvider.GOOGLE
     })
+
     const userResponse: IUserResponse = {
       id: newUser.id,
       email: newUser.email || null,

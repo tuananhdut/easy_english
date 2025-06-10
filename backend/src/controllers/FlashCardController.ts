@@ -6,6 +6,10 @@ import { StatusCodes } from 'http-status-codes'
 import { IFlashCardRequest } from '~/interfaces/IFlashCard'
 import { User } from '~/entities/User'
 import fs from 'fs'
+import dotenv from 'dotenv'
+dotenv.config()
+
+const UPLOAD_URL = process.env.UPLOAD_URL || 'http://localhost:8080/uploads/'
 
 export class FlashCardController {
   private flashCardService: FlashCardService
@@ -74,8 +78,8 @@ export class FlashCardController {
     }
 
     try {
-      req.body.image_url = files.image?.[0]?.filename
-      req.body.audio_url = files.audio?.[0]?.filename
+      req.body.image_url = files.image?.[0]?.filename ? UPLOAD_URL + files.image?.[0]?.filename : null
+      req.body.audio_url = files.audio?.[0]?.filename ? UPLOAD_URL + files.audio?.[0].filename : null
 
       const user = req.user as User
       if (!user) {
@@ -98,8 +102,8 @@ export class FlashCardController {
     }
 
     try {
-      req.body.image_url = files.image?.[0]?.filename
-      req.body.audio_url = files.audio?.[0]?.fieldname
+      req.body.image_url = files.image?.[0]?.filename ? UPLOAD_URL + files.image?.[0]?.filename : null
+      req.body.audio_url = files.audio?.[0]?.filename ? UPLOAD_URL + files.audio?.[0].filename : null
 
       const user = req.user as User
       if (!user) {
@@ -111,7 +115,6 @@ export class FlashCardController {
       const flashCard = await this.flashCardService.updateFlashCard(Number(id), flashCardData, user)
       new ApiSuccess(flashCard, 'Cập nhật flashcard thành công').send(res)
     } catch (err) {
-      // Delete uploaded files if update fails
       this.deleteUploadedFiles(files)
       next(err)
     }
