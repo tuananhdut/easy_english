@@ -4,7 +4,6 @@ import { getFlashcardsByCollection } from '../../features/flashcard/flashcardApi
 import { IFlashcard } from '../../features/flashcard/flashcardType'
 import { ICollection } from '../../features/collecion/collectionType'
 import { BookOutlined, SoundOutlined } from '@ant-design/icons'
-const FILE_URL = import.meta.env.VITE_FILE_URL || 'http://localhost:8080/uploads/'
 const { Title, Text } = Typography
 
 interface CollectionDetailDrawerProps {
@@ -116,7 +115,7 @@ const CollectionDetailDrawer: React.FC<CollectionDetailDrawerProps> = ({ collect
                             onClick={(e) => {
                               e.stopPropagation() // Prevent card click
                               try {
-                                new Audio(FILE_URL + item.audio_url).play()
+                                new Audio(item.audio_url).play()
                               } catch (error) {
                                 console.error('Error playing audio:', error)
                                 message.error('Không thể phát âm thanh.')

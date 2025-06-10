@@ -15,9 +15,10 @@ import {
   FireOutlined
 } from '@ant-design/icons'
 import { useNavigate, useLocation } from 'react-router-dom'
-import { useAppSelector } from '../../app/hooks'
+import { useAppSelector, useAppDispatch } from '../../app/hooks'
 import { statisticsConsecutiveDays } from '../../features/statistics/statisticsApi'
 import { message } from 'antd'
+import { logout } from '../../features/auth/authSlice'
 
 // Define prop types
 interface HeaderProps {
@@ -27,6 +28,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
   const navigate = useNavigate()
+  const dispatch = useAppDispatch()
   const location = useLocation()
   const [isMobile, setIsMobile] = useState(false)
   const [drawerVisible, setDrawerVisible] = useState(false)
@@ -98,6 +100,16 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
     []
   )
 
+  const handleLogout = async () => {
+    try {
+      await dispatch(logout()).unwrap()
+      navigate('/login')
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (_error) {
+      message.error('Đăng xuất thất bại')
+    }
+  }
+
   // Define dropdown menu for user info
   const userMenu = (
     <Menu
@@ -137,7 +149,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
       <Menu.Item
         key='3'
         icon={<LogoutOutlined />}
-        onClick={() => navigate('/login')}
+        onClick={handleLogout}
         style={{ padding: '8px 16px', color: '#ff4d4f' }}
       >
         Đăng xuất
@@ -168,7 +180,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
         display: 'flex',
         alignItems: 'center',
         boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        zIndex: 1,
+        zIndex: 10,
         position: 'sticky',
         top: 0
       }}
@@ -177,7 +189,6 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
         style={{
           display: 'flex',
           alignItems: 'center',
-          width: collapsed ? '80px' : isMobile ? '0' : '200px',
           transition: 'width 0.2s',
           background: '#001529',
           height: '64px',
@@ -197,11 +208,18 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
             aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           />
         )}
-        {!collapsed && !isMobile && <h2 style={{ color: 'white', margin: 0 }}>Dashboard</h2>}
       </div>
 
       {isMobile ? (
-        <>
+        <div
+          style={{
+            flex: 1,
+            background: '#001529',
+            height: '64px',
+            lineHeight: '64px',
+            borderRight: 'none'
+          }}
+        >
           <Button
             type='text'
             icon={<MenuOutlined />}
@@ -229,7 +247,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
               style={{ height: '100%', borderRight: 0 }}
             />
           </Drawer>
-        </>
+        </div>
       ) : (
         <Menu
           theme='dark'
@@ -271,6 +289,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
               backgroundColor: '#1890ff',
               cursor: 'pointer'
             }}
+            src={user?.image}
             icon={<UserOutlined />}
           />
         </Dropdown>

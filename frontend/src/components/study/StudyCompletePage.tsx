@@ -1,7 +1,6 @@
 import React from 'react'
 import { Card, Typography, Button, Space } from 'antd'
 import { CheckCircleOutlined, HomeOutlined } from '@ant-design/icons' // Import necessary icons
-// Remove unused imports: TrophyOutlined, useEffect, Row, Col, SoundOutlined, TranslationOutlined, IStudyFlashcard, FILE_URL
 
 const { Title, Text } = Typography
 

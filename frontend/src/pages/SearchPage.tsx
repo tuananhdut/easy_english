@@ -73,9 +73,7 @@ const SearchPage: React.FC = () => {
   return (
     <div
       style={{
-        //minHeight: '100vh',
         padding: isMobile ? '16px' : '32px'
-        //background: 'linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%)'
       }}
     >
       <Card

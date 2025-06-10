@@ -39,7 +39,6 @@ const MainLayout: React.FC = () => {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      {/* Thanh navigation cố định */}
       <Header collapsed={collapsed} setCollapsed={setCollapsed} />
 
       {/* Nội dung động của các page */}

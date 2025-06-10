@@ -19,6 +19,7 @@ import EditCollectionPage from '../pages/EditCollectionPage'
 import StudyPage from '../pages/StudyPage'
 import ProfilePage from '../pages/ProfilePage'
 import ConfirmSharePage from '../pages/ConfirmSharePage'
+import LoadingSpinner from '../components/common/LoadingSpinner'
 
 const useAuthCheck = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -37,7 +38,7 @@ const useAuthCheck = () => {
           dispatch(logout())
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (error) {
+      } catch (_error) {
         dispatch(logout())
       } finally {
         setAuthChecked(true)
@@ -50,31 +51,66 @@ const useAuthCheck = () => {
   return { isAuthenticated, authChecked }
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
-const PrivateRoute = () => {
+const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, authChecked } = useAuthCheck()
 
   if (!authChecked) {
-    return <div>Loading...</div> // Thêm loading component
+    return <LoadingSpinner />
   }
 
-  return isAuthenticated ? <HomePage /> : <Navigate to='/login' replace />
+  return isAuthenticated ? <>{children}</> : <Navigate to='/login' replace />
 }
 
-// const PublicRoute = () => {
-//   const { isAuthenticated, authChecked } = useAuthCheck()
+const PublicRoute = ({ children }: { children: React.ReactNode }) => {
+  const { isAuthenticated, authChecked } = useAuthCheck()
 
-//   if (!authChecked) {
-//     return <div>Loading...</div>
-//   }
+  if (!authChecked) {
+    return <LoadingSpinner />
+  }
 
-//   return !isAuthenticated ? <LoginPage /> : <Navigate to='/dashboard' replace />
-// }
+  return !isAuthenticated ? <>{children}</> : <Navigate to='/dashboard' replace />
+}
 
 const router = createBrowserRouter([
   {
+    path: '/',
+    element: <HomePage />
+  },
+  {
+    path: '/login',
+    element: (
+      <PublicRoute>
+        <LoginPage />
+      </PublicRoute>
+    )
+  },
+  {
+    path: '/register',
+    element: (
+      <PublicRoute>
+        <RegisterPage />
+      </PublicRoute>
+    )
+  },
+  {
+    path: '/forgot-password',
+    element: (
+      <PublicRoute>
+        <ForgotPasswordPage />
+      </PublicRoute>
+    )
+  },
+  {
+    path: '/auth/google/callback',
+    element: <GoogleCallback />
+  },
+  {
     path: '/dashboard',
-    element: <MainLayout />,
+    element: (
+      <ProtectedRoute>
+        <MainLayout />
+      </ProtectedRoute>
+    ),
     children: [
       {
         index: true,
@@ -91,56 +127,60 @@ const router = createBrowserRouter([
       {
         path: 'practice',
         element: <PracticePage />
+      },
+      {
+        path: 'profile',
+        element: <ProfilePage />
       }
     ]
   },
   {
-    path: '/',
-    element: <HomePage />
-  },
-  {
-    path: '/login',
-    element: <LoginPage />
-  },
-  {
     path: '/translate',
-    element: <SearchPage />
-  },
-  {
-    path: '/register',
-    element: <RegisterPage />
-  },
-  {
-    path: '/forgot-password',
-    element: <ForgotPasswordPage />
-  },
-  {
-    path: '/auth/google/callback',
-    element: <GoogleCallback />
+    element: (
+      <ProtectedRoute>
+        <SearchPage />
+      </ProtectedRoute>
+    )
   },
   {
     path: '/create-dictionary',
-    element: <CreateDictionaryPage />
+    element: (
+      <ProtectedRoute>
+        <CreateDictionaryPage />
+      </ProtectedRoute>
+    )
   },
   {
     path: '/create-flashcard/:id',
-    element: <CreateFlashcardPage />
+    element: (
+      <ProtectedRoute>
+        <CreateFlashcardPage />
+      </ProtectedRoute>
+    )
   },
   {
     path: '/edit-collection/:id',
-    element: <EditCollectionPage />
+    element: (
+      <ProtectedRoute>
+        <EditCollectionPage />
+      </ProtectedRoute>
+    )
   },
   {
     path: '/study/:id',
-    element: <StudyPage />
-  },
-  {
-    path: 'profile',
-    element: <ProfilePage />
+    element: (
+      <ProtectedRoute>
+        <StudyPage />
+      </ProtectedRoute>
+    )
   },
   {
     path: '/confirm-share',
-    element: <ConfirmSharePage />
+    element: (
+      <ProtectedRoute>
+        <ConfirmSharePage />
+      </ProtectedRoute>
+    )
   }
 ])
 

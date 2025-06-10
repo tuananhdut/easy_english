@@ -26,8 +26,6 @@ import { IFlashcard } from '../features/flashcard/flashcardType'
 
 const { Title } = Typography
 
-const FILE_URL = import.meta.env.VITE_FILE_URL || 'http://localhost:8080/uploads/'
-
 interface ISharedUser {
   id: number
   email: string
@@ -57,8 +55,8 @@ const EditCollectionPage: React.FC = () => {
       if (response.data) {
         const flashcardsWithUrls = response.data.map((flashcard) => ({
           ...flashcard,
-          image_url: flashcard.image_url ? `${FILE_URL}${flashcard.image_url}` : undefined,
-          audio_url: flashcard.audio_url ? `${FILE_URL}${flashcard.audio_url}` : undefined
+          image_url: flashcard.image_url ? `${flashcard.image_url}` : undefined,
+          audio_url: flashcard.audio_url ? `${flashcard.audio_url}` : undefined
         }))
         setFlashcards(flashcardsWithUrls)
       }

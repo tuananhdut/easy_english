@@ -4,7 +4,6 @@ import { SoundOutlined } from '@ant-design/icons'
 import { IStudyFlashcard } from '../../features/study/studyType'
 
 const { Title, Text } = Typography
-const FILE_URL = import.meta.env.VITE_FILE_URL || 'http://localhost:8080/uploads/'
 const CORRECT_SOUND_URL = '/path/to/your/correct/sound.mp3' // **REPLACE WITH YOUR ACTUAL SOUND FILE URL**
 
 interface TestTypingPageProps {
@@ -20,7 +19,7 @@ const StudyTypingPage: React.FC<TestTypingPageProps> = ({ flashcard, onNext }) =
   useEffect(() => {
     // Auto play audio when flashcard data is available
     if (flashcard.audio_url) {
-      const audio = new Audio(FILE_URL + flashcard.audio_url)
+      const audio = new Audio(flashcard.audio_url)
       audio.play().catch((error) => {
         console.error('Error playing audio:', error)
         // Handle potential errors like user gesture requirements for autoplay
@@ -105,7 +104,7 @@ const StudyTypingPage: React.FC<TestTypingPageProps> = ({ flashcard, onNext }) =
               zIndex: 10 // Ensure it's above other content
             }}
             onClick={() => {
-              const audio = new Audio(FILE_URL + flashcard.audio_url)
+              const audio = new Audio(flashcard.audio_url)
               audio.play()
             }}
           >
@@ -141,7 +140,7 @@ const StudyTypingPage: React.FC<TestTypingPageProps> = ({ flashcard, onNext }) =
                 }}
               >
                 <img
-                  src={FILE_URL + flashcard.image_url}
+                  src={flashcard.image_url}
                   alt='flashcard'
                   style={{
                     maxWidth: '100%', // Ensure image fits container

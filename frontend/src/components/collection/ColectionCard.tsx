@@ -299,7 +299,7 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
           </Space>
         </div>
         <Card.Meta
-          avatar={<Avatar icon={<UserOutlined />} />}
+          avatar={<Avatar src={collection.owner?.image} icon={<UserOutlined />} />}
           title={
             <Space>
               {collection.name}

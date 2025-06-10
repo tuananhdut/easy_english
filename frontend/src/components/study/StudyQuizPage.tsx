@@ -7,7 +7,6 @@ import { IStudyFlashcard } from '../../features/study/studyType'
 import { getRandomFlashcards } from '../../features/flashcard/flashcardApi'
 
 const { Title, Text } = Typography
-const FILE_URL = import.meta.env.VITE_FILE_URL || 'http://localhost:8080/uploads/'
 
 interface StudyQuizPagePropt {
   flashcard: IStudyFlashcard
@@ -31,13 +30,13 @@ const StudyQuizPage: React.FC<StudyQuizPagePropt> = ({ flashcard, collectionId, 
   useEffect(() => {
     // Auto play audio when the current flashcard or its audio URL changes
     if (flashcards.length > 0 && flashcards[currentIndex]?.audio_url) {
-      const audio = new Audio(FILE_URL + flashcards[currentIndex].audio_url)
+      const audio = new Audio(flashcards[currentIndex].audio_url)
       audio.play().catch((error) => {
         console.error('Error playing audio on Quiz Page:', error)
         // Handle potential errors like user gesture requirements for autoplay
       })
     }
-  }, [flashcards, currentIndex, FILE_URL]) // Re-run effect when flashcards, currentIndex, or FILE_URL changes
+  }, [flashcards, currentIndex]) // Re-run effect when flashcards, currentIndex
 
   // lấy
   const fetchFlashcards = async () => {
@@ -167,7 +166,7 @@ const StudyQuizPage: React.FC<StudyQuizPagePropt> = ({ flashcard, collectionId, 
                     }}
                   >
                     <img
-                      src={FILE_URL + currentFlashcard.image_url}
+                      src={currentFlashcard.image_url}
                       alt='flashcard'
                       style={{
                         maxWidth: '100%', // Ensure image fits container

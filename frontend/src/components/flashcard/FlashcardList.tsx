@@ -34,21 +34,26 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ flashcards, onFlashcardCh
     setIsModalVisible(false)
   }
 
-  const handleFormSubmit = async (values: FormValues) => {
+  const handleFormSubmit = async (values: FormValues, imageFile: File | null, audioFile: File | null) => {
     if (editingIndex === null) return
 
     try {
       setLoading(true)
       const flashcard = flashcards[editingIndex]
       if (!flashcard.id) {
-        message.error('Không thể chỉnh sửa flashcard chưa được lưu!')
+        api.error({
+          message: 'Chỉnh sửa Flashcard thất bại',
+          description: 'Không thể chỉnh sửa flashcard chưa được lưu!'
+        })
         return
       }
 
       const updateData: IUpdateFlashcardRequest = {
         term: values.term,
         definition: values.definition,
-        pronunciation: values.pronunciation
+        pronunciation: values.pronunciation || undefined,
+        image: imageFile || undefined,
+        audio: audioFile || undefined
       }
 
       const response = await updateFlashcard(flashcard.id, updateData)
@@ -61,11 +66,17 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ flashcards, onFlashcardCh
         onFlashcardChange()
         handleModalClose()
       } else {
-        message.error(response.message || 'Cập nhật flashcard thất bại!')
+        api.error({
+          message: 'Cập nhật Flashcard thất bại',
+          description: response.message || 'Cập nhật flashcard thất bại!'
+        })
       }
     } catch (error) {
       console.error('Error updating flashcard:', error)
-      message.error('Có lỗi xảy ra khi cập nhật flashcard!')
+      api.error({
+        message: 'Cập nhật Flashcard thất bại',
+        description: 'Có lỗi xảy ra khi cập nhật flashcard!'
+      })
     } finally {
       setLoading(false)
     }

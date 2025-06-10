@@ -1,12 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react'
-import { Layout, Button, Space, Typography, Card, Row, Col, Avatar, Spin, List, Radio } from 'antd'
+import { Layout, Button, Space, Typography, Card, Row, Col, Avatar, Spin, List, Radio, notification } from 'antd'
 import { UserOutlined, BookOutlined } from '@ant-design/icons'
 import Chart from 'chart.js/auto'
 import { useNavigate } from 'react-router-dom'
 import { useAppSelector } from '../app/hooks'
 import { statisticsLearning, statisticsMonthlyLearning } from '../features/statistics/statisticsApi'
 import { IStatisticsData } from '../features/statistics/statisticsType'
-import { message } from 'antd'
 
 interface ICollection {
   id: string
@@ -30,6 +29,7 @@ const MainPage: React.FC = () => {
   const chartRef = useRef<HTMLCanvasElement>(null)
   const chartInstance = useRef<Chart | null>(null)
   const [loadingStats, setLoadingStats] = useState(false)
+  const [api, contextHolder] = notification.useNotification()
 
   useEffect(() => {
     const fetchRecentCollections = async () => {
@@ -44,6 +44,10 @@ const MainPage: React.FC = () => {
     }
     fetchRecentCollections()
   }, [])
+  useEffect(() => {
+    fetchStatistics()
+  }, [])
+
   const fetchStatistics = async () => {
     try {
       setLoadingStats(true)
@@ -54,20 +58,17 @@ const MainPage: React.FC = () => {
       } else {
         setStatistics([])
       }
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error) {
-      console.error('Error fetching statistics:', error)
-      message.error('Không thể tải dữ liệu thống kê')
+      api.error({
+        message: 'Thống kê dữ liệu thất bại',
+        description: 'Không thể tải dữ liệu thống kê'
+      })
       setStatistics([])
     } finally {
       setLoadingStats(false)
     }
   }
-  // Effect to fetch statistics data
-  useEffect(() => {
-    fetchStatistics()
-  }, [])
-
-  // Effect to render chart
   useEffect(() => {
     if (chartRef.current && statistics.length > 0) {
       if (chartInstance.current) {
@@ -192,12 +193,11 @@ const MainPage: React.FC = () => {
 
   return (
     <Layout style={{ minHeight: '100vh' }}>
+      {contextHolder}
       <Content style={{ padding: '12px', background: 'linear-gradient(135deg, #e0f7fa 0%, #b2ebf2 100%)' }}>
         <div style={{ maxWidth: '1400px', margin: '0 auto' }}>
           <Row gutter={[24, 24]}>
-            {/* Left Column for Welcome and Statistics */}
             <Col xs={24} lg={16}>
-              {/* Welcome Section */}
               <Card style={{ marginBottom: '24px' }}>
                 <Row align='middle' gutter={24}>
                   <Col>
@@ -296,7 +296,7 @@ const MainPage: React.FC = () => {
                   <Col span={24}>
                     <Card size='small' title='Từ vựng mới'>
                       <Space direction='vertical' style={{ width: '100%' }}>
-                        <Text>Bạn đã học X từ mới hôm nay</Text>
+                        <Text>Bạn đã học {statistics[statistics.length - 1]?.count || 0} từ mới hôm nay</Text>
                         <Button type='link'>Xem chi tiết</Button>
                       </Space>
                     </Card>

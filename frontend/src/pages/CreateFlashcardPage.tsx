@@ -8,7 +8,6 @@ import FlashcardList from '../components/flashcard/FlashcardList'
 import FlashcardForm from '../components/flashcard/FlashcardForm'
 
 const { Title } = Typography
-const FILE_URL = import.meta.env.VITE_FILE_URL || 'http://localhost:8080/uploads/'
 
 interface FlashcardFormValues {
   term: string
@@ -29,8 +28,8 @@ const CreateFlashcardPage: React.FC = () => {
       if (response.data) {
         const flashcardsWithUrls = response.data.map((flashcard) => ({
           ...flashcard,
-          image_url: flashcard.image_url ? `${FILE_URL}${flashcard.image_url}` : undefined,
-          audio_url: flashcard.audio_url ? `${FILE_URL}${flashcard.audio_url}` : undefined
+          image_url: flashcard.image_url ? `${flashcard.image_url}` : undefined,
+          audio_url: flashcard.audio_url ? `${flashcard.audio_url}` : undefined
         }))
         setFlashcards(flashcardsWithUrls)
       }
@@ -71,7 +70,7 @@ const CreateFlashcardPage: React.FC = () => {
         message: 'Thêm flashcard thất bại',
         description: 'Có lỗi xảy ra khi thêm flashcard'
       })
-      throw error // Re-throw để FlashcardForm có thể xử lý
+      throw error
     } finally {
       setLoading(false)
     }

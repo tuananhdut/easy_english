@@ -24,7 +24,19 @@ export const createFlashcard = async (data: ICreateFlashcardRequest): Promise<IA
 }
 
 export const updateFlashcard = async (id: number, data: IUpdateFlashcardRequest): Promise<IApiResponse<IFlashcard>> => {
-  const response = await apiClient.put(`/flashcards/${id}`, data)
+  const formData = new FormData()
+
+  if (data.term) formData.append('term', data.term)
+  if (data.definition) formData.append('definition', data.definition)
+  if (data.pronunciation) formData.append('pronunciation', data.pronunciation)
+  if (data.image) formData.append('image', data.image)
+  if (data.audio) formData.append('audio', data.audio)
+
+  const response = await apiClient.put(`/flashcards/${id}`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data'
+    }
+  })
   return response.data
 }
 //test

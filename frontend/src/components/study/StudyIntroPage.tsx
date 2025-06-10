@@ -4,7 +4,6 @@ import { SoundOutlined, TranslationOutlined } from '@ant-design/icons'
 import { IStudyFlashcard } from '../../features/study/studyType'
 
 const { Title, Text } = Typography
-const FILE_URL = import.meta.env.VITE_FILE_URL || 'http://localhost:8080/uploads/'
 
 interface StudyIntroPageProps {
   flashcard: IStudyFlashcard
@@ -14,7 +13,7 @@ interface StudyIntroPageProps {
 const StudyIntroPage: React.FC<StudyIntroPageProps> = ({ flashcard, onNext }) => {
   useEffect(() => {
     if (flashcard.audio_url) {
-      const audio = new Audio(FILE_URL + flashcard.audio_url)
+      const audio = new Audio(flashcard.audio_url)
       audio.play().catch((error) => {
         console.error('Error playing audio:', error)
       })
@@ -64,7 +63,7 @@ const StudyIntroPage: React.FC<StudyIntroPageProps> = ({ flashcard, onNext }) =>
               zIndex: 10
             }}
             onClick={() => {
-              const audio = new Audio(FILE_URL + flashcard.audio_url)
+              const audio = new Audio(flashcard.audio_url)
               audio.play()
             }}
           >
@@ -95,7 +94,7 @@ const StudyIntroPage: React.FC<StudyIntroPageProps> = ({ flashcard, onNext }) =>
                 }}
               >
                 <img
-                  src={FILE_URL + flashcard.image_url}
+                  src={flashcard.image_url}
                   alt='flashcard'
                   style={{
                     maxWidth: '100%',

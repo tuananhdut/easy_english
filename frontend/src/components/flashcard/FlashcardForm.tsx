@@ -1,8 +1,7 @@
-import React, { useState } from 'react'
-import { Form, Input, Button, Space, Upload, message } from 'antd'
+import React, { useState, useEffect } from 'react'
+import { Form, Input, Button, Space, Upload, notification } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
 import { IFlashcard } from '../../features/flashcard/flashcardType'
-import { getSoundApi } from '../../features/dictionary/dictionaryApi'
 
 interface FormValues {
   term: string
@@ -21,83 +20,54 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ initialValues, onSubmit, 
   const [form] = Form.useForm<FormValues>()
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [audioFile, setAudioFile] = useState<File | null>(null)
-  const [generatingAudio, setGeneratingAudio] = useState(false)
+  const [api, contextHolder] = notification.useNotification()
 
-  const handleGenerateAudio = async () => {
-    const term = form.getFieldValue('term')
-    if (!term) {
-      message.warning('Vui lòng nhập thuật ngữ trước')
-      return
-    }
-
-    try {
-      setGeneratingAudio(true)
-      const response = await getSoundApi({
-        word: term,
-        accent: 'us' // Sử dụng giọng Mỹ
-      })
-
-      console.log('API Response:', response) // Debug log
-
-      if (response.status === 'success' && response.data?.error === 0 && response.data?.data) {
-        try {
-          // Tải file audio từ URL
-          const audioResponse = await fetch(response.data.data)
-          if (!audioResponse.ok) {
-            throw new Error(`HTTP error! status: ${audioResponse.status}`)
-          }
-          const audioBlob = await audioResponse.blob()
-          console.log('Audio Blob:', audioBlob) // Debug log
-
-          // Tạo file audio từ blob
-          const audioFile = new File([audioBlob], `${term}.mp3`, {
-            type: 'audio/mpeg'
-          })
-
-          // Kiểm tra file trước khi upload
-          if (beforeAudioUpload(audioFile)) {
-            setAudioFile(audioFile)
-            message.success('Đã tạo âm thanh thành công')
-          } else {
-            message.error('File âm thanh không hợp lệ')
-          }
-        } catch (fetchError) {
-          console.error('Error fetching audio:', fetchError)
-          message.error('Không thể tải file âm thanh')
-        }
-      } else {
-        console.error('Invalid API response:', response) // Debug log
-        message.error('Không thể tạo âm thanh')
+  // Reset form when initialValues changes
+  useEffect(() => {
+    if (initialValues) {
+      const formValues = {
+        term: initialValues.term || '',
+        definition: initialValues.definition || '',
+        pronunciation: initialValues.pronunciation || ''
       }
-    } catch (error) {
-      console.error('Error generating audio:', error)
-      message.error('Có lỗi xảy ra khi tạo âm thanh')
-    } finally {
-      setGeneratingAudio(false)
+      form.setFieldsValue(formValues)
+    } else {
+      form.resetFields()
     }
-  }
+  }, [initialValues, form])
 
   const handleSubmit = async (values: FormValues) => {
     try {
       await onSubmit(values, imageFile, audioFile)
-      form.resetFields()
-      setImageFile(null)
-      setAudioFile(null)
+      if (!initialValues) {
+        form.resetFields()
+        setImageFile(null)
+        setAudioFile(null)
+      }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      message.error('Có lỗi xảy ra khi thêm flashcard')
+    } catch (error: unknown) {
+      api.error({
+        message: 'Thêm Flashcard thất bại',
+        description: 'Có lỗi xảy ra khi thêm flashcard!'
+      })
     }
   }
 
   const beforeImageUpload = (file: File) => {
     const isImage = file.type.startsWith('image/')
     if (!isImage) {
-      message.error('Chỉ chấp nhận file ảnh!')
+      api.error({
+        message: 'Tải ảnh thất bại',
+        description: 'Chỉ chấp nhận file ảnh!'
+      })
       return false
     }
     const isLt2M = file.size / 1024 / 1024 < 2
     if (!isLt2M) {
-      message.error('Ảnh phải nhỏ hơn 2MB!')
+      api.error({
+        message: 'Tải ảnh thất bại',
+        description: 'Ảnh phải nhỏ hơn 2MB!'
+      })
       return false
     }
     setImageFile(file)
@@ -107,12 +77,18 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ initialValues, onSubmit, 
   const beforeAudioUpload = (file: File) => {
     const isAudio = file.type.startsWith('audio/')
     if (!isAudio) {
-      message.error('Chỉ chấp nhận file âm thanh!')
+      api.error({
+        message: 'Tải âm thanh thất bại',
+        description: 'Chỉ chấp nhận file âm thanh!'
+      })
       return false
     }
     const isLt5M = file.size / 1024 / 1024 < 5
     if (!isLt5M) {
-      message.error('File âm thanh phải nhỏ hơn 5MB!')
+      api.error({
+        message: 'Tải âm thanh thất bại',
+        description: 'File âm thanh phải nhỏ hơn 5MB!'
+      })
       return false
     }
     setAudioFile(file)
@@ -127,14 +103,23 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ initialValues, onSubmit, 
   }
 
   return (
-    <Form form={form} layout='vertical' initialValues={initialValues} onFinish={handleSubmit}>
+    <Form
+      form={form}
+      layout='vertical'
+      onFinish={handleSubmit}
+      initialValues={
+        initialValues
+          ? {
+              term: initialValues.term || '',
+              definition: initialValues.definition || '',
+              pronunciation: initialValues.pronunciation || ''
+            }
+          : undefined
+      }
+    >
+      {contextHolder}
       <Form.Item name='term' label='Thuật ngữ' rules={[{ required: true, message: 'Vui lòng nhập từ mới' }]}>
-        <Space.Compact style={{ width: '100%' }}>
-          <Input placeholder='Nhập từ mới' size='large' />
-          <Button type='primary' size='large' loading={generatingAudio} onClick={handleGenerateAudio}>
-            Tạo âm thanh
-          </Button>
-        </Space.Compact>
+        <Input placeholder='Nhập từ mới' size='large' />
       </Form.Item>
 
       <Form.Item name='definition' label='Định nghĩa' rules={[{ required: true, message: 'Vui lòng nhập nghĩa' }]}>
@@ -152,7 +137,11 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ initialValues, onSubmit, 
           beforeUpload={beforeImageUpload}
           onRemove={() => setImageFile(null)}
           fileList={
-            imageFile ? [{ uid: '-1', name: imageFile.name, status: 'done', url: URL.createObjectURL(imageFile) }] : []
+            imageFile
+              ? [{ uid: '-1', name: imageFile.name, status: 'done', url: URL.createObjectURL(imageFile) }]
+              : initialValues?.image_url
+                ? [{ uid: '-1', name: 'current-image', status: 'done', url: initialValues.image_url }]
+                : []
           }
         >
           <Button icon={<UploadOutlined />}>Chọn hình ảnh</Button>
@@ -164,12 +153,24 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ initialValues, onSubmit, 
           maxCount={1}
           beforeUpload={beforeAudioUpload}
           onRemove={() => setAudioFile(null)}
-          fileList={audioFile ? [{ uid: '-1', name: audioFile.name, status: 'done' }] : []}
+          fileList={
+            audioFile
+              ? [{ uid: '-1', name: audioFile.name, status: 'done' }]
+              : initialValues?.audio_url
+                ? [{ uid: '-1', name: 'current-audio', status: 'done' }]
+                : []
+          }
           accept='audio/*'
         >
           <Button icon={<UploadOutlined />}>Chọn file âm thanh</Button>
         </Upload>
-        {audioFile && <audio controls src={URL.createObjectURL(audioFile)} style={{ marginTop: 8, width: '100%' }} />}
+        {(audioFile || initialValues?.audio_url) && (
+          <audio
+            controls
+            src={audioFile ? URL.createObjectURL(audioFile) : initialValues?.audio_url}
+            style={{ marginTop: 8, width: '100%' }}
+          />
+        )}
       </Form.Item>
 
       <Form.Item>
@@ -178,7 +179,7 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ initialValues, onSubmit, 
             Hủy
           </Button>
           <Button type='primary' htmlType='submit' loading={loading} size='large'>
-            Lưu
+            {initialValues ? 'Cập nhật' : 'Lưu'}
           </Button>
         </Space>
       </Form.Item>

@@ -69,10 +69,10 @@ const DictionaryForm: React.FC<DictionaryFormProps> = ({ mode, initialData, onSu
           </Form.Item>
         </Col>
         <Col xs={24} md={12}>
-          <Form.Item label='Ngôn ngữ nguồn' name='source_language' rules={[{ required: true }]}>
+          <Form.Item label='Ngôn ngữ của bạn' name='source_language' rules={[{ required: true }]}>
             <Select options={languageOptions} size='large' disabled={disableLanguages} />
           </Form.Item>
-          <Form.Item label='Ngôn ngữ đích' name='target_language' rules={[{ required: true }]}>
+          <Form.Item label='Ngôn ngữ đang học' name='target_language' rules={[{ required: true }]}>
             <Select options={languageOptions} size='large' disabled={disableLanguages} />
           </Form.Item>
           <Form.Item label='Độ khó' name='level' rules={[{ required: true }]}>
