@@ -48,7 +48,7 @@ export class FlashCardRepository extends BaseRepository<Flashcard> {
           .map((value) => ({ value, sort: Math.random() }))
           .sort((a, b) => a.sort - b.sort)
           .map(({ value }) => value.id)
-          .slice(0, 4)
+          .slice(0, 3)
       })
       .getMany()
 
@@ -78,10 +78,10 @@ export class FlashCardRepository extends BaseRepository<Flashcard> {
       .getMany()
   }
 
-  async findFirstFlashcards(collection: Collection, limit: number): Promise<Flashcard[]> {
+  async findFirstFlashcards(collection: Collection, limit: number, userId: number): Promise<Flashcard[]> {
     return this.repository
       .createQueryBuilder('flashcard')
-      .leftJoinAndSelect('flashcard.userProgress', 'userProgress')
+      .leftJoinAndSelect('flashcard.userProgress', 'userProgress', 'userProgress.userId = :userId', { userId })
       .where('flashcard.collection = :collectionId', { collectionId: collection.id })
       .andWhere('userProgress.id IS NULL')
       .orderBy('flashcard.created_at', 'ASC')

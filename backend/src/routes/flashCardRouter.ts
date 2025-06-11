@@ -27,7 +27,7 @@ router.put(
 )
 router.delete('/:id', flashCardController.deleteFlashCard)
 router.get('/collection/:collectionId', flashCardController.getFlashCardsByCollection)
-router.get('/collection/:collectionId/random', flashCardController.getRandomFlashCards)
+router.get('/collection/:collectionId/random/:excludeId', flashCardController.getRandomFlashCards)
 router.get('/suggest', flashCardController.getSuggestFlashCards)
 
 export default router

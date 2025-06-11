@@ -1,12 +1,12 @@
 import {
   Entity,
-  PrimaryGeneratedColumn,
   Column,
   ManyToOne,
   CreateDateColumn,
   BaseEntity,
   JoinColumn,
-  UpdateDateColumn
+  UpdateDateColumn,
+  PrimaryColumn
 } from 'typeorm'
 import { User } from './User'
 import { Collection } from './Collection'
@@ -19,10 +19,13 @@ export enum Phase {
   COMPLETED = 'completed'
 }
 
-@Entity('study_sessions')
+@Entity('study_sessions', { orderBy: { userId: 'ASC', collectionId: 'ASC' } })
 export class StudySession extends BaseEntity implements IStudySession {
-  @PrimaryGeneratedColumn()
-  id!: number
+  @PrimaryColumn('int')
+  userId!: number
+
+  @PrimaryColumn('int')
+  collectionId!: number
 
   @ManyToOne(() => User)
   @JoinColumn({ name: 'userId' })
@@ -31,14 +34,6 @@ export class StudySession extends BaseEntity implements IStudySession {
   @ManyToOne(() => Collection)
   @JoinColumn({ name: 'collectionId' })
   collection!: Collection
-
-  get userId(): number {
-    return this.user.id
-  }
-
-  get collectionId(): number {
-    return this.collection.id
-  }
 
   @Column('json', { default: '[]' })
   flashcards!: IFlashcardStudy[]

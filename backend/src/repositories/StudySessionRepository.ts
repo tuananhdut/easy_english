@@ -10,6 +10,8 @@ export class StudySessionRepository extends BaseRepository<StudySession> {
 
   async createSession(user: User, collection: Collection): Promise<StudySession> {
     const session = this.repository.create({
+      userId: user.id,
+      collectionId: collection.id,
       user,
       collection,
       currentIndex: 0,
@@ -26,16 +28,19 @@ export class StudySessionRepository extends BaseRepository<StudySession> {
   async findActiveSession(user: User, collection: Collection): Promise<StudySession | null> {
     return this.repository.findOne({
       where: {
-        user: { id: user.id },
-        collection: { id: collection.id }
+        userId: user.id,
+        collectionId: collection.id
       },
       relations: ['user', 'collection']
     })
   }
 
-  async findOne(id: number): Promise<StudySession | null> {
+  async findOneSesstion(userId: number, collectionId: number): Promise<StudySession | null> {
     const session = await this.repository.findOne({
-      where: { id },
+      where: {
+        userId,
+        collectionId
+      },
       relations: ['user', 'collection']
     })
 
@@ -50,17 +55,18 @@ export class StudySessionRepository extends BaseRepository<StudySession> {
   }
 
   async updateSessionProgress(
-    id: number,
+    userId: number,
+    collectionId: number,
     data: {
       currentIndex?: number
       status?: Phase
       score?: number
     }
   ): Promise<StudySession> {
-    await this.repository.update(id, data)
+    await this.repository.update({ userId, collectionId }, data)
     const session = await this.repository.findOneOrFail({
-      where: { id }
-      //relations: ['user', 'collection'],
+      where: { userId, collectionId },
+      relations: ['user', 'collection']
     })
 
     // Parse flashcards từ JSON string nếu cần
@@ -69,5 +75,35 @@ export class StudySessionRepository extends BaseRepository<StudySession> {
     }
 
     return session
+  }
+
+  async findScoresByCollection(
+    collectionId: number,
+    page: number,
+    limit: number
+  ): Promise<{ sessions: StudySession[]; total: number }> {
+    const [sessions, total] = await this.repository.findAndCount({
+      where: { collectionId },
+      relations: ['user'],
+      order: { score: 'DESC' },
+      skip: (page - 1) * limit,
+      take: limit
+    })
+    return { sessions, total }
+  }
+
+  async findUserRank(collectionId: number, userId: number): Promise<number> {
+    const result = await this.repository
+      .createQueryBuilder('session')
+      .where('session.collectionId = :collectionId', { collectionId })
+      .andWhere(
+        'session.score > (SELECT score FROM study_sessions WHERE userId = :userId AND collectionId = :collectionId)',
+        {
+          userId,
+          collectionId
+        }
+      )
+      .getCount()
+    return result + 1
   }
 }

@@ -22,17 +22,49 @@ export class StudySessionService {
     this.userProgressRepository = new UserProgressRepository()
   }
 
-  private transformToResponse(session: StudySession): IStudySession {
+  private async mapingFlashcardToFlashcadStudy(flashcards: IFlashcardStudy[]): Promise<IFlashcardStudy[]> {
+    const mappedFlashcards = await Promise.all(
+      flashcards.map(async (flashcard) => {
+        const dbFlashcard = await this.flashCardRepository.findOne(flashcard.id)
+        if (!dbFlashcard) {
+          throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy thẻ flashcard')
+        }
+        return {
+          id: dbFlashcard.id,
+          collection: dbFlashcard.collection,
+          term: dbFlashcard.term,
+          definition: dbFlashcard.definition,
+          image_url: dbFlashcard.image_url,
+          audio_url: dbFlashcard.audio_url,
+          pronunciation: dbFlashcard.pronunciation,
+          is_private: dbFlashcard.is_private,
+          source_language: dbFlashcard.source_language,
+          target_language: dbFlashcard.target_language,
+          created_at: dbFlashcard.created_at,
+          updated_at: dbFlashcard.updated_at,
+          intro: flashcard.intro,
+          quiz: flashcard.quiz,
+          typing: flashcard.typing,
+          score: flashcard.score
+        }
+      })
+    )
+    return mappedFlashcards
+  }
+
+  private async transformToResponse(session: StudySession): Promise<IStudySession> {
+    const mappedFlashcards = await this.mapingFlashcardToFlashcadStudy(session.flashcards)
     return {
-      id: session.id,
       userId: session.userId,
       collectionId: session.collectionId,
-      flashcards: session.flashcards,
+      flashcards: mappedFlashcards,
       currentIndex: session.currentIndex,
       status: session.status,
       score: session.score,
       startTime: session.startTime,
-      endTime: session.endTime
+      endTime: session.endTime,
+      created_at: session.created_at,
+      updated_at: session.updated_at
     }
   }
 
@@ -94,13 +126,12 @@ export class StudySessionService {
     if (!isOwner && !hasAccess) {
       throw new ApiError(StatusCodes.FORBIDDEN, 'Bạn không có quyền truy cập vào bộ thẻ này')
     }
-
     let activeSession = await this.studySessionRepository.findActiveSession(user, collection)
-    if (activeSession && activeSession.flashcards.length != 0) {
+    if (activeSession && activeSession.flashcards.length > 0) {
       return this.transformToResponse(activeSession)
     }
 
-    const flashcards = await this.flashCardRepository.findFirstFlashcards(collection, 4)
+    const flashcards = await this.flashCardRepository.findFirstFlashcards(collection, 4, user.id)
     if (flashcards.length < 4) {
       throw new ApiError(StatusCodes.BAD_REQUEST, 'Không có đủ thẻ để học')
     }
@@ -136,8 +167,8 @@ export class StudySessionService {
     return this.transformToResponse(activeSession)
   }
 
-  async nextPhase(sessionId: number, user: User): Promise<IStudySession> {
-    const session = await this.studySessionRepository.findOne(sessionId)
+  async nextPhase(userId: number, collectionId: number, user: User): Promise<IStudySession> {
+    const session = await this.studySessionRepository.findOneSesstion(userId, collectionId)
     if (!session) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy phiên học')
     }
@@ -147,7 +178,7 @@ export class StudySessionService {
     }
 
     // Cập nhật session
-    const updatedSession = await this.studySessionRepository.updateSessionProgress(sessionId, {
+    const updatedSession = await this.studySessionRepository.updateSessionProgress(userId, collectionId, {
       currentIndex: 0
     })
 
@@ -168,7 +199,7 @@ export class StudySessionService {
     // Cập nhật status để phản ánh trạng thái của flashcard hiện tại
     const currentCard = updatedSession.flashcards[updatedSession.currentIndex]
     if (currentCard) {
-      await this.studySessionRepository.updateSessionProgress(sessionId, {
+      await this.studySessionRepository.updateSessionProgress(userId, collectionId, {
         status: this.getCurrentPhase(currentCard)
       })
     }
@@ -177,7 +208,8 @@ export class StudySessionService {
   }
 
   async checkAnswer(
-    sessionId: number,
+    userId: number,
+    collectionId: number,
     user: User,
     answer: string
   ): Promise<{
@@ -185,7 +217,7 @@ export class StudySessionService {
     correctAnswer: string
     nextPhase?: IStudySession
   }> {
-    const session = await this.studySessionRepository.findOne(sessionId)
+    const session = await this.studySessionRepository.findOneSesstion(userId, collectionId)
     if (!session) {
       throw new ApiError(StatusCodes.NOT_FOUND, 'Không tìm thấy phiên học')
     }
@@ -228,7 +260,7 @@ export class StudySessionService {
               user,
               flashcard
             )
-            session.score += session.flashcards[session.currentIndex].score
+            session.score = session.score + session.flashcards[session.currentIndex].score
             session.flashcards = session.flashcards.filter(
               (card) => card.id !== session.flashcards[session.currentIndex].id
             )
@@ -239,6 +271,7 @@ export class StudySessionService {
         newCurrentIndex = this.getRandomIndex(session.currentIndex, session.flashcards.length)
         session.status = this.getCurrentPhase(session.flashcards[newCurrentIndex])
       } else {
+        session.flashcards = []
         newCurrentIndex = -1
         session.status = Phase.COMPLETED
       }
@@ -252,13 +285,12 @@ export class StudySessionService {
           intro: false
         }
         session.flashcards[session.currentIndex] = updatedCard
-        // Reset status về INTRO khi trả lời sai
         session.status = Phase.INTRO
       }
     }
 
     // Cập nhật session với trạng thái mới
-    const updatedSession = await this.studySessionRepository.updateSessionProgress(sessionId, {
+    let updatedSession = await this.studySessionRepository.updateSessionProgress(userId, collectionId, {
       currentIndex: newCurrentIndex,
       status: session.status,
       score: session.score
@@ -267,13 +299,54 @@ export class StudySessionService {
     // Cập nhật flashcards trong session
     if (updatedSession.flashcards) {
       updatedSession.flashcards = session.flashcards
-      await this.studySessionRepository.save(updatedSession)
     }
-
+    updatedSession = await this.studySessionRepository.save(updatedSession)
     return {
       isCorrect,
       correctAnswer: currentCard.term,
       nextPhase: updatedSession
     }
+  }
+
+  async getPaginatedScores(
+    collectionId: number,
+    page: number,
+    limit: number,
+    currentUser: User
+  ): Promise<{
+    scores: Array<{ userId: number; fullname: string; score: number; rank: number }>
+    total: number
+    currentUserRank?: number
+  }> {
+    const { sessions, total } = await this.studySessionRepository.findScoresByCollection(collectionId, page, limit)
+
+    const scores = sessions.map((session, index) => ({
+      userId: session.userId,
+      fullname: session.user.fullName || '',
+      score: session.score,
+      rank: (page - 1) * limit + index + 1
+    }))
+
+    // Kiểm tra xem người dùng hiện tại có trong danh sách không
+    const currentUserInList = scores.some((score) => score.userId === currentUser.id)
+
+    // Nếu người dùng không có trong danh sách, lấy rank của họ
+    let currentUserRank
+    if (!currentUserInList) {
+      currentUserRank = await this.studySessionRepository.findUserRank(collectionId, currentUser.id)
+
+      // Nếu người dùng có điểm, thêm vào cuối danh sách
+      const currentUserSession = await this.studySessionRepository.findOneSesstion(currentUser.id, collectionId)
+      if (currentUserSession) {
+        scores.push({
+          userId: currentUser.id,
+          fullname: currentUser.fullName || '',
+          score: currentUserSession.score,
+          rank: currentUserRank
+        })
+      }
+    }
+
+    return { scores, total, currentUserRank }
   }
 }

@@ -157,10 +157,9 @@ export class FlashCardController {
         throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
       }
 
-      const { collectionId } = req.params
-      const includeId = req.query.includeId ? Number(req.query.includeId) : undefined
+      const { collectionId, excludeId } = req.params
 
-      const flashCards = await this.flashCardService.getRandomFlashCards(Number(collectionId), user, includeId)
+      const flashCards = await this.flashCardService.getRandomFlashCards(Number(collectionId), user, Number(excludeId))
       new ApiSuccess(flashCards, 'Lấy danh sách flashcard ngẫu nhiên thành công').send(res)
     } catch (err) {
       next(err)

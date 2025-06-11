@@ -2,7 +2,6 @@ import { Phase } from '~/entities/StudySession'
 import { IFlashCard } from './IFlashCard'
 
 export interface IStudySession {
-  id: number
   userId: number
   collectionId: number
   flashcards: IFlashcardStudy[]
@@ -11,6 +10,8 @@ export interface IStudySession {
   score: number
   startTime: Date
   endTime?: Date
+  created_at: Date
+  updated_at: Date
 }
 
 export interface IFlashcardStudy extends IFlashCard {
