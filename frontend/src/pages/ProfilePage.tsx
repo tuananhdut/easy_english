@@ -5,7 +5,6 @@ import {
   BookOutlined,
   ClockCircleOutlined,
   CheckCircleOutlined,
-  TrophyOutlined,
   FireOutlined,
   UploadOutlined,
   ArrowLeftOutlined
@@ -15,6 +14,7 @@ import { useSelector } from 'react-redux'
 import { RootState } from '../app/store'
 import { ICollection } from '../features/collecion/collectionType'
 import { getOwnCollections } from '../features/collecion/collectionApi'
+import { statisticsConsecutiveDays } from '../features/statistics/statisticsApi'
 import CollectionCard from '../components/collection/ColectionCard'
 import type { UploadProps } from 'antd'
 
@@ -26,14 +26,22 @@ const ProfilePage: React.FC = () => {
   const navigate = useNavigate()
   const user = useSelector((state: RootState) => state.auth.user)
   const [streakDays, setStreakDays] = useState(0)
-  const [totalPoints, setTotalPoints] = useState(0)
 
   useEffect(() => {
     fetchCollections()
-    // TODO: Fetch streak days and total points from API
-    setStreakDays(5) // Mock data
-    setTotalPoints(1250) // Mock data
+    fetchStatistics()
   }, [])
+
+  const fetchStatistics = async () => {
+    try {
+      const response = await statisticsConsecutiveDays()
+      if (response.status === 'success' && response.data) {
+        setStreakDays(response.data.consecutiveDays)
+      }
+    } catch (error) {
+      console.error('Error fetching statistics:', error)
+    }
+  }
 
   const fetchCollections = async () => {
     try {
@@ -114,9 +122,6 @@ const ProfilePage: React.FC = () => {
             </Col>
             <Col span={6}>
               <Statistic title='Cần ôn tập' value={reviewWords} prefix={<ClockCircleOutlined />} />
-            </Col>
-            <Col span={6}>
-              <Statistic title='Điểm số' value={totalPoints} prefix={<TrophyOutlined />} />
             </Col>
           </Row>
         </Card>

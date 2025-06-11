@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { message, Layout, Row, Col, Card, Typography, Space, Avatar, List, Spin, Button } from 'antd'
 import { TrophyOutlined, LeftOutlined } from '@ant-design/icons'
-import { startStudySession, checkAnswer } from '../features/study/studyApi'
+import { startStudySession, checkAnswer, getPaginatedScores } from '../features/study/studyApi'
 import { IStudySession, IStudyFlashcard } from '../features/study/studyType'
 import StudyIntroPage from '../components/study/StudyIntroPage'
 import StudyQuizPage from '../components/study/StudyQuizPage'
@@ -19,18 +19,32 @@ const StudyPage: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0)
   const [status, setStatus] = useState('introduction')
   const [collectionid, setCollectionid] = useState(0)
-
-  const leaderboardData = [
-    { id: 1, name: 'Người chơi A', score: 500 },
-    { id: 2, name: 'Người chơi B', score: 450 },
-    { id: 3, name: 'Người chơi C', score: 400 },
-    { id: 4, name: 'Người chơi D', score: 350 },
-    { id: 5, name: 'Người chơi E', score: 300 }
-  ]
+  const [leaderboardData, setLeaderboardData] = useState<
+    Array<{ userId: number; fullname: string; score: number; rank: number }>
+  >([])
+  const [currentUserRank, setCurrentUserRank] = useState<number | undefined>()
 
   useEffect(() => {
     startSession()
   }, [collectionId])
+
+  useEffect(() => {
+    if (collectionid) {
+      fetchLeaderboard()
+    }
+  }, [collectionid])
+
+  const fetchLeaderboard = async () => {
+    try {
+      const response = await getPaginatedScores(collectionid)
+      if (response.status === 'success' && response.data) {
+        setLeaderboardData(response.data.scores)
+        setCurrentUserRank(response.data.currentUserRank)
+      }
+    } catch (err) {
+      console.error('Error fetching leaderboard:', err)
+    }
+  }
 
   const startSession = async () => {
     try {
@@ -52,12 +66,12 @@ const StudyPage: React.FC = () => {
   }
 
   const handleNext = async (value: string = '') => {
-    if (!session) return
+    if (!session || !collectionId) return
 
     try {
       setLoading(true)
       if (status === 'introduction') {
-        const response = await checkAnswer(session.id, session.flashcards[currentIndex].term)
+        const response = await checkAnswer(Number(collectionId), session.flashcards[currentIndex].term)
         if (response.status === 'success' && response.data) {
           setSession(response.data.nextPhase)
           setStatus(response.data.nextPhase.status)
@@ -65,7 +79,7 @@ const StudyPage: React.FC = () => {
         }
       }
       if (status === 'quiz') {
-        const response = await checkAnswer(session.id, value)
+        const response = await checkAnswer(Number(collectionId), value)
         if (response.status === 'success' && response.data) {
           setSession(response.data.nextPhase)
           setStatus(response.data.nextPhase.status)
@@ -73,7 +87,7 @@ const StudyPage: React.FC = () => {
         }
       }
       if (status === 'typing') {
-        const response = await checkAnswer(session.id, value)
+        const response = await checkAnswer(Number(collectionId), value)
         if (response.status === 'success' && response.data) {
           setSession(response.data.nextPhase)
           setStatus(response.data.nextPhase.status)
@@ -187,13 +201,18 @@ const StudyPage: React.FC = () => {
                     }}
                   >
                     <List.Item.Meta
-                      avatar={<Avatar style={{ background: '#1890ff' }}>{index + 1}</Avatar>}
-                      title={<Text style={{ color: 'white', fontWeight: 'bold' }}>{item.name}</Text>}
+                      avatar={<Avatar style={{ background: '#1890ff' }}>{item.rank}</Avatar>}
+                      title={<Text style={{ color: 'white', fontWeight: 'bold' }}>{item.fullname}</Text>}
                       description={<Text style={{ color: '#b0b0b0' }}>{item.score} điểm</Text>}
                     />
                   </List.Item>
                 )}
               />
+              {currentUserRank && !leaderboardData.some((item) => item.rank === currentUserRank) && (
+                <div style={{ marginTop: '12px', paddingTop: '12px', borderTop: '1px solid #4a5670' }}>
+                  <Text style={{ color: '#b0b0b0' }}>Vị trí của bạn: {currentUserRank}</Text>
+                </div>
+              )}
             </Card>
           </Col>
         </Row>

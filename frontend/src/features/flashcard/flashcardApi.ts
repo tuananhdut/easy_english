@@ -55,8 +55,7 @@ export const getRandomFlashcards = async (
   collectionId: number,
   excludeId?: number
 ): Promise<IApiResponse<IFlashcard[]>> => {
-  const response = await apiClient.get(
-    `/flashcards/collection/${collectionId}/random${excludeId ? `?excludeId=${excludeId}` : ''}`
-  )
+  const url = `/flashcards/collection/${collectionId}/random${excludeId ? `/${excludeId}` : ''}`
+  const response = await apiClient.get(url)
   return response.data
 }

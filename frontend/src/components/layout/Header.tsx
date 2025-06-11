@@ -132,7 +132,7 @@ const Header: React.FC<HeaderProps> = ({ collapsed, setCollapsed }) => {
       <Menu.Item
         key='1'
         icon={<ProfileOutlined />}
-        onClick={() => navigate('/profile')}
+        onClick={() => navigate('/dashboard/profile')}
         style={{ padding: '8px 16px' }}
       >
         Thông tin cá nhân

@@ -22,23 +22,21 @@ const StudyQuizPage: React.FC<StudyQuizPagePropt> = ({ flashcard, collectionId, 
   const [isCorrect, setIsCorrect] = useState(false)
   const [correctAnswer, setCorrectAnswer] = useState('')
   const [options, setOptions] = useState<string[]>([])
-
+  console.log('check 0- quiz', flashcard)
   useEffect(() => {
     fetchFlashcards()
   }, [flashcard, collectionId]) // Add dependencies
 
   useEffect(() => {
-    // Auto play audio when the current flashcard or its audio URL changes
-    if (flashcards.length > 0 && flashcards[currentIndex]?.audio_url) {
-      const audio = new Audio(flashcards[currentIndex].audio_url)
+    if (flashcards.length > 0 && flashcard.audio_url) {
+      const audio = new Audio(flashcard.audio_url)
       audio.play().catch((error) => {
         console.error('Error playing audio on Quiz Page:', error)
         // Handle potential errors like user gesture requirements for autoplay
       })
     }
-  }, [flashcards, currentIndex]) // Re-run effect when flashcards, currentIndex
+  }, [flashcard])
 
-  // lấy
   const fetchFlashcards = async () => {
     try {
       const response = await getRandomFlashcards(collectionId, flashcard.id)
@@ -47,13 +45,13 @@ const StudyQuizPage: React.FC<StudyQuizPagePropt> = ({ flashcard, collectionId, 
         setFlashcards(newFlashcards)
 
         if (newFlashcards.length > 0) {
-          for (let i = 0; i < newFlashcards.length; i++) {
-            if (newFlashcards[i].id === flashcard.id) {
-              setCurrentIndex(i)
-              generateOptions(newFlashcards[i], newFlashcards)
-              break
-            }
+          const currentFlashcardIndex = newFlashcards.findIndex((f) => f.id === flashcard.id)
+          if (currentFlashcardIndex !== -1) {
+            setCurrentIndex(currentFlashcardIndex)
           }
+
+          const optionsList = newFlashcards.map((f) => f.term)
+          setOptions(optionsList)
         }
       }
     } catch (err) {
@@ -61,18 +59,9 @@ const StudyQuizPage: React.FC<StudyQuizPagePropt> = ({ flashcard, collectionId, 
     }
   }
 
-  const generateOptions = (currentFlashcard: IFlashcard, allFlashcards: IFlashcard[]) => {
-    const otherFlashcards = allFlashcards.filter((f) => f.id !== currentFlashcard.id)
-    const randomOptions = otherFlashcards.map((f) => f.term)
-
-    // Add the correct answer and shuffle
-    const allOptions = [...randomOptions, currentFlashcard.term]
-    setOptions(allOptions.sort(() => Math.random() - 0.5))
-  }
-
   const handleOptionSelect = (selectedValue: string) => {
     setSelectedAnswer(selectedValue)
-    const currentFlashcard = flashcards[currentIndex]
+    const currentFlashcard = flashcard
     const isAnswerCorrect = selectedValue === currentFlashcard.term
 
     setIsCorrect(isAnswerCorrect)
