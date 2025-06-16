@@ -3,3 +3,6 @@ data
 temp
 model
 __pycache__
+
+data_crawl
+*wav
