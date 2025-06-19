@@ -144,7 +144,7 @@ export class CollectionRepository extends BaseRepository<Collection> {
 
     const [collections, total] = await this.repository.findAndCount({
       where: { owner: { id: owner.id } },
-      relations: ['owner'],
+      relations: ['owner', 'sharedCollections'],
       select: {
         id: true,
         name: true,

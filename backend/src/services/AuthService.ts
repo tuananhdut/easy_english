@@ -116,7 +116,7 @@ export class AuthService {
       const updatedUser = await this.userRepository.mergeUserData(existingUser, {
         googleId,
         fullName: existingUser.fullName || fullName,
-        image: existingUser.image || image,
+        image: existingUser.image ? existingUser.image : image,
         provider: AuthProvider.GOOGLE
       })
 

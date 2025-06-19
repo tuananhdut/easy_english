@@ -78,8 +78,13 @@ export class FlashCardController {
     }
 
     try {
+      const { audio_url } = req.body
+      if (audio_url) {
+        req.body.audio_url = audio_url
+      } else {
+        req.body.audio_url = files.audio?.[0]?.filename ? UPLOAD_URL + files.audio?.[0].filename : null
+      }
       req.body.image_url = files.image?.[0]?.filename ? UPLOAD_URL + files.image?.[0]?.filename : null
-      req.body.audio_url = files.audio?.[0]?.filename ? UPLOAD_URL + files.audio?.[0].filename : null
 
       const user = req.user as User
       if (!user) {
@@ -102,8 +107,14 @@ export class FlashCardController {
     }
 
     try {
+      const { audio_url } = req.body
+      if (audio_url) {
+        req.body.audio_url = audio_url
+      } else {
+        req.body.audio_url = files.audio?.[0]?.filename ? UPLOAD_URL + files.audio?.[0].filename : null
+      }
+      console.log(audio_url)
       req.body.image_url = files.image?.[0]?.filename ? UPLOAD_URL + files.image?.[0]?.filename : null
-      req.body.audio_url = files.audio?.[0]?.filename ? UPLOAD_URL + files.audio?.[0].filename : null
 
       const user = req.user as User
       if (!user) {

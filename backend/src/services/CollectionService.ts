@@ -94,7 +94,8 @@ export class CollectionService {
     const collection = await this.collectionRepository.findOneWithOptions({
       where: { id },
       relations: {
-        owner: true
+        owner: true,
+        sharedCollections: true
       }
     })
     if (!collection) {
