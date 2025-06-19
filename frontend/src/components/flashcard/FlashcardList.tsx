@@ -34,7 +34,12 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ flashcards, onFlashcardCh
     setIsModalVisible(false)
   }
 
-  const handleFormSubmit = async (values: FormValues, imageFile: File | null, audioFile: File | null) => {
+  const handleFormSubmit = async (
+    values: FormValues,
+    imageFile: File | null,
+    audioFile: File | null,
+    audio_url: string | null
+  ) => {
     if (editingIndex === null) return
 
     try {
@@ -53,7 +58,8 @@ const FlashcardList: React.FC<FlashcardListProps> = ({ flashcards, onFlashcardCh
         definition: values.definition,
         pronunciation: values.pronunciation || undefined,
         image: imageFile || undefined,
-        audio: audioFile || undefined
+        audio: audioFile || undefined,
+        audio_url: audio_url || undefined
       }
 
       const response = await updateFlashcard(flashcard.id, updateData)

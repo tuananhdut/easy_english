@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react'
 import { Form, Input, Button, Space, Upload, notification } from 'antd'
 import { UploadOutlined } from '@ant-design/icons'
 import { IFlashcard } from '../../features/flashcard/flashcardType'
+import { getSoundApi } from '../../features/dictionary/dictionaryApi'
+import { SoundParams } from '../../features/dictionary/dictionarytypes'
 
 interface FormValues {
   term: string
@@ -11,7 +13,7 @@ interface FormValues {
 
 interface FlashcardFormProps {
   initialValues?: Partial<IFlashcard>
-  onSubmit: (values: FormValues, imageFile: File | null, audioFile: File | null) => void
+  onSubmit: (values: FormValues, imageFile: File | null, audioFile: File | null, audio_url: string | null) => void
   onCancel: () => void
   loading?: boolean
 }
@@ -20,6 +22,8 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ initialValues, onSubmit, 
   const [form] = Form.useForm<FormValues>()
   const [imageFile, setImageFile] = useState<File | null>(null)
   const [audioFile, setAudioFile] = useState<File | null>(null)
+  const [audioUrl, setAudioUrl] = useState<string | null>(null)
+  const [generatingAudio, setGeneratingAudio] = useState(false)
   const [api, contextHolder] = notification.useNotification()
 
   // Reset form when initialValues changes
@@ -31,18 +35,21 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ initialValues, onSubmit, 
         pronunciation: initialValues.pronunciation || ''
       }
       form.setFieldsValue(formValues)
+      setAudioUrl(initialValues.audio_url || null)
     } else {
       form.resetFields()
+      setAudioUrl(null)
     }
   }, [initialValues, form])
 
   const handleSubmit = async (values: FormValues) => {
     try {
-      await onSubmit(values, imageFile, audioFile)
+      await onSubmit(values, imageFile, audioFile, audioUrl)
       if (!initialValues) {
         form.resetFields()
         setImageFile(null)
         setAudioFile(null)
+        setAudioUrl(null)
       }
       // eslint-disable-next-line @typescript-eslint/no-unused-vars
     } catch (error: unknown) {
@@ -99,7 +106,47 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ initialValues, onSubmit, 
     form.resetFields()
     setImageFile(null)
     setAudioFile(null)
+    setAudioUrl(null)
     onCancel()
+  }
+
+  const handleGenerateAudio = async () => {
+    const term = form.getFieldValue('term')
+    if (!term) {
+      api.error({
+        message: 'Tạo âm thanh thất bại',
+        description: 'Vui lòng nhập từ mới trước!'
+      })
+      return
+    }
+
+    try {
+      setGeneratingAudio(true)
+      const params: SoundParams = {
+        word: term,
+        accent: 'us'
+      }
+      const response = await getSoundApi(params)
+      if (response.status === 'success' && response.data.error === 0 && response.data) {
+        setAudioUrl(response.data.data)
+        api.success({
+          message: 'Tạo âm thanh thành công',
+          description: 'Đã tạo âm thanh cho từ mới!'
+        })
+      } else {
+        api.error({
+          message: 'Tạo âm thanh thất bại',
+          description: 'Không tìm được phát âm của từ này!'
+        })
+      }
+    } catch {
+      api.error({
+        message: 'Tạo âm thanh thất bại',
+        description: 'Có lỗi xảy ra khi tạo âm thanh!'
+      })
+    } finally {
+      setGeneratingAudio(false)
+    }
   }
 
   return (
@@ -149,26 +196,34 @@ const FlashcardForm: React.FC<FlashcardFormProps> = ({ initialValues, onSubmit, 
       </Form.Item>
 
       <Form.Item label='Âm thanh'>
-        <Upload
-          maxCount={1}
-          beforeUpload={beforeAudioUpload}
-          onRemove={() => setAudioFile(null)}
-          fileList={
-            audioFile
-              ? [{ uid: '-1', name: audioFile.name, status: 'done' }]
-              : initialValues?.audio_url
-                ? [{ uid: '-1', name: 'current-audio', status: 'done' }]
-                : []
-          }
-          accept='audio/*'
-        >
-          <Button icon={<UploadOutlined />}>Chọn file âm thanh</Button>
-        </Upload>
+        <Space>
+          <Upload
+            maxCount={1}
+            beforeUpload={beforeAudioUpload}
+            onRemove={() => {
+              setAudioFile(null)
+              setAudioUrl(null)
+            }}
+            fileList={
+              audioFile
+                ? [{ uid: '-1', name: audioFile.name, status: 'done' }]
+                : initialValues?.audio_url
+                  ? [{ uid: '-1', name: 'current-audio', status: 'done' }]
+                  : []
+            }
+            accept='audio/*'
+          >
+            <Button icon={<UploadOutlined />}>Chọn file âm thanh</Button>
+          </Upload>
+          <Button type='primary' onClick={handleGenerateAudio} loading={generatingAudio}>
+            Tạo âm thanh
+          </Button>
+        </Space>
 
-        {(audioFile || initialValues?.audio_url) && (
+        {(audioFile || audioUrl || initialValues?.audio_url) && (
           <audio
             controls
-            src={audioFile ? URL.createObjectURL(audioFile) : initialValues?.audio_url}
+            src={audioFile ? URL.createObjectURL(audioFile) : audioUrl || initialValues?.audio_url}
             style={{ marginTop: 8, width: '100%' }}
           />
         )}

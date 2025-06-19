@@ -19,6 +19,7 @@ export interface ICreateFlashcardRequest {
   definition: string
   image?: File
   audio?: File
+  audio_url?: string
 }
 //test
 
@@ -34,6 +35,7 @@ export interface IUpdateFlashcardRequest {
   image?: File
   audio?: File
   pronunciation?: string
+  audio_url?: string
 }
 
 export interface IUpdateFlashcardResponse {

@@ -45,30 +45,30 @@ const MainPage: React.FC = () => {
     fetchRecentCollections()
   }, [])
   useEffect(() => {
-    fetchStatistics()
-  }, [])
+    const fetchStatistics = async () => {
+      try {
+        setLoadingStats(true)
+        const response = timeRange === 'week' ? await statisticsLearning() : await statisticsMonthlyLearning()
 
-  const fetchStatistics = async () => {
-    try {
-      setLoadingStats(true)
-      const response = timeRange === 'week' ? await statisticsLearning() : await statisticsMonthlyLearning()
-
-      if (response.status === 'success') {
-        setStatistics(response.data)
-      } else {
+        if (response.status === 'success') {
+          setStatistics(response.data)
+        } else {
+          setStatistics([])
+        }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      } catch (error) {
+        api.error({
+          message: 'Thống kê dữ liệu thất bại',
+          description: 'Không thể tải dữ liệu thống kê'
+        })
         setStatistics([])
+      } finally {
+        setLoadingStats(false)
       }
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    } catch (error) {
-      api.error({
-        message: 'Thống kê dữ liệu thất bại',
-        description: 'Không thể tải dữ liệu thống kê'
-      })
-      setStatistics([])
-    } finally {
-      setLoadingStats(false)
     }
-  }
+    fetchStatistics()
+  }, [timeRange])
+
   useEffect(() => {
     if (chartRef.current && statistics.length > 0) {
       if (chartInstance.current) {

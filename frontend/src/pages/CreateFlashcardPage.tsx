@@ -43,7 +43,12 @@ const CreateFlashcardPage: React.FC = () => {
     fetchFlashcards()
   }, [collectionId])
 
-  const handleAdd = async (values: FlashcardFormValues, imageFile: File | null, audioFile: File | null) => {
+  const handleAdd = async (
+    values: FlashcardFormValues,
+    imageFile: File | null,
+    audioFile: File | null,
+    audio_url: string | null
+  ) => {
     try {
       setLoading(true)
       const flashcardData: ICreateFlashcardRequest = {
@@ -51,7 +56,8 @@ const CreateFlashcardPage: React.FC = () => {
         term: values.term,
         definition: values.definition,
         image: imageFile || undefined,
-        audio: audioFile || undefined
+        audio: audioFile || undefined,
+        audio_url: audio_url || undefined
       }
 
       const response = await createFlashcard(flashcardData)

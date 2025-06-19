@@ -29,22 +29,21 @@ const StudyPage: React.FC = () => {
   }, [collectionId])
 
   useEffect(() => {
+    const fetchLeaderboard = async () => {
+      try {
+        const response = await getPaginatedScores(collectionid)
+        if (response.status === 'success' && response.data) {
+          setLeaderboardData(response.data.scores)
+          setCurrentUserRank(response.data.currentUserRank)
+        }
+      } catch (err) {
+        console.error('Error fetching leaderboard:', err)
+      }
+    }
     if (collectionid) {
       fetchLeaderboard()
     }
   }, [collectionid])
-
-  const fetchLeaderboard = async () => {
-    try {
-      const response = await getPaginatedScores(collectionid)
-      if (response.status === 'success' && response.data) {
-        setLeaderboardData(response.data.scores)
-        setCurrentUserRank(response.data.currentUserRank)
-      }
-    } catch (err) {
-      console.error('Error fetching leaderboard:', err)
-    }
-  }
 
   const startSession = async () => {
     try {

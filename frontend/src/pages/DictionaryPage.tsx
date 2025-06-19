@@ -223,7 +223,7 @@ const DictionaryPage: React.FC = () => {
                               category: 'Từ vựng',
                               source_language: collection.source_language,
                               target_language: collection.target_language,
-                              sharedUsersCount: 0,
+                              sharedUsersCount: collection.sharedUsersCount,
                               owner: {
                                 id: collection.owner.id,
                                 fullName: collection.owner.fullName || collection.owner.email || 'Unknown',
@@ -292,7 +292,7 @@ const DictionaryPage: React.FC = () => {
                               category: 'Từ vựng',
                               source_language: collection.source_language,
                               target_language: collection.target_language,
-                              sharedUsersCount: 0,
+                              sharedUsersCount: collection.sharedUsersCount,
                               owner: {
                                 id: collection.owner.id,
                                 fullName: collection.owner.fullName || collection.owner.email || 'Unknown',

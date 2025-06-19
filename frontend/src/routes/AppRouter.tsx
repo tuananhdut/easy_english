@@ -1,4 +1,4 @@
-import { createBrowserRouter, RouterProvider, Navigate } from 'react-router-dom'
+import { createBrowserRouter, RouterProvider, Navigate, useNavigate } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { RootState, AppDispatch } from '../app/store'
 import LoginPage from '../pages/LoginPage'
@@ -20,11 +20,13 @@ import StudyPage from '../pages/StudyPage'
 import ProfilePage from '../pages/ProfilePage'
 import ConfirmSharePage from '../pages/ConfirmSharePage'
 import LoadingSpinner from '../components/common/LoadingSpinner'
+import AudioRecognitionPage from '../pages/AudioRecognitionPage'
 
 const useAuthCheck = () => {
   const dispatch = useDispatch<AppDispatch>()
   const isAuthenticated = useSelector((state: RootState) => state.auth.isAuthenticated)
   const [authChecked, setAuthChecked] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const checkAuth = async () => {
@@ -32,14 +34,20 @@ const useAuthCheck = () => {
         const token = localStorage.getItem('token')
         if (token) {
           if (!isAuthenticated) {
-            await dispatch(me())
+            const resultAction = await dispatch(me())
+            if (me.rejected.match(resultAction)) {
+              dispatch(logout())
+              navigate('/login', { replace: true })
+            }
           }
         } else {
           dispatch(logout())
+          navigate('/login', { replace: true })
         }
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (_error) {
         dispatch(logout())
+        navigate('/login', { replace: true })
       } finally {
         setAuthChecked(true)
       }
@@ -181,6 +189,10 @@ const router = createBrowserRouter([
         <ConfirmSharePage />
       </ProtectedRoute>
     )
+  },
+  {
+    path: '/recognize',
+    element: <AudioRecognitionPage />
   }
 ])
 

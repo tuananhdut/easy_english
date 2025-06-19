@@ -7,6 +7,7 @@ export const createFlashcard = async (data: ICreateFlashcardRequest): Promise<IA
   formData.append('collection_id', data.collection_id.toString())
   formData.append('term', data.term)
   formData.append('definition', data.definition)
+  if (data.audio_url) formData.append('audio_url', data.audio_url)
 
   if (data.image) {
     formData.append('image', data.image)
@@ -31,6 +32,7 @@ export const updateFlashcard = async (id: number, data: IUpdateFlashcardRequest)
   if (data.pronunciation) formData.append('pronunciation', data.pronunciation)
   if (data.image) formData.append('image', data.image)
   if (data.audio) formData.append('audio', data.audio)
+  if (data.audio_url) formData.append('audio_url', data.audio_url)
 
   const response = await apiClient.put(`/flashcards/${id}`, formData, {
     headers: {
