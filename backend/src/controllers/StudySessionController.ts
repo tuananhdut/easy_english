@@ -96,4 +96,36 @@ export class StudySessionController {
       next(err)
     }
   }
+
+  public async startReviewSession(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.user as User
+      if (!user) throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
+
+      const { collectionId } = req.body
+      if (!collectionId) throw new ApiError(StatusCodes.BAD_REQUEST, 'Collection ID is required')
+
+      const session = await this.studySessionService.startReviewSession(user, collectionId)
+      new ApiSuccess(session, 'Started review session successfully').send(res)
+    } catch (err) {
+      next(err)
+    }
+  }
+
+  public async checkReviewAnswer(req: Request, res: Response, next: NextFunction): Promise<void> {
+    try {
+      const user = req.user as User
+      if (!user) throw new ApiError(StatusCodes.UNAUTHORIZED, 'Unauthorized')
+
+      const { collectionId } = req.params
+      const { answer } = req.body
+      if (!collectionId) throw new ApiError(StatusCodes.BAD_REQUEST, 'Collection ID is required')
+      if (!answer) throw new ApiError(StatusCodes.BAD_REQUEST, 'Answer is required')
+
+      const result = await this.studySessionService.checkReviewAnswer(user.id, Number(collectionId), user, answer)
+      new ApiSuccess(result, 'Checked review answer successfully').send(res)
+    } catch (err) {
+      next(err)
+    }
+  }
 }

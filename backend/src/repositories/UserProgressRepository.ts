@@ -10,10 +10,10 @@ export class UserProgressRepository extends BaseRepository<UserProgress> {
     super(UserProgress)
   }
 
-  async findByUserAndFlashcard(user: User, flashcard: Flashcard): Promise<UserProgress | null> {
+  async findByUserAndFlashcard(userId: number, flashcardId: number): Promise<UserProgress | null> {
     return this.repository.findOne({
-      where: { user, flashcard },
-      relations: ['user', 'flashcard']
+      where: { user: { id: userId }, flashcard: { id: flashcardId } },
+      relations: ['flashcard']
     })
   }
 
@@ -54,5 +54,18 @@ export class UserProgressRepository extends BaseRepository<UserProgress> {
       ...data
     })
     return this.findOne(id)
+  }
+
+  async findDueProgressByUserAndCollection(user: User, collectionId: number, limit: number): Promise<UserProgress[]> {
+    const now = new Date()
+    return this.repository.find({
+      where: {
+        user,
+        next_review: LessThanOrEqual(now),
+        flashcard: { collection: { id: collectionId } }
+      },
+      relations: ['flashcard'],
+      take: limit
+    })
   }
 }

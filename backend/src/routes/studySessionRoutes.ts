@@ -12,6 +12,12 @@ router.get(
   authMiddleware,
   studySessionController.getPaginatedScores.bind(studySessionController)
 )
+router.post('/review/start', authMiddleware, studySessionController.startReviewSession.bind(studySessionController))
+router.post(
+  '/review/:collectionId/check',
+  authMiddleware,
+  studySessionController.checkReviewAnswer.bind(studySessionController)
+)
 //router.post('/:sessionId/complete', authMiddleware, studySessionController.completeSession.bind(studySessionController))
 
 export default router

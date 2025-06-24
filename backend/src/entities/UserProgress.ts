@@ -19,7 +19,7 @@ export class UserProgress extends BaseEntity implements IUserProgress {
   @Column({ type: 'int', default: 1 })
   study_count!: number // Số lần đã ôn tập flashcard này
 
-  @Column({ type: 'float', default: 2.5 })
+  @Column({ type: 'float', default: 1.3 })
   ease_factor!: number // Hệ số dễ dàng (công thức SM-2)
 
   @Column({ type: 'timestamp', nullable: true })

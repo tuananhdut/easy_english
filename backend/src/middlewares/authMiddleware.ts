@@ -39,7 +39,8 @@ export const authMiddleware = async (req: Request, res: Response, next: NextFunc
       email: user.email || null,
       fullName: user.fullName || null,
       image: user.image || null,
-      role: user.role
+      role: user.role,
+      point: user.point
     }
     req.user = userResponse
     return next()

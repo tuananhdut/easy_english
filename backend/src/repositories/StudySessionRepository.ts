@@ -41,7 +41,7 @@ export class StudySessionRepository extends BaseRepository<StudySession> {
         userId,
         collectionId
       },
-      relations: ['user', 'collection']
+      relations: []
     })
 
     if (session) {
@@ -66,7 +66,7 @@ export class StudySessionRepository extends BaseRepository<StudySession> {
     await this.repository.update({ userId, collectionId }, data)
     const session = await this.repository.findOneOrFail({
       where: { userId, collectionId },
-      relations: ['user', 'collection']
+      relations: []
     })
 
     // Parse flashcards từ JSON string nếu cần
