@@ -122,7 +122,12 @@ const DictionaryPage: React.FC = () => {
   }
 
   const handleReview = (collectionId: number) => {
-    message.success(`Đánh giá bộ sưu tập ID: ${collectionId}`)
+    try {
+      navigate(`/review/${collectionId}`)
+    } catch (error) {
+      console.error('Error starting study session:', error)
+      message.error('Có lỗi xảy ra khi bắt đầu phiên ôn tập')
+    }
   }
 
   const renderOption = (suggestion: SearchDataDictionary) => ({

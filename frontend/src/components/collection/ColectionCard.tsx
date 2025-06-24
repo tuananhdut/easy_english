@@ -120,6 +120,8 @@ const CollectionCard: React.FC<CollectionCardProps> = ({
     e.stopPropagation()
     if (onReview) {
       onReview(collection.id)
+    } else {
+      navigate(`/review/${collection.id}`)
     }
   }
 

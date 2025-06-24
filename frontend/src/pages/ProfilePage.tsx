@@ -66,7 +66,7 @@ const ProfilePage: React.FC = () => {
   }
 
   const handleReview = (collectionId: number) => {
-    navigate(`/study/${collectionId}?mode=review`)
+    navigate(`/review/${collectionId}`)
   }
 
   const handleAvatarUpload: UploadProps['onChange'] = async (info) => {

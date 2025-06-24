@@ -21,6 +21,7 @@ import ProfilePage from '../pages/ProfilePage'
 import ConfirmSharePage from '../pages/ConfirmSharePage'
 import LoadingSpinner from '../components/common/LoadingSpinner'
 import AudioRecognitionPage from '../pages/AudioRecognitionPage'
+import ReviewPage from '../pages/ReviewPage'
 
 const useAuthCheck = () => {
   const dispatch = useDispatch<AppDispatch>()
@@ -193,6 +194,10 @@ const router = createBrowserRouter([
   {
     path: '/recognize',
     element: <AudioRecognitionPage />
+  },
+  {
+    path: '/review/:id',
+    element: <ReviewPage />
   }
 ])
 

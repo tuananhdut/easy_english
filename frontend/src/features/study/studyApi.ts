@@ -36,4 +36,17 @@ export const nextPhase = async (collectionId: number): Promise<IApiResponse<IStu
   const response = await apiClient.post(`/study-sessions/${collectionId}/next-phase`)
   return response.data
 }
+
+export const startReviewSession = async (data: IStartStudySessionRequest): Promise<IApiResponse<IStudySession>> => {
+  const response = await apiClient.post('/study-sessions/review/start', data)
+  return response.data
+}
+
+export const checkReviewAnswer = async (
+  collectionId: number,
+  answer: string
+): Promise<IApiResponse<ICheckAnswerResponse>> => {
+  const response = await apiClient.post(`/study-sessions/review/${collectionId}/check`, { answer })
+  return response.data
+}
 /// tect
